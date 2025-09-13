@@ -1,0 +1,472 @@
+// Variables
+$primary-color: #3b82f6;
+$primary-dark: #1d4ed8;
+$text-dark: #1f2937;
+$text-light: #6b7280;
+$bg-light: #f9fafb;
+$white: #ffffff;
+$border-light: #e5e7eb;
+$shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+// Reset and base styles
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.about-page {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+  color: $text-dark;
+  background: $white;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+// Header Styles
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: $white;
+  border-bottom: 1px solid $border-light;
+  box-shadow: $shadow;
+}
+
+// Main Content
+.main-content {
+  flex: 1;
+  padding-bottom: 2rem; // Space for footer
+}
+
+// Common Section Styles
+.section-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: $text-dark;
+  text-align: center;
+  margin-bottom: 1rem;
+  letter-spacing: -0.025em;
+}
+
+.section-subtitle {
+  font-size: 1.125rem;
+  color: $text-light;
+  text-align: center;
+  margin-bottom: 3rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.section-description {
+  font-size: 1.125rem;
+  color: $text-light;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+// Button Styles
+.btn {
+  padding: 0.875rem 1.75rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  
+  &.btn-primary {
+    background: $primary-color;
+    color: $white;
+    
+    &:hover {
+      background: $primary-dark;
+      transform: translateY(-2px);
+      box-shadow: $shadow-lg;
+    }
+  }
+  
+  &.btn-outline {
+    background: transparent;
+    color: $text-dark;
+    border: 2px solid $border-light;
+    
+    &:hover {
+      background: $bg-light;
+      border-color: $primary-color;
+      color: $primary-color;
+    }
+  }
+}
+
+// Hero Section
+.hero-section {
+  padding: 4rem 0 6rem;
+  background: linear-gradient(135deg, $bg-light 0%, $white 100%);
+}
+
+.hero-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.hero-content {
+  .hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: $text-dark;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+  }
+  
+  .hero-description {
+    font-size: 1.25rem;
+    color: $text-light;
+    line-height: 1.7;
+  }
+}
+
+.hero-image {
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: $shadow-lg;
+  
+  img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+  }
+}
+
+// Mission Section
+.mission-section {
+  padding: 6rem 0;
+  background: $white;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.content-text {
+  .section-title {
+    text-align: left;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.content-image {
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: $shadow;
+  
+  img {
+    width: 100%;
+    height: 500px;
+    object-fit: cover;
+  }
+}
+
+.feature-list {
+  margin-top: 3rem;
+}
+
+.feature-item {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  
+  .feature-icon {
+    font-size: 2rem;
+    width: 60px;
+    height: 60px;
+    background: rgba($primary-color, 0.1);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  
+  .feature-content {
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: $text-dark;
+      margin-bottom: 0.5rem;
+    }
+    
+    p {
+      color: $text-light;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+  }
+}
+
+// Stats Section
+.stats-section {
+  padding: 6rem 0;
+  background: linear-gradient(135deg, $primary-color 0%, $primary-dark 100%);
+  color: $white;
+}
+
+.stats-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 3rem;
+  color: $white;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 2rem;
+  background: rgba($white, 0.1);
+  border-radius: 1rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba($white, 0.1);
+  
+  .stat-number {
+    font-size: 3rem;
+    font-weight: 700;
+    color: $white;
+    margin-bottom: 0.5rem;
+  }
+  
+  .stat-label {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $white;
+    margin-bottom: 0.5rem;
+  }
+  
+  .stat-description {
+    font-size: 0.875rem;
+    color: rgba($white, 0.8);
+    line-height: 1.5;
+  }
+}
+
+// Values Section
+.values-section {
+  padding: 6rem 0;
+  background: $bg-light;
+}
+
+.values-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.value-card {
+  background: $white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: $shadow;
+  text-align: center;
+  transition: transform 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-lg;
+  }
+  
+  .value-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+  
+  .value-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: $text-dark;
+    margin-bottom: 1rem;
+  }
+  
+  .value-description {
+    color: $text-light;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+}
+
+// Team Section
+.team-section {
+  padding: 6rem 0;
+  background: $white;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.team-member {
+  text-align: center;
+  padding: 2rem;
+  background: $white;
+  border-radius: 1rem;
+  box-shadow: $shadow;
+  transition: transform 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-lg;
+  }
+  
+  .member-image {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1.5rem;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid $primary-color;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+  
+  .member-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: $text-dark;
+    margin-bottom: 0.5rem;
+  }
+  
+  .member-role {
+    color: $primary-color;
+    font-weight: 500;
+    margin-bottom: 1rem;
+  }
+  
+  .member-description {
+    color: $text-light;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+}
+
+// CTA Section
+.cta-section {
+  padding: 6rem 0;
+  background: linear-gradient(135deg, $bg-light 0%, $white 100%);
+}
+
+.cta-content {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+  
+  .cta-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: $text-dark;
+    margin-bottom: 1rem;
+  }
+  
+  .cta-description {
+    font-size: 1.125rem;
+    color: $text-light;
+    margin-bottom: 2rem;
+    line-height: 1.7;
+  }
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+// Footer - Remove fixed positioning to prevent overlap
+.footer {
+  background: $text-dark;
+  color: $white;
+  margin-top: auto; // Push to bottom
+  padding: 2rem;
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .hero-container,
+  .content-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .hero-content .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .section-container {
+    padding: 0 1rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  
+  .values-grid,
+  .team-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .cta-buttons {
+    flex-direction: column;
+    align-items: center;
+    
+    .btn {
+      width: 200px;
+    }
+  }
+  
+  .feature-item {
+    flex-direction: column;
+    text-align: center;
+    
+    .feature-icon {
+      margin: 0 auto 1rem;
+    }
+  }
+}

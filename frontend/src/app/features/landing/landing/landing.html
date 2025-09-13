@@ -1,0 +1,67 @@
+<!-- landing.component.html -->
+<div class="landing-page">
+  <!-- Header Navigation -->
+  <header class="header">
+    <app-navbar></app-navbar>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-container">
+      <div class="hero-content">
+        <h1 class="hero-title">Welcome To SmartScholar</h1>
+        <p class="hero-description">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ut tellus vulputate ut pharetra 
+          lorem nec feugiat mauris vitae eleifend elit, sed nulla aliquet risus quis.
+        </p>
+      </div>
+
+      <!-- Hero Image -->
+      <div class="hero-image">
+        <img 
+          src="hero-conference.jpg" 
+          alt="Conference auditorium with speakers and audience"
+          class="hero-img"
+          onError="this.src='https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=500&fit=crop&crop=center'"
+        >
+      </div>
+    </div>
+  </section>
+
+  <!-- Scholarships Section -->
+  <section class="scholarships-section">
+    <div class="section-container">
+      <h2 class="section-title">Scholarships</h2>
+      
+      <div class="scholarships-grid">
+        <div 
+          *ngFor="let scholarship of scholarships" 
+          class="scholarship-card"
+          (click)="onScholarshipClick(scholarship)">
+          
+          <div class="card-image">
+            <img 
+              [src]="scholarship.image" 
+              [alt]="scholarship.title"
+              onError="this.src='https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400&h=250&fit=crop&crop=center'"
+            >
+          </div>
+          
+          <div class="card-content">
+            <h3 class="card-country">{{ scholarship.country }}</h3>
+            <p class="card-description">{{ scholarship.description }}</p>
+            
+            <button class="card-btn">
+              View more
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <app-footer></app-footer>
+  </footer>
+</div>

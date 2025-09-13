@@ -1,0 +1,63 @@
+<nav class="sidebar" [class.collapsed]="collapsed" aria-label="main navigation">
+  <!-- Logo Section -->
+  <div class="sidebar-logo">
+    <div class="logo-container">
+      <img 
+        [src]="logoUrl || 'assets/logo.png'" 
+        [alt]="logoAlt || 'Logo'"
+        class="logo-image"
+        *ngIf="!collapsed"
+      >
+      <img 
+        [src]="logoIconUrl || logoUrl || 'assets/logo.png'" 
+        [alt]="logoAlt || 'Logo'"
+        class="logo-icon"
+        *ngIf="collapsed"
+      >
+      <span class="logo-text" *ngIf="!collapsed">{{ logoText || 'SmartScholar' }}</span>
+    </div>
+  </div>
+  
+  <div class="sidebar-header" *ngIf="!collapsed && showNavigationTitle">
+    <!-- <h2 class="sidebar-title">Navigation</h2> -->
+  </div>
+  
+  <ul class="nav-list">
+    <li *ngFor="let item of items" class="nav-item">
+      <a 
+        [routerLink]="item.route" 
+        routerLinkActive="active" 
+        [routerLinkActiveOptions]="{ exact: true }" 
+        class="nav-link"
+        [class.has-children]="item.children?.length"
+      >
+        <div class="nav-link-content">
+          <span class="icon" *ngIf="item.icon">{{ item.icon }}</span>
+          <span class="label" [class.sr-only]="collapsed">{{ item.label }}</span>
+        </div>
+        <span class="chevron" *ngIf="item.children?.length && !collapsed">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9,18 15,12 9,6"></polyline>
+          </svg>
+        </span>
+      </a>
+
+      <!-- nested children -->
+      <ul *ngIf="item.children?.length && !collapsed" class="sub-list">
+        <li *ngFor="let child of item.children" class="sub-item">
+          <a [routerLink]="child.route" routerLinkActive="active" class="sub-link">
+            <span class="sub-indicator"></span>
+            <span class="sub-label">{{ child.label }}</span>
+          </a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+  
+  <!-- Collapse toggle button -->
+  <button class="collapse-toggle" (click)="toggleCollapse()" aria-label="Toggle sidebar">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline [attr.points]="collapsed ? '15,18 9,12 15,6' : '9,18 15,12 9,6'"></polyline>
+    </svg>
+  </button>
+</nav>

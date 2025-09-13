@@ -1,0 +1,164 @@
+<!-- signup-student.component.html -->
+<div class="signup-container">
+  <div class="signup-content">
+    <!-- Left Section -->
+    <div class="left-section">
+      <div class="welcome-content">
+        <h1 class="greeting">Hey there 👋</h1>
+        <p class="subtitle">Set up your student profile to get personalized dashboard</p>
+        
+        <form (ngSubmit)="onSubmit()" class="profile-form">
+          <!-- Country -->
+          <div class="form-group">
+            <label for="country">Country*</label>
+            <div class="select-wrapper">
+              <select
+                id="country"
+                [(ngModel)]="profileData.country"
+                name="country"
+                required
+                class="form-select">
+                <option value="" disabled>Select your country</option>
+                <option *ngFor="let country of countries" [value]="country">
+                  {{ country }}
+                </option>
+              </select>
+              <i class="dropdown-icon"></i>
+            </div>
+          </div>
+
+          <!-- Education Level -->
+          <div class="form-group">
+            <label for="educationLevel">Education level*</label>
+            <div class="select-wrapper">
+              <select
+                id="educationLevel"
+                [(ngModel)]="profileData.educationLevel"
+                name="educationLevel"
+                required
+                class="form-select">
+                <option value="" disabled>Select your education level</option>
+                <option *ngFor="let level of educationLevels" [value]="level">
+                  {{ level }}
+                </option>
+              </select>
+              <i class="dropdown-icon"></i>
+            </div>
+          </div>
+
+          <!-- Field of Study -->
+          <div class="form-group">
+            <label for="fieldOfStudy">Field of Study*</label>
+            <div class="select-wrapper">
+              <select
+                id="fieldOfStudy"
+                [(ngModel)]="profileData.fieldOfStudy"
+                name="fieldOfStudy"
+                required
+                class="form-select">
+                <option value="" disabled>Select your field</option>
+                <option *ngFor="let field of fieldsOfStudy" [value]="field">
+                  {{ field }}
+                </option>
+              </select>
+              <i class="dropdown-icon"></i>
+            </div>
+          </div>
+
+          <!-- Interest -->
+          <div class="form-group">
+            <label for="interest">Interest*</label>
+            <div class="select-wrapper">
+              <select
+                id="interest"
+                [(ngModel)]="profileData.interest"
+                name="interest"
+                required
+                class="form-select">
+                <option value="" disabled>Select your interest</option>
+                <option *ngFor="let interest of interests" [value]="interest">
+                  {{ interest }}
+                </option>
+              </select>
+              <i class="dropdown-icon"></i>
+            </div>
+          </div>
+
+          <!-- Profile Image Upload -->
+          <div class="form-group">
+            <label>Profile Image (optional)</label>
+            <div class="file-upload-wrapper">
+              <input
+                type="file"
+                id="profileImage"
+                (change)="onProfileImageSelect($event)"
+                accept="image/*"
+                hidden>
+              <div 
+                class="file-upload-box"
+                (click)="triggerFileInput('profileImage')">
+                <span class="upload-text" *ngIf="!profileData.profileImage">Browse</span>
+                <div class="file-info" *ngIf="profileData.profileImage">
+                  <span class="file-name">{{ getFileName(profileData.profileImage) }}</span>
+                  <button 
+                    type="button" 
+                    class="remove-file"
+                    (click)="removeFile('profile'); $event.stopPropagation()">
+                    ×
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CV Upload -->
+          <div class="form-group">
+            <label>CV Upload (optional)</label>
+            <div class="file-upload-wrapper">
+              <input
+                type="file"
+                id="cvFile"
+                (change)="onCvFileSelect($event)"
+                accept=".pdf,.doc,.docx"
+                hidden>
+              <div 
+                class="file-upload-box"
+                (click)="triggerFileInput('cvFile')">
+                <span class="upload-text" *ngIf="!profileData.cvFile">Browse</span>
+                <div class="file-info" *ngIf="profileData.cvFile">
+                  <span class="file-name">{{ getFileName(profileData.cvFile) }}</span>
+                  <button 
+                    type="button" 
+                    class="remove-file"
+                    (click)="removeFile('cv'); $event.stopPropagation()">
+                    ×
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button 
+            type="submit" 
+            class="submit-btn"
+            [disabled]="isLoading"
+            [class.loading]="isLoading">
+            <span *ngIf="!isLoading">Complete and go to dashboard</span>
+            <span *ngIf="isLoading">Setting up your profile...</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Section -->
+    <div class="right-section">
+      <div class="hero-image">
+        <img 
+          src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1471&q=80" 
+          alt="Students collaborating"
+          class="hero-img">
+      </div>
+    </div>
+  </div>
+</div> 

@@ -1,0 +1,145 @@
+<div class="login-page">
+  <div class="login-container">
+    <!-- Left Side - Form -->
+    <div class="form-section">
+      <div class="form-wrapper">
+        <div class="form-header">
+          <h1 class="form-title">
+            Welcome Back
+            <span class="wave-emoji">👋</span>
+          </h1>
+          <p class="form-subtitle">Log in to your account.</p>
+        </div>
+
+        <form class="login-form" (ngSubmit)="onSubmit()" #signupForm="ngForm">
+          <!-- Email Field -->
+          <div class="form-group">
+            <label for="email" class="form-label">Email address*</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="form-input"
+              placeholder="johndoe@email.com"
+              [(ngModel)]="formData.email"
+              required
+              email
+              #email="ngModel"
+              [class.error]="email.invalid && email.touched"
+            />
+            <div *ngIf="email.invalid && email.touched" class="error-message">
+              <span *ngIf="email.errors?.['required']">Email address is required</span>
+              <span *ngIf="email.errors?.['email']">Please enter a valid email address</span>
+            </div>
+          </div>
+
+          <!-- Password Field -->
+          <div class="form-group">
+            <label for="password" class="form-label">Password*</label>
+            <div class="password-wrapper">
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                id="password"
+                name="password"
+                class="form-input"
+                placeholder="••••••••••••••••••"
+                [(ngModel)]="formData.password"
+                required
+                minlength="8"
+                #password="ngModel"
+                [class.error]="password.invalid && password.touched"
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                (click)="togglePassword()"
+                [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+              >
+                <svg
+                  *ngIf="!showPassword"
+                  class="eye-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  ></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  ></path>
+                </svg>
+                <svg
+                  *ngIf="showPassword"
+                  class="eye-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+            <div *ngIf="password.invalid && password.touched" class="error-message">
+              <span *ngIf="password.errors?.['required']">Password is required</span>
+              <span *ngIf="password.errors?.['minlength']"
+                >Password must be at least 8 characters</span
+              >
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            class="submit-btn"
+            [disabled]="!signupForm.valid || isLoading"
+            [class.loading]="isLoading"
+          >
+            <span *ngIf="!isLoading">Login</span>
+            <span *ngIf="isLoading" class="loading-content">
+              <svg class="loading-spinner" viewBox="0 0 24 24" fill="none">
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                  opacity="0.3"
+                />
+                <path
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  fill="currentColor"
+                />
+              </svg>
+              Loggin in...
+            </span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Side - Image -->
+    <div class="image-section">
+      <div class="image-container">
+        <img
+          src="image1.png"
+          alt="Happy students studying together"
+          class="hero-image"
+          loading="lazy"
+        />
+        <div class="image-overlay"></div>
+      </div>
+    </div>
+  </div>
+</div>

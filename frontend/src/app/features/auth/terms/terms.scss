@@ -1,0 +1,170 @@
+// Basic variables (adjust to your theme)
+$max-width: 1100px;
+$gutter: 20px;
+$muted: #6b7280; // neutral gray (used in example; you can replace)
+$accent: #2563eb; // accent blue (only used subtly in outline buttons)
+
+/* Page wrapper */
+.tc-page {
+  padding: 32px 16px;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color: #111827;
+
+  .container {
+    max-width: $max-width;
+    margin: 0 auto;
+  }
+
+  .tc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+
+    .title {
+      font-size: 28px;
+      font-weight: 600;
+      margin: 0 0 6px 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: $muted;
+      font-size: 14px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+  }
+
+  .content-grid {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 28px;
+
+    .toc {
+      background: #fff;
+      border: 1px solid #e6e7eb;
+      padding: 18px;
+      border-radius: 10px;
+      min-height: 180px;
+
+      .toc-note {
+        font-size: 12px;
+        color: $muted;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      a {
+        display: block;
+        padding: 8px 6px;
+        color: $muted;
+        text-decoration: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+
+        &:hover {
+          background: #f6f7fb;
+          color: #111827;
+        }
+
+        &.active {
+          background: #f0f6ff;
+          color: $accent;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .terms {
+      background: #fff;
+      border: 1px solid #e6e7eb;
+      padding: 22px;
+      border-radius: 10px;
+      box-shadow: 0 1px 2px rgba(16,24,40,0.02);
+
+      .section {
+        margin-bottom: 22px;
+
+        h2 {
+          margin: 0 0 8px 0;
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        p, ul {
+          margin: 0;
+          color: $muted;
+          font-size: 14px;
+          line-height: 1.6;
+        }
+
+        ul {
+          margin-top: 8px;
+          padding-left: 18px;
+        }
+      }
+
+      .terms-footer {
+        margin-top: 18px;
+        .small {
+          font-size: 13px;
+          color: $muted;
+        }
+      }
+    }
+  }
+
+  // Buttons
+  .btn {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: #111827;
+    color: white;
+
+    &.btn-outline {
+      background: transparent;
+      color: $muted;
+      border-color: #e6e7eb;
+      &:hover {
+        background: #f6f7fb;
+        color: #111827;
+      }
+    }
+  }
+
+  // Responsive
+  @media (max-width: 900px) {
+    .content-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .tc-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .toc {
+      order: 2;
+    }
+
+    .terms {
+      order: 1;
+    }
+  }
+}

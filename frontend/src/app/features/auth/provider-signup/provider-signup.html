@@ -1,0 +1,167 @@
+<!-- signup-provider.component.html -->
+<div class="signup-container">
+  <div class="signup-content">
+    <!-- Left Section -->
+    <div class="left-section">
+      <div class="welcome-content">
+        <h1 class="greeting">Welcome Provider! 🏢</h1>
+        <p class="subtitle">Set up your organization profile to start offering scholarships</p>
+        
+        <form (ngSubmit)="onSubmit()" class="profile-form">
+          <!-- Organization Name -->
+          <div class="form-group">
+            <label for="organizationName">Organization Name*</label>
+            <input
+              type="text"
+              id="organizationName"
+              [(ngModel)]="profileData.organizationName"
+              name="organizationName"
+              placeholder="Enter your organization name"
+              required
+              class="form-input">
+          </div>
+
+          <!-- Provider Type -->
+          <div class="form-group">
+            <label for="providerType">Provider Type*</label>
+            <div class="select-wrapper">
+              <select
+                id="providerType"
+                [(ngModel)]="profileData.providerType"
+                name="providerType"
+                required
+                class="form-select">
+                <option value="" disabled>Select your organization type</option>
+                <option *ngFor="let type of providerTypes" [value]="type">
+                  {{ type }}
+                </option>
+              </select>
+              <i class="dropdown-icon"></i>
+            </div>
+          </div>
+
+          <!-- Country -->
+          <div class="form-group">
+            <label for="country">Country*</label>
+            <div class="select-wrapper">
+              <select
+                id="country"
+                [(ngModel)]="profileData.country"
+                name="country"
+                required
+                class="form-select">
+                <option value="" disabled>Select your country</option>
+                <option *ngFor="let country of countries" [value]="country">
+                  {{ country }}
+                </option>
+              </select>
+              <i class="dropdown-icon"></i>
+            </div>
+          </div>
+
+          <!-- Contact Email -->
+          <div class="form-group">
+            <label for="contactEmail">Contact Email*</label>
+            <input
+              type="email"
+              id="contactEmail"
+              [(ngModel)]="profileData.contactEmail"
+              name="contactEmail"
+              placeholder="organization@example.com"
+              required
+              class="form-input">
+          </div>
+
+          <!-- Phone -->
+          <div class="form-group">
+            <label for="phone">Phone Number*</label>
+            <input
+              type="tel"
+              id="phone"
+              [(ngModel)]="profileData.phone"
+              name="phone"
+              placeholder="+254 700 123 456"
+              required
+              class="form-input"
+              (input)="onPhoneInput($event)">
+          </div>
+
+          <!-- Logo Upload -->
+          <div class="form-group">
+            <label>Organization Logo (optional)</label>
+            <div class="file-upload-wrapper">
+              <input
+                type="file"
+                id="logoFile"
+                (change)="onLogoFileSelect($event)"
+                accept="image/*"
+                hidden>
+              <div 
+                class="file-upload-box"
+                (click)="triggerFileInput('logoFile')">
+                <span class="upload-text" *ngIf="!profileData.logoFile">Browse</span>
+                <div class="file-info" *ngIf="profileData.logoFile">
+                  <span class="file-name">{{ getFileName(profileData.logoFile) }}</span>
+                  <button 
+                    type="button" 
+                    class="remove-file"
+                    (click)="removeFile('logo'); $event.stopPropagation()">
+                    ×
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Verification Document Upload -->
+          <div class="form-group">
+            <label>Verification Documents (optional)</label>
+            <p class="field-hint">Upload registration certificates, licenses, or other verification documents</p>
+            <div class="file-upload-wrapper">
+              <input
+                type="file"
+                id="verificationDocument"
+                (change)="onVerificationDocumentSelect($event)"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                hidden>
+              <div 
+                class="file-upload-box"
+                (click)="triggerFileInput('verificationDocument')">
+                <span class="upload-text" *ngIf="!profileData.verificationDocument">Browse</span>
+                <div class="file-info" *ngIf="profileData.verificationDocument">
+                  <span class="file-name">{{ getFileName(profileData.verificationDocument) }}</span>
+                  <button 
+                    type="button" 
+                    class="remove-file"
+                    (click)="removeFile('verification'); $event.stopPropagation()">
+                    ×
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button 
+            type="submit" 
+            class="submit-btn"
+            [disabled]="isLoading"
+            [class.loading]="isLoading">
+            <span *ngIf="!isLoading">Complete and go to dashboard</span>
+            <span *ngIf="isLoading">Setting up your profile...</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Section -->
+    <div class="right-section">
+      <div class="hero-image">
+        <img 
+          src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1526&q=80" 
+          alt="Business professionals in meeting"
+          class="hero-img">
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,154 @@
+<div class="about-page">
+  <!-- Header Navigation -->
+  <header class="header">
+    <app-navbar></app-navbar>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-container">
+        <div class="hero-content">
+          <h1 class="hero-title">About SmartScholar</h1>
+          <p class="hero-description">
+            Empowering students worldwide with access to quality education through 
+            comprehensive scholarship opportunities and innovative learning solutions.
+          </p>
+        </div>
+        <div class="hero-image">
+          <img 
+            src="about-hero.jpg" 
+            alt="Students studying together"
+            onError="this.src='https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&h=500&fit=crop&crop=center'"
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- Mission Section -->
+    <section class="mission-section">
+      <div class="section-container">
+        <div class="content-grid">
+          <div class="content-text">
+            <h2 class="section-title">Our Mission</h2>
+            <p class="section-description">
+              At SmartScholar, we believe that education should be accessible to everyone, 
+              regardless of their financial background. Our mission is to bridge the gap 
+              between talented students and life-changing educational opportunities.
+            </p>
+            <div class="feature-list">
+              <div class="feature-item">
+                <div class="feature-icon">🎯</div>
+                <div class="feature-content">
+                  <h3>Targeted Matching</h3>
+                  <p>We connect students with scholarships that match their profile and aspirations.</p>
+                </div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon">🌍</div>
+                <div class="feature-content">
+                  <h3>Global Reach</h3>
+                  <p>Access to international scholarships and study abroad opportunities.</p>
+                </div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon">💡</div>
+                <div class="feature-content">
+                  <h3>Smart Technology</h3>
+                  <p>AI-powered recommendations to find the best educational opportunities.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="content-image">
+            <img 
+              src="mission-image.jpg" 
+              alt="Students collaborating"
+              onError="this.src='https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=600&fit=crop&crop=center'"
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+      <div class="section-container">
+        <h2 class="stats-title">Making a Difference</h2>
+        <div class="stats-grid">
+          <div class="stat-item" *ngFor="let stat of statistics">
+            <div class="stat-number">{{ stat.number }}</div>
+            <div class="stat-label">{{ stat.label }}</div>
+            <p class="stat-description">{{ stat.description }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Values Section -->
+    <section class="values-section">
+      <div class="section-container">
+        <h2 class="section-title">Our Core Values</h2>
+        <div class="values-grid">
+          <div class="value-card" *ngFor="let value of coreValues">
+            <div class="value-icon">{{ value.icon }}</div>
+            <h3 class="value-title">{{ value.title }}</h3>
+            <p class="value-description">{{ value.description }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team-section">
+      <div class="section-container">
+        <h2 class="section-title">Meet Our Team</h2>
+        <p class="section-subtitle">
+          Passionate educators and technologists working together to transform education accessibility.
+        </p>
+        <div class="team-grid">
+          <div class="team-member" *ngFor="let member of teamMembers">
+            <div class="member-image">
+              <img 
+                [src]="member.image" 
+                [alt]="member.name"
+                (error)="getTeamPlaceholder(member.name)"
+              >
+            </div>
+            <div class="member-info">
+              <h3 class="member-name">{{ member.name }}</h3>
+              <p class="member-role">{{ member.role }}</p>
+              <p class="member-description">{{ member.description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+      <div class="section-container">
+        <div class="cta-content">
+          <h2 class="cta-title">Ready to Start Your Journey?</h2>
+          <p class="cta-description">
+            Join thousands of students who have found their perfect educational opportunity through SmartScholar.
+          </p>
+          <div class="cta-buttons">
+            <button class="btn btn-primary" (click)="onGetStarted()">
+              Get Started Today
+            </button>
+            <button class="btn btn-outline" (click)="onExploreScholarships()">
+              Explore Scholarships
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <app-footer></app-footer>
+  </footer>
+</div>

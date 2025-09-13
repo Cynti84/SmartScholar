@@ -1,0 +1,18 @@
+<div class="app-shell">
+  <app-sidebar
+    [items]="menu"
+    [collapsed]="collapsed"
+    [logoUrl]="logoUrl"
+    [logoIconUrl]="logoIconUrl"
+    [logoText]="logoText"
+    [logoAlt]="logoAlt"
+  >
+  </app-sidebar>
+  <div class="main-area">
+    <header class="topbar">
+      <!-- <button (click)="collapsed = !collapsed">☰</button> -->
+      <h3>{{ title }}</h3>
+    </header>
+    <main class="content"><ng-content></ng-content></main>
+  </div>
+</div>
