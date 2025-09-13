@@ -15,12 +15,14 @@ feature/<name> → each task/feature goes here (e.g. feature/landing-page, featu
 Clone the repo:
 
 git clone https://github.com/YOUR-USERNAME/smartscholar.git
+
 cd smartscholar
 
 
 Checkout dev:
 
 git checkout dev
+
 git pull origin dev
 
 *🔹 3. Starting New Work*
@@ -28,14 +30,18 @@ git pull origin dev
 Always branch off dev:
 
 git checkout dev
+
 git pull origin dev
+
 git checkout -b feature/your-feature-name
 
 
 Do your work, commit, and push:
 
 git add .
+
 git commit -m "feat: short description of change"
+
 git push -u origin feature/your-feature-name
 
 *🔹 4. Pull Requests (PRs)*
@@ -55,8 +61,11 @@ After approval → Merge into dev (prefer “Squash and Merge” for clean histo
 Before starting new work each day:
 
 git checkout dev
+
 git pull origin dev
+
 git checkout feature/your-feature-name
+
 git merge dev
 
 
@@ -67,13 +76,19 @@ Fix the conflict in code (choose the right version).
 Run:
 
 git add .
+
 git commit
+
 git push
 
 *🔹 6. Simple Rules*
 
 ✅ Never code directly on main or dev
+
 ✅ Always branch off dev for new work
+
 ✅ Commit often with clear messages
+
 ✅ Push your branch and create a PR into dev
+
 ✅ Pull latest dev before starting your work
