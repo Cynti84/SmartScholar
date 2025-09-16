@@ -1,7 +1,127 @@
-<app-dashboard-layout [title]="'Dashboard Overview'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Provider dashboard Works!!</h2>
-        <!-- provider content -->
-      </section>
+<app-dashboard-layout [title]="'Dashboard Overview'" [menu]="menu" logoUrl="logo.png">
+  <section class="dashboard-container">
+    <!-- Stats Cards Grid -->
+    <div class="stats-grid">
+      <app-card 
+        class="stat-card approved-card"
+        title="Approved Scholarship" 
+        [value]="approvedScholarships.count"
+        [percentage]="approvedScholarships.percentage"
+        [trend]="approvedScholarships.trend">
+      </app-card>
       
-    </app-dashboard-layout>
+      <app-card 
+        class="stat-card pending-card"
+        title="Pending Scholarship" 
+        [value]="pendingScholarships.count"
+        [percentage]="pendingScholarships.percentage"
+        [trend]="pendingScholarships.trend">
+      </app-card>
+      
+      <app-card 
+        class="stat-card applied-card"
+        title="Students Applied" 
+        [value]="studentsApplied.count"
+        [percentage]="studentsApplied.percentage"
+        [trend]="studentsApplied.trend">
+      </app-card>
+      
+      <app-card 
+        class="stat-card total-card"
+        title="Scholarship" 
+        [value]="totalScholarships.count"
+        [percentage]="totalScholarships.percentage"
+        [trend]="totalScholarships.trend">
+      </app-card>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="main-content-grid">
+      <!-- Application Response Chart -->
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>Application Response</h3>
+          <button class="download-btn" (click)="downloadReport()">
+            <span class="download-icon">⬇</span>
+            Download Report
+          </button>
+        </div>
+        <div class="chart-container">
+          <canvas #pieChart width="300" height="300"></canvas>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <span class="legend-color marked"></span>
+              <span class="legend-label">Marked as applied</span>
+              <span class="legend-value">942</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color total"></span>
+              <span class="legend-label">Total</span>
+              <span class="legend-value">25</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color approved"></span>
+              <span class="legend-label">Approved</span>
+              <span class="legend-value">15</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Scholarship Table -->
+      <div class="table-card">
+        <div class="card-header">
+          <h3>Recent Scholarship</h3>
+          <div class="filter-tabs">
+            <button 
+              class="filter-tab"
+              [class.active]="activeFilter === 'monthly'"
+              (click)="setFilter('monthly')">
+              Monthly
+            </button>
+            <button 
+              class="filter-tab"
+              [class.active]="activeFilter === 'weekly'"
+              (click)="setFilter('weekly')">
+              Weekly
+            </button>
+            <button 
+              class="filter-tab active-tab"
+              [class.active]="activeFilter === 'today'"
+              (click)="setFilter('today')">
+              Today
+            </button>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table class="scholarships-table">
+            <thead>
+              <tr>
+                <th>Scholarship</th>
+                <th>Date Posted</th>
+                <th>No of Application</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let scholarship of filteredScholarships">
+                <td class="scholarship-name">{{ scholarship.name }}</td>
+                <td class="date-posted">{{ scholarship.datePosted | date:'dd-M-yyyy' }}</td>
+                <td class="application-count">{{ scholarship.applicationCount }}</td>
+                <td class="status-cell">
+                  <span 
+                    class="status-badge"
+                    [class.active]="scholarship.status === 'Active'"
+                    [class.inactive]="scholarship.status === 'Inactive'">
+                    {{ scholarship.status }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>

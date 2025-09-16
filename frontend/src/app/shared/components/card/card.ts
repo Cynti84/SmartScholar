@@ -11,5 +11,7 @@ export class Card {
   @Input() title = ''
   @Input() value: string | number | null = null
   @Input() subtitle = ''
+  @Input() percentage?: string;
+  @Input() trend?: 'up'|'down'
 
 }
