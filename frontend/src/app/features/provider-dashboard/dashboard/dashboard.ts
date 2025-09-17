@@ -248,4 +248,6 @@ export class Dashboard implements OnInit, AfterViewInit {
   getTrendClass(trend: 'up' | 'down'): string {
     return trend === 'up' ? 'trend-up' : 'trend-down';
   }
+
+  today: Date=new Date()
 }
