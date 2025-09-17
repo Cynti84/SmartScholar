@@ -4,6 +4,52 @@
   margin: 0 auto;
 }
 
+//Hero section
+.hero-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #242e45, #3d5378);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 32px;
+  color: white;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+
+  .hero-text {
+    max-width: 60%;
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 12px;
+    }
+
+    p {
+      font-size: 16px;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+
+    .date {
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+  }
+
+  .hero-image {
+    max-width: 35%;
+
+    img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+    }
+  }
+}
+
+
 // Stats Grid
 .stats-grid {
   display: grid;
@@ -322,6 +368,24 @@
   .chart-container canvas {
     max-width: 100%;
     height: auto;
+  }
+}
+
+// Responsive hero
+@media (max-width: 992px) {
+  .hero-section {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px;
+
+    .hero-text {
+      max-width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .hero-image {
+      max-width: 80%;
+    }
   }
 }
 
