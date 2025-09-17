@@ -24,10 +24,37 @@ export class DashboardLayout implements OnInit, OnDestroy {
   public mobileMenuOpen = false;
   public isMobile = false;
   private resizeTimeout?: number;
+  public isDarkMode = false
+  
 
   ngOnInit(): void {
     this.checkMobileState();
     this.loadSidebarPreferences();
+    this.loadThemePreference()
+
+  }
+
+  toggleTheme(): void{
+    this.isDarkMode = !this.isDarkMode
+    localStorage.setItem('dashboard-theme', this.isDarkMode ? 'dark' : 'light')
+    
+    const host = document.querySelector('body')
+    if (host) {
+      if (this.isDarkMode) {
+        host.classList.add('dark-mode')
+
+      } else {
+        host.classList.remove('dark-mode')
+      }
+    }
+  }
+
+  private loadThemePreference(): void{
+    const savedTheme = localStorage.getItem('dashboard-theme')
+    if (savedTheme === 'dark') {
+      this.isDarkMode = true
+      document.body.classList.add('dark-mode')
+    }
   }
 
   ngOnDestroy(): void {

@@ -102,8 +102,8 @@ export class Dashboard implements OnInit, AfterViewInit {
   // Chart Data
   chartData = {
     marked: { value: 942, percentage: 2.5 },
-    total: { value: 25, percentage: 0.4 },
-    approved: { value: 15, percentage: -0.5 },
+    total: { value: 250, percentage: 0.4 },
+    approved: { value: 150, percentage: -0.5 },
   };
 
   constructor() {}
@@ -172,8 +172,8 @@ export class Dashboard implements OnInit, AfterViewInit {
     // Chart data
     const data = [
       { value: 942, color: '#4f46e5', label: 'Marked as applied' },
-      { value: 25, color: '#ff6b35', label: 'Total' },
-      { value: 15, color: '#3b82f6', label: 'Approved' },
+      { value: 250, color: '#ff6b35', label: 'Total' },
+      { value: 150, color: '#3b82f6', label: 'Approved' },
     ];
 
     const total = data.reduce((sum, item) => sum + item.value, 0);
