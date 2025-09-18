@@ -5,11 +5,11 @@
   </header>
 
   <!-- Main Content -->
-  <main class="main-content">
+  <main class="main-content fade-in">
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="container">
-        <div class="hero-content">
+        <div class="hero-content ">
           <h1 class="hero-title">Frequently Asked Questions</h1>
           <p class="hero-subtitle">Find answers to common questions about SmartScholar and how we help students access personalized scholarship opportunities.</p>
           
@@ -35,7 +35,7 @@
     <!-- FAQ Categories -->
     <section class="categories-section">
       <div class="container">
-        <div class="categories-nav">
+        <div class="categories-nav ">
           <button 
             *ngFor="let category of categories" 
             [class.active]="selectedCategory === category.id"

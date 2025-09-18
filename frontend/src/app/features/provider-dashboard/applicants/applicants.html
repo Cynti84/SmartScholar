@@ -1,7 +1,140 @@
-<app-dashboard-layout [title]="'Applicants'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Applicants Works!!</h2>
-        <!-- provider content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout [title]="'Applicants'" [menu]="menu" logoUrl="logo.png">
+  <!-- Applicants Insights Component Template -->
+  <div class="applicants-insights">
+    <!-- Header Section -->
+    <header class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">Applicants Insights</h1>
+        <div class="filter-section">
+          <label for="scholarship-filter" class="filter-label">Select Scholarship</label>
+          <select
+            id="scholarship-filter"
+            class="scholarship-filter"
+            [(ngModel)]="selectedScholarship"
+            (change)="onScholarshipChange()"
+          >
+            <option value="all">All Scholarships</option>
+            <option *ngFor="let scholarship of scholarships" [value]="scholarship.id">
+              {{ scholarship.title }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <!-- Summary Cards Section -->
+    <section class="summary-cards">
+      <div class="card-container">
+        <div class="summary-card total-applied">
+          <div class="card-icon">
+            <i class="icon-users"></i>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">Total Applied</h3>
+            <p class="card-value">{{ summaryStats.totalApplied }}</p>
+            <p class="card-description">students marked as applied</p>
+          </div>
+        </div>
+
+        <div class="summary-card popular-scholarship">
+          <div class="card-icon">
+            <i class="icon-trophy"></i>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">Most Popular</h3>
+            <p class="card-value">{{ summaryStats.mostPopular.title }}</p>
+            <p class="card-description">({{ summaryStats.mostPopular.count }} applicants)</p>
+          </div>
+        </div>
+
+        <div class="summary-card deadline-soon">
+          <div class="card-icon">
+            <i class="icon-clock"></i>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">Deadline Soonest</h3>
+            <p class="card-value">{{ summaryStats.deadlineSoonest.title }}</p>
+            <p class="card-description">
+              (closes in {{ summaryStats.deadlineSoonest.daysLeft }} days)
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Charts Section -->
+    <section class="charts-section">
+      <div class="charts-grid">
+        <!-- Education Level Chart -->
+        <div class="chart-card">
+          <h3 class="chart-title">By Education Level</h3>
+          <div class="chart-container">
+            <canvas #educationChart></canvas>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item" *ngFor="let item of educationData">
+              <span class="legend-color" [style.background-color]="item.color"></span>
+              <span class="legend-text">{{ item.label }}: {{ item.percentage }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Field of Study Chart -->
+        <div class="chart-card">
+          <h3 class="chart-title">By Field of Study</h3>
+          <div class="chart-container">
+            <canvas #fieldChart></canvas>
+          </div>
+        </div>
+
+        <!-- Country Chart -->
+        <div class="chart-card">
+          <h3 class="chart-title">By Country</h3>
+          <div class="chart-container">
+            <canvas #countryChart></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scholarship Table Section -->
+    <section class="table-section">
+      <div class="table-card">
+        <h3 class="table-title">Scholarship Overview</h3>
+        <div class="table-container">
+          <table class="scholarship-table">
+            <thead>
+              <tr>
+                <th>Scholarship Title</th>
+                <th>Total Applied</th>
+                <th>Top Field of Study</th>
+                <th>Top Country</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let scholarship of scholarshipTableData">
+                <td class="scholarship-name">{{ scholarship.title }}</td>
+                <td class="applied-count">{{ scholarship.totalApplied }}</td>
+                <td class="top-field">{{ scholarship.topField }}</td>
+                <td class="top-country">{{ scholarship.topCountry }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Disclaimer Section -->
+    <section class="disclaimer-section">
+      <div class="disclaimer-card">
+        <div class="disclaimer-icon">
+          <i class="icon-info"></i>
+        </div>
+        <p class="disclaimer-text">
+          <strong>Note:</strong> These numbers represent students who marked themselves as applied
+          on SmartScholar. Official applications are processed on your institution's website.
+        </p>
+      </div>
+    </section>
+  </div>
+</app-dashboard-layout>
