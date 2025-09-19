@@ -17,4 +17,21 @@ export class Recommendations {
     { label: 'Bookmarked', route: '/student/bookmarked' },
     { label: 'Profile', route: '/student/profile' },
   ];
+  // 🔹 property to control modal visibility
+  isModalOpen: boolean = false;
+
+  // 🔹 open modal
+  openModal() {
+    this.isModalOpen = true;
+  }
+
+  // 🔹 close modal
+  closeModal() {
+    this.isModalOpen = false;
+  }
+
+  // 🔹 close modal when clicking outside modal-content
+  closeOnOutside(event: MouseEvent) {
+    this.closeModal();
+  }
 }

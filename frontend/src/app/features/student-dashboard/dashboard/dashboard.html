@@ -1,7 +1,92 @@
-<app-dashboard-layout [title]="'Dashboard Overview'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Student dashboard Works!!</h2>
-        <!-- student content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout [title]="'Dashboard Overview'" [menu]="menu" logoUrl="logo.png">
+  <section>
+    <!-- <h2>Student dashboard Works!!</h2> -->
+    <!-- student content -->
+    <div class="dashboard-container">
+      <!-- Top Search + Profile -->
+      <div class="topbar">
+        <input type="text" placeholder="Search" class="search-bar" />
+        <!-- <div class="profile">
+          <img src="https://via.placeholder.com/40" alt="profile" class="profile-pic" />
+          <div class="profile-info">
+            <p class="name">John Doe</p>
+            <p class="country">Kenyan</p>
+          </div>
+        </div> -->
+      </div>
+
+      <!-- Welcome Card -->
+      <div class="welcome-card">
+        <div class="welcome-text">
+          <p class="date">September 4, 2025</p>
+          <h2>Welcome back, John!</h2>
+          <p class="subtitle">Always stay updated in your page</p>
+        </div>
+        <img
+          src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+          alt="student"
+          class="welcome-img"
+        />
+      </div>
+
+      <!-- Scholarships Stats -->
+      <div class="stats">
+        <div class="stat-card">
+          <div class="bar"></div>
+          <p class="number">6</p>
+          <p>Applied</p>
+        </div>
+        <div class="stat-card active">
+          <div class="bar"></div>
+          <p class="number">4</p>
+          <p>Bookmarked</p>
+        </div>
+        <div class="stat-card">
+          <div class="bar"></div>
+          <p class="number">25</p>
+          <p>Available</p>
+        </div>
+      </div>
+
+      <!-- Main Content (Scholarships + Updates) -->
+      <div class="main-section">
+        <!-- Top Available -->
+        <div class="available">
+          <div class="header">
+            <h3>Top Available</h3>
+            <a href="#">See all</a>
+          </div>
+          <div class="available-cards">
+            <div class="country-card">
+              <h4>Kenya</h4>
+              <button>View</button>
+            </div>
+            <div class="country-card">
+              <h4>Spain</h4>
+              <button>View</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Important Updates -->
+        <div class="updates">
+          <h3>Important Updates</h3>
+          <div class="update-item">
+            <h4>Prelim payment due</h4>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              <a href="#">See more</a>
+            </p>
+          </div>
+          <div class="update-item">
+            <h4>Exam schedule</h4>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              <a href="#">See more</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>

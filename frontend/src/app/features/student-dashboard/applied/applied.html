@@ -1,7 +1,58 @@
-<app-dashboard-layout [title]="'Applied Scholarships'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Applied Works!!</h2>
-        <!-- student content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout [title]="'Applied Scholarships'" [menu]="menu" logoUrl="logo.png">
+  <section>
+    <!-- <h2>Applied Works!!</h2>
+    student content -->
+    <div class="applied-scholarships">
+      <h2>Applied Scholarships</h2>
+
+      <!-- Search & Sort -->
+      <div class="search-sort">
+        <input type="text" placeholder="Search by title or keyword" />
+        <select>
+          <option>Sort by: Recent</option>
+          <option>Sort by: Oldest</option>
+          <option>Sort by: Deadline</option>
+        </select>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat-card">
+          <p>Total Scholarships</p>
+          <h3>{{ totalScholarships }}</h3>
+        </div>
+        <div class="stat-card">
+          <p>Active</p>
+          <h3>{{ active }}</h3>
+        </div>
+        <div class="stat-card">
+          <p>Expired</p>
+          <h3>{{ expired }}</h3>
+        </div>
+      </div>
+
+      <!-- Scholarships List -->
+      <div class="scholarship-list">
+        <div class="scholarship-card" *ngFor="let s of scholarships">
+          <div class="card-header">
+            <h4>{{ s.title }}</h4>
+            <div class="status" [ngClass]="s.status.toLowerCase()">{{ s.status }}</div>
+          </div>
+
+          <!-- ✅ Two-column layout -->
+          <div class="card-body">
+            <div class="left">
+              <p><strong>Applied -</strong> {{ s.appliedDate }}</p>
+              <p><strong>Deadline:</strong> {{ s.deadline }}</p>
+              <p>{{ s.daysLeft }} days left</p>
+            </div>
+            <div class="right">
+              <p>{{ s.country }}</p>
+              <p class="funding">{{ s.funding }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>

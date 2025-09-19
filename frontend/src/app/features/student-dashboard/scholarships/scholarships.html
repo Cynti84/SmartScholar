@@ -1,7 +1,86 @@
-<app-dashboard-layout [title]="'Browse Scholarships'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Scholarships Works!!</h2>
-        <!-- student content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout [title]="'Browse Scholarships'" [menu]="menu" logoUrl="logo.png">
+  <section>
+    <!-- <h2>Scholarships Works!!</h2> -->
+    <!-- student content -->
+    <div class="scholarships-container">
+      <!-- Header -->
+      <div class="header">
+        <h2>Scholarships</h2>
+        <div class="profile">
+          <img src="https://via.placeholder.com/40" alt="profile" class="profile-pic" />
+          <!-- <div class="profile-info">
+        <p class="name">John Doe</p>
+        <p class="country">Kenyan</p>
+      </div> -->
+        </div>
+      </div>
+
+      <!-- Search and Filter -->
+      <div class="filter-bar">
+        <input type="text" placeholder="Search by title or keyword" />
+        <button class="btn-filter">Apply Filter</button>
+      </div>
+
+      <div class="content">
+        <!-- Scholarship List -->
+        <div class="scholarship-list">
+          <div class="scholarship-card">
+            <div class="icon">💡</div>
+            <div class="info">
+              <h4>Scholarship Title</h4>
+              <p>Provider</p>
+              <p>Deadline &nbsp;&nbsp;&nbsp; Country</p>
+            </div>
+            <button class="btn-bookmark">Bookmark</button>
+          </div>
+
+          <div class="scholarship-card">
+            <div class="icon">💡</div>
+            <div class="info">
+              <h4>Scholarship Title</h4>
+              <p>Provider</p>
+              <p>Deadline &nbsp;&nbsp;&nbsp; Country</p>
+            </div>
+            <button class="btn-bookmark">Bookmark</button>
+          </div>
+
+          <div class="scholarship-card">
+            <div class="icon">💡</div>
+            <div class="info">
+              <h4>Scholarship Title</h4>
+              <p>Provider</p>
+              <p>Deadline &nbsp;&nbsp;&nbsp; Country</p>
+            </div>
+            <button class="btn-bookmark">Bookmark</button>
+          </div>
+
+          <div class="scholarship-card">
+            <div class="icon">💡</div>
+            <div class="info">
+              <h4>Scholarship Title</h4>
+              <p>Provider</p>
+              <p>Deadline &nbsp;&nbsp;&nbsp; Country</p>
+            </div>
+            <button class="btn-bookmark">Bookmark</button>
+          </div>
+
+          <div class="footer-btns">
+            <button class="btn-recommended">Recommended For You</button>
+            <a href="#" class="view-more">View more</a>
+          </div>
+        </div>
+
+        <!-- Scholarship Details Panel -->
+        <div class="scholarship-details">
+          <p class="placeholder">Click on a Scholarship to view its details</p>
+          <div class="details-box"></div>
+          <div class="actions">
+            <button class="btn-apply">Apply Now</button>
+            <button class="btn-bookmark-outline">Bookmark</button>
+            <button class="btn-applied">Mark as applied</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>

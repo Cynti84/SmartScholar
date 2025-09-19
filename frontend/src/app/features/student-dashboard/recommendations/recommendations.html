@@ -1,7 +1,80 @@
-<app-dashboard-layout [title]="'Recommended For You'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Reccommendations Works!!</h2>
-        <!-- student content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout [title]="'Recommended For You'" [menu]="menu" logoUrl="logo.png">
+  <section>
+    <div class="recommended-container">
+      <h2>Recommended for you</h2>
+
+      <!-- Scholarship Card -->
+      <div class="scholarship-card">
+        <div class="scholarship-info">
+          <div class="scholarship-icon">🎓</div>
+          <div>
+            <h3>Mastercard Foundation Scholarship (Africa)</h3>
+            <p>Matches your university course: Science and finance</p>
+            <p><strong>Nov 30, 2025</strong> | Fully Funded</p>
+          </div>
+        </div>
+        <div class="scholarship-actions">
+          <span class="match">92% ✅</span>
+          <button class="btn apply">Apply</button>
+          <button class="btn bookmark">Bookmark</button>
+          <!-- use Angular (click) -->
+          <button class="btn details" (click)="openModal()">Details</button>
+        </div>
+      </div>
+
+      <!-- Another Scholarship -->
+      <div class="scholarship-card">
+        <div class="scholarship-info">
+          <div class="scholarship-icon">💡</div>
+          <div>
+            <h3>Google Africa Developer Scholarship</h3>
+            <p>Recommended based on location in Kenya</p>
+            <p><strong>Nov 30, 2025</strong> | Partial</p>
+          </div>
+        </div>
+        <div class="scholarship-actions">
+          <span class="match">87% ✅</span>
+          <button class="btn apply">Apply</button>
+          <button class="btn bookmark">Bookmark</button>
+          <button class="btn details" (click)="openModal()">Details</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" *ngIf="isModalOpen" (click)="closeOnOutside($event)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <span class="close" (click)="closeModal()">&times;</span>
+
+        <h2>Mastercard Foundation Scholarship</h2>
+        <p><strong>Deadline:</strong> Dec 1, 2025</p>
+        <p><strong>Country:</strong> Kenya</p>
+        <p><strong>Level:</strong> Undergraduate</p>
+        <p><strong>Funding:</strong> Fully Funded</p>
+
+        <h3>Description</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+
+        <h3>Eligibility</h3>
+        <ul>
+          <li>Must be a Kenyan citizen</li>
+          <li>Undergraduate degree holder</li>
+          <li>GPA 3.0+</li>
+        </ul>
+
+        <h3>Benefits</h3>
+        <ul>
+          <li>Tuition coverage</li>
+          <li>Monthly stipend</li>
+          <li>Travel allowance</li>
+        </ul>
+
+        <div class="modal-buttons">
+          <button class="btn apply">Apply Now</button>
+          <button class="btn bookmark">Bookmark</button>
+          <button class="btn mark">Mark as Applied</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>
