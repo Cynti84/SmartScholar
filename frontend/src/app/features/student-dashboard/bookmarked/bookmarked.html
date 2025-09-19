@@ -1,7 +1,44 @@
-<app-dashboard-layout [title]="'Bookmarked Scholarships'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Bookmarked Works!!</h2>
-        <!-- student content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout [title]="'Bookmarked Scholarships'" [menu]="menu" logoUrl="logo.png">
+  <section>
+    <!-- <h2>Bookmarked Works!!</h2> -->
+    <div class="bookmarked-scholarships">
+      <h2>Bookmarked Scholarships</h2>
+
+      <!-- Search & Filter -->
+      <div class="search-sort">
+        <input type="text" [(ngModel)]="searchTerm" placeholder="Search by title or keyword" />
+        <button class="filter-btn">Filter ▾</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat-card">
+          <p>Total</p>
+          <h3>{{ total }}</h3>
+        </div>
+        <div class="stat-card ongoing">
+          <p>Ongoing</p>
+          <h3>{{ ongoing }}</h3>
+        </div>
+        <div class="stat-card expired">
+          <p>Expired</p>
+          <h3>{{ expired }}</h3>
+        </div>
+      </div>
+
+      <!-- Scholarship List -->
+      <div class="scholarship-list">
+        <div class="scholarship-card" *ngFor="let s of filteredScholarships()">
+          <div class="left">
+            <h4>{{ s.title }}</h4>
+            <p>{{ s.deadline }} • {{ s.country }}</p>
+          </div>
+          <div class="right">
+            <a class="apply">→ Apply now</a>
+            <a class="view">View</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>
