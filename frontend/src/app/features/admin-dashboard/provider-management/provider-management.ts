@@ -16,4 +16,56 @@ export class ProviderManagement {
     { label: 'Scholarships', route: '/admin/scholarships' },
     { label: 'Reports', route: '/admin/reports' },
   ];
+  pendingProviders = 6;
+  verifiedProviders = 120;
+  rejectedProviders = 8;
+
+  providers = [
+    {
+      name: 'Provider One',
+      type: 'University',
+      registered: 'Yes',
+      status: 'Pending',
+      scholarship: 'Scholarship',
+    },
+    {
+      name: 'Provider Two',
+      type: 'University',
+      registered: 'Yes',
+      status: 'Pending',
+      scholarship: 'Scholarship',
+    },
+    {
+      name: 'Provider Three',
+      type: 'University',
+      registered: 'Yes',
+      status: 'Pending',
+      scholarship: 'Scholarship',
+    },
+    {
+      name: 'Provider Four',
+      type: 'University',
+      registered: 'Yes',
+      status: 'Pending',
+      scholarship: 'Scholarship',
+    },
+  ];
+
+  selectedProvider: any = null;
+
+  selectProvider(provider: any) {
+    this.selectedProvider = provider;
+  }
+
+  approveProvider() {
+    if (this.selectedProvider) {
+      this.selectedProvider.status = 'Approved';
+    }
+  }
+
+  rejectProvider() {
+    if (this.selectedProvider) {
+      this.selectedProvider.status = 'Rejected';
+    }
+  }
 }

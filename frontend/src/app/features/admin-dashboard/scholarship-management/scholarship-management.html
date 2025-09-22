@@ -1,7 +1,43 @@
 <app-dashboard-layout [title]="'Scholarship Management'" [menu]="menu" logoUrl='logo.png'>
       <section>
-        <h2>Scholarship management works!!</h2>
-        <!-- admin content -->
+        <div class="dashboard">
+  <!-- Stats Cards -->
+  <div class="card-container">
+    <div class="stat-card" 
+         *ngFor="let stat of stats" 
+         [style.borderTopColor]="stat.color">
+      <h2>{{ stat.value }}</h2>
+      <p>{{ stat.title }}</p>
+    </div>
+  </div>
+
+  <!-- Scholarships Table -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Provider</th>
+          <th>Deadline</th>
+          <th>Funding Type</th>
+          <th>Country</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of scholarships">
+          <td>{{ s.title }}</td>
+          <td>{{ s.provider }}</td>
+          <td>{{ s.deadline }}</td>
+          <td>{{ s.funding }}</td>
+          <td>{{ s.country }}</td>
+          <td>{{ s.status }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
       </section>
       
     </app-dashboard-layout>
