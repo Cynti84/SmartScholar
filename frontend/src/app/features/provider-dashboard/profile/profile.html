@@ -1,7 +1,454 @@
 <app-dashboard-layout [title]="'Profile'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Profile Works!!</h2>
-        <!-- provider content -->
-      </section>
+  <section class="profile-container">
+    <form [formGroup]="profileForm" (ngSubmit)="onSave()" class="profile-form">
       
-    </app-dashboard-layout>
+      <!-- Organization Information Section -->
+      <div class="profile-section">
+        <div class="section-header">
+          <h3>Organization Information</h3>
+          <p class="section-subtitle">Manage your organization details</p>
+        </div>
+        
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="orgName">Organization Name *</label>
+            <input 
+              id="orgName" 
+              type="text" 
+              formControlName="organizationName"
+              placeholder="Enter organization name"
+              [class.error]="isFieldInvalid('organizationName')"
+            >
+            <div class="error-message" *ngIf="isFieldInvalid('organizationName')">
+              Organization name is required
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="providerType">Provider Type *</label>
+            <select 
+              id="providerType" 
+              formControlName="providerType"
+              [class.error]="isFieldInvalid('providerType')"
+            >
+              <option value="">Select provider type</option>
+              <option value="university">University</option>
+              <option value="ngo">NGO</option>
+              <option value="government">Government Agency</option>
+              <option value="foundation">Foundation</option>
+              <option value="corporation">Corporation</option>
+              <option value="other">Other</option>
+            </select>
+            <div class="error-message" *ngIf="isFieldInvalid('providerType')">
+              Provider type is required
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="country">Country *</label>
+            <select 
+              id="country" 
+              formControlName="country"
+              [class.error]="isFieldInvalid('country')"
+            >
+              <option value="">Select country</option>
+              <option *ngFor="let country of countries" [value]="country.code">
+                {{ country.name }}
+              </option>
+            </select>
+            <div class="error-message" *ngIf="isFieldInvalid('country')">
+              Country is required
+            </div>
+          </div>
+        </div>
+        
+        <!-- Logo Upload Section -->
+        <div class="logo-upload-section">
+          <label class="logo-label">Organization Logo</label>
+          <div class="logo-upload-container">
+            <div class="logo-preview" *ngIf="logoPreview">
+              <img [src]="logoPreview" alt="Organization Logo">
+              <button type="button" class="remove-logo" (click)="removeLogo()">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="logo-upload" *ngIf="!logoPreview">
+              <input 
+                type="file" 
+                #logoInput 
+                (change)="onLogoSelected($event)" 
+                accept="image/*"
+                hidden
+              >
+              <div class="upload-placeholder" (click)="triggerLogoUpload()">
+                <i class="fas fa-upload"></i>
+                <p>Click to upload logo</p>
+                <span class="file-info">PNG, JPG up to 5MB</span>
+              </div>
+            </div>
+            <button 
+              type="button" 
+              class="change-logo-btn" 
+              *ngIf="logoPreview"
+              (click)="triggerLogoUpload()"
+            >
+              Change Logo
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Information Section -->
+      <div class="profile-section">
+        <div class="section-header">
+          <h3>Contact Information</h3>
+          <p class="section-subtitle">Update your contact details</p>
+        </div>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="email">Contact Email *</label>
+            <input 
+              id="email" 
+              type="email" 
+              formControlName="email"
+              placeholder="contact@organization.com"
+              [class.error]="isFieldInvalid('email')"
+            >
+            <div class="verification-note" *ngIf="emailChanged">
+              <i class="fas fa-info-circle"></i>
+              Email verification will be required if changed
+            </div>
+            <div class="error-message" *ngIf="isFieldInvalid('email')">
+              Valid email is required
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input 
+              id="phone" 
+              type="tel" 
+              formControlName="phone"
+              placeholder="+1 234 567 8900"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="website">Website</label>
+            <input 
+              id="website" 
+              type="url" 
+              formControlName="website"
+              placeholder="https://www.organization.com"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="socialLinks">Social Media Links</label>
+            <textarea 
+              id="socialLinks" 
+              formControlName="socialLinks"
+              placeholder="LinkedIn: https://linkedin.com/company/org&#10;Twitter: https://twitter.com/org"
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verification Section -->
+      <div class="profile-section">
+        <div class="section-header">
+          <h3>Verification Status</h3>
+          <p class="section-subtitle">Manage your organization verification</p>
+        </div>
+        
+        <div class="verification-status">
+          <div class="status-badge" [ngClass]="verificationStatus">
+            <i class="fas" [ngClass]="{
+              'fa-clock': verificationStatus === 'pending',
+              'fa-check-circle': verificationStatus === 'verified',
+              'fa-times-circle': verificationStatus === 'rejected'
+            }"></i>
+            <span>{{ getVerificationStatusText() }}</span>
+          </div>
+          
+          <div class="status-message">
+            <div *ngIf="verificationStatus === 'pending'" class="pending-message">
+              <p>Your documents are currently under review. We'll notify you once the verification is complete.</p>
+            </div>
+            
+            <div *ngIf="verificationStatus === 'rejected'" class="rejected-message">
+              <p><strong>Verification Rejected:</strong> {{ rejectionReason }}</p>
+              <p>Please upload new verification documents to resubmit for verification.</p>
+            </div>
+            
+            <div *ngIf="verificationStatus === 'verified'" class="verified-message">
+              <p>Your organization has been successfully verified!</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Document Upload -->
+        <div class="document-upload" *ngIf="verificationStatus !== 'verified'">
+          <label class="upload-label">Verification Documents</label>
+          <div class="upload-area">
+            <input 
+              type="file" 
+              #docInput 
+              (change)="onDocumentSelected($event)" 
+              accept=".pdf,.doc,.docx"
+              multiple
+              hidden
+            >
+            <div class="upload-zone" (click)="docInput.click()">
+              <i class="fas fa-file-upload"></i>
+              <p>Upload verification documents</p>
+              <span class="file-info">PDF, DOC, DOCX up to 10MB each</span>
+            </div>
+          </div>
+          
+          <!-- Uploaded Documents List -->
+          <div class="uploaded-docs" *ngIf="uploadedDocuments.length > 0">
+            <h4>Uploaded Documents</h4>
+            <div class="doc-list">
+              <div class="doc-item" *ngFor="let doc of uploadedDocuments; let i = index">
+                <i class="fas fa-file-alt"></i>
+                <span class="doc-name">{{ doc.name }}</span>
+                <span class="doc-size">{{ formatFileSize(doc.size) }}</span>
+                <button type="button" class="remove-doc" (click)="removeDocument(i)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Account & Security Section -->
+      <div class="profile-section">
+        <div class="section-header">
+          <h3>Account & Security</h3>
+          <p class="section-subtitle">Manage your account security settings</p>
+        </div>
+        
+        <div class="security-options">
+          <div class="security-item">
+            <div class="security-info">
+              <h4>Change Password</h4>
+              <p>Update your account password</p>
+            </div>
+            <button type="button" class="btn btn-outline" (click)="openPasswordModal()">
+              Change Password
+            </button>
+          </div>
+          
+          <div class="security-item">
+            <div class="security-info">
+              <h4>Two-Factor Authentication</h4>
+              <p>Add an extra layer of security to your account</p>
+            </div>
+            <div class="toggle-switch">
+              <input 
+                type="checkbox" 
+                id="twoFA" 
+                formControlName="twoFactorEnabled"
+                class="toggle-input"
+              >
+              <label for="twoFA" class="toggle-label">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="security-item danger-zone">
+            <div class="security-info">
+              <h4>Deactivate Account</h4>
+              <p>Temporarily disable your account</p>
+            </div>
+            <button type="button" class="btn btn-danger" (click)="openDeactivateModal()">
+              Deactivate Account
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preferences Section -->
+      <div class="profile-section">
+        <div class="section-header">
+          <h3>Preferences</h3>
+          <p class="section-subtitle">Customize your dashboard experience</p>
+        </div>
+        
+        <div class="preferences-grid">
+          <div class="preference-item">
+            <label for="notifications">Email Notifications</label>
+            <div class="checkbox-group">
+              <div class="checkbox-item">
+                <input 
+                  type="checkbox" 
+                  id="scholarshipExpiry" 
+                  formControlName="notifyScholarshipExpiry"
+                >
+                <label for="scholarshipExpiry">Scholarship expiry alerts</label>
+              </div>
+              <div class="checkbox-item">
+                <input 
+                  type="checkbox" 
+                  id="newApplications" 
+                  formControlName="notifyNewApplications"
+                >
+                <label for="newApplications">New application alerts</label>
+              </div>
+              <div class="checkbox-item">
+                <input 
+                  type="checkbox" 
+                  id="systemUpdates" 
+                  formControlName="notifySystemUpdates"
+                >
+                <label for="systemUpdates">System updates</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="preference-item">
+            <label for="defaultView">Default Dashboard View</label>
+            <select id="defaultView" formControlName="defaultDashboardView">
+              <option value="overview">Overview</option>
+              <option value="manage">Manage Scholarships</option>
+              <option value="post">Post Scholarship</option>
+              <option value="applicants">Applicants</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="onReset()"
+          [disabled]="saving"
+        >
+          Reset Changes
+        </button>
+        <button 
+          type="submit" 
+          class="btn btn-primary" 
+          [disabled]="profileForm.invalid || saving"
+        >
+          <i class="fas fa-spinner fa-spin" *ngIf="saving"></i>
+          {{ saving ? 'Saving...' : 'Save Changes' }}
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Password Change Modal -->
+  <div class="modal-overlay" *ngIf="showPasswordModal" (click)="closePasswordModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Change Password</h3>
+        <button type="button" class="close-btn" (click)="closePasswordModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form [formGroup]="passwordForm" (ngSubmit)="onPasswordChange()">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="currentPassword">Current Password</label>
+            <input 
+              id="currentPassword" 
+              type="password" 
+              formControlName="currentPassword"
+              [class.error]="isPasswordFieldInvalid('currentPassword')"
+            >
+            <div class="error-message" *ngIf="isPasswordFieldInvalid('currentPassword')">
+              Current password is required
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <input 
+              id="newPassword" 
+              type="password" 
+              formControlName="newPassword"
+              [class.error]="isPasswordFieldInvalid('newPassword')"
+            >
+            <div class="error-message" *ngIf="isPasswordFieldInvalid('newPassword')">
+              Password must be at least 8 characters
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="confirmPassword">Confirm New Password</label>
+            <input 
+              id="confirmPassword" 
+              type="password" 
+              formControlName="confirmPassword"
+              [class.error]="isPasswordFieldInvalid('confirmPassword')"
+            >
+            <div class="error-message" *ngIf="isPasswordFieldInvalid('confirmPassword')">
+              Passwords do not match
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="closePasswordModal()">
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            class="btn btn-primary" 
+            [disabled]="passwordForm.invalid || changingPassword"
+          >
+            <i class="fas fa-spinner fa-spin" *ngIf="changingPassword"></i>
+            {{ changingPassword ? 'Updating...' : 'Update Password' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Deactivate Account Modal -->
+  <div class="modal-overlay" *ngIf="showDeactivateModal" (click)="closeDeactivateModal()">
+    <div class="modal-content danger" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Deactivate Account</h3>
+        <button type="button" class="close-btn" (click)="closeDeactivateModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="warning-message">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p><strong>Are you sure you want to deactivate your account?</strong></p>
+          <p>This action will:</p>
+          <ul>
+            <li>Hide all your scholarships from public view</li>
+            <li>Prevent new applications</li>
+            <li>Suspend your access to the platform</li>
+          </ul>
+          <p>You can reactivate your account at any time by contacting support.</p>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" (click)="closeDeactivateModal()">
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-danger" 
+          (click)="onDeactivateAccount()"
+          [disabled]="deactivating"
+        >
+          <i class="fas fa-spinner fa-spin" *ngIf="deactivating"></i>
+          {{ deactivating ? 'Deactivating...' : 'Deactivate Account' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</app-dashboard-layout>
