@@ -1,6 +1,75 @@
-<app-dashboard-layout [title]="'Admin Dashboard'" [menu]="menu" logoUrl='logo.png'>
+<app-dashboard-layout [title]="'Admin Dashboard'" [menu]="menu" logoUrl="logo.png">
   <section>
-    <h2>Welcome, admin</h2>
-    <!-- admin content -->
+    <!-- <h2>Welcome, admin</h2> -->
+    <div class="dashboard-container">
+      <!-- Header -->
+      <div class="header">
+        <h2>Admin Dashboard</h2>
+        <div class="welcome">Welcome back, Admin</div>
+      </div>
+
+      <!-- Top Stats Cards -->
+      <div class="stats-cards">
+        <div class="card">
+          <h3>Pending Providers</h3>
+          <p>{{ pendingProviders }}</p>
+        </div>
+        <div class="card">
+          <h3>Pending Scholarships</h3>
+          <p>{{ pendingScholarships }}</p>
+        </div>
+        <div class="card">
+          <h3>Active Scholarships</h3>
+          <p>{{ activeScholarships }}</p>
+        </div>
+        <div class="card">
+          <h3>Total Students</h3>
+          <p>{{ totalStudents }}</p>
+        </div>
+      </div>
+
+      <!-- Recent Activities -->
+      <div class="recent-activities">
+        <h3>Recent Activities</h3>
+        <div class="activities-grid">
+          <div class="activity-box">
+            <h4>New providers</h4>
+            <ul>
+              <li *ngFor="let provider of newProviders">{{ provider }}</li>
+            </ul>
+          </div>
+          <div class="activity-box">
+            <h4>New Scholarships</h4>
+            <ul>
+              <li *ngFor="let scholarship of newScholarships">{{ scholarship }}</li>
+            </ul>
+          </div>
+          <div class="activity-box">
+            <h4>Expiring Scholarships</h4>
+            <ul>
+              <li *ngFor="let exp of expiringScholarships">
+                {{ exp.name }} <br />
+                <small>Expiring in {{ exp.expiry }}</small>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Section -->
+      <div class="analytics">
+        <h3>Analytics</h3>
+        <div class="analytics-grid">
+          <div class="chart-box">
+            Scholarships posted <br />
+            [Line Graph]
+          </div>
+          <div class="chart-box">
+            Scholarships by field <br />
+            [Pie Chart]
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 </app-dashboard-layout>

@@ -1,7 +1,66 @@
-<app-dashboard-layout [title]="'Providers Management'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Provider management works!</h2>
-        <!-- admin content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout [title]="'Providers Management'" [menu]="menu" logoUrl="logo.png">
+  <section>
+    <div class="container">
+      <!-- Top Stats Cards -->
+      <div class="stats-cards">
+        <div class="card pending">
+          <h3>Pending Providers</h3>
+          <p>{{ pendingProviders }}</p>
+        </div>
+        <div class="card verified">
+          <h3>Verified Providers</h3>
+          <p>{{ verifiedProviders }}</p>
+        </div>
+        <div class="card rejected">
+          <h3>Rejected Providers</h3>
+          <p>{{ rejectedProviders }}</p>
+        </div>
+      </div>
+
+      <!-- Providers Table and Details -->
+      <div class="main-section">
+        <!-- Providers Table -->
+        <div class="table-container">
+          <h2>Providers Management</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Registered</th>
+                <th>Status</th>
+                <th>Scholarship</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let provider of providers" (click)="selectProvider(provider)">
+                <td>{{ provider.name }}</td>
+                <td>{{ provider.type }}</td>
+                <td>{{ provider.registered }}</td>
+                <td>{{ provider.status }}</td>
+                <td>{{ provider.scholarship }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Provider Details -->
+        <div class="details-container">
+          <h3>Provider Details</h3>
+          <div *ngIf="selectedProvider; else noSelection">
+            <p><strong>Name:</strong> {{ selectedProvider.name }}</p>
+            <p><strong>Type:</strong> {{ selectedProvider.type }}</p>
+            <p><strong>Status:</strong> {{ selectedProvider.status }}</p>
+            <p><strong>Scholarship:</strong> {{ selectedProvider.scholarship }}</p>
+            <button (click)="approveProvider()">Approve</button>
+            <button (click)="rejectProvider()">Reject</button>
+            <button>View Details</button>
+          </div>
+          <ng-template #noSelection>
+            <p>Select a provider to view details.</p>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>
