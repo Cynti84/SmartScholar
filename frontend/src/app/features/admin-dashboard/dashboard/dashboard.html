@@ -1,6 +1,5 @@
 <app-dashboard-layout [title]="'Admin Dashboard'" [menu]="menu" logoUrl="logo.png">
   <section>
-    <!-- <h2>Welcome, admin</h2> -->
     <div class="dashboard-container">
       <!-- Header -->
       <div class="header">
@@ -61,12 +60,22 @@
         <h3>Analytics</h3>
         <div class="analytics-grid">
           <div class="chart-box">
-            Scholarships posted <br />
-            [Line Graph]
+            <h4>Scholarships posted</h4>
+            <canvas
+              baseChart
+              [data]="lineChartData"
+              [options]="lineChartOptions"
+              chartType="line"
+            ></canvas>
           </div>
           <div class="chart-box">
-            Scholarships by field <br />
-            [Pie Chart]
+            <h4>Scholarships by field</h4>
+            <canvas
+              baseChart
+              [data]="pieChartData"
+              [options]="pieChartOptions"
+              chartType="pie"
+            ></canvas>
           </div>
         </div>
       </div>

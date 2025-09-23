@@ -1,7 +1,74 @@
-<app-dashboard-layout [title]="'Reports'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Reports work!</h2>
-        <!-- admin content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout [title]="'Reports'" [menu]="menu" logoUrl="logo.png">
+  <section>
+    <div class="reports-dashboard">
+      <h1>Reports & Analytics</h1>
+
+      <!-- Filters -->
+      <div class="filters">
+        <select>
+          <option>Last 7 days</option>
+          <option>Last 30 days</option>
+          <option>Last 6 months</option>
+          <option>Last year</option>
+        </select>
+        <button class="export-btn">Export</button>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="stats">
+        <div class="stat-card">
+          <h2>1,430</h2>
+          <p>Total Students Registered</p>
+        </div>
+        <div class="stat-card">
+          <h2>120</h2>
+          <p>Total Providers Verified</p>
+        </div>
+        <div class="stat-card">
+          <h2>245</h2>
+          <p>Total Scholarships Approved</p>
+        </div>
+        <div class="stat-card">
+          <h2>215 / 30</h2>
+          <p>Active vs Expired</p>
+        </div>
+      </div>
+
+      <!-- Graphs Grid -->
+      <div class="charts">
+        <div class="chart-card">
+          <h3>Student Growth Over Time</h3>
+          <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" chartType="line">
+          </canvas>
+        </div>
+
+        <div class="chart-card">
+          <h3>Scholarships by Status</h3>
+          <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" chartType="pie">
+          </canvas>
+        </div>
+
+        <div class="chart-card">
+          <h3>Scholarships by Country</h3>
+          <canvas baseChart [data]="countryChartData" chartType="bar"> </canvas>
+        </div>
+
+        <div class="chart-card">
+          <h3>Most Popular Fields of Study</h3>
+          <canvas baseChart [data]="fieldChartData" chartType="bar"> </canvas>
+        </div>
+
+        <div class="chart-card full-width">
+          <h3>Top 10 Providers</h3>
+          <canvas
+            baseChart
+            [data]="providerChartData"
+            [options]="providerChartOptions"
+            chartType="bar"
+          >
+          </canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>
