@@ -1,7 +1,62 @@
-<app-dashboard-layout [title]="'Student Management'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Student Management works!!</h2>
-        <!-- admin content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout [title]="'Student Management'" [menu]="menu" logoUrl="logo.png">
+  <section>
+    <div class="dashboard">
+      <!-- Stats Cards -->
+      <div class="card-container">
+        <div class="stat-card" *ngFor="let stat of stats" [style.borderTopColor]="stat.color">
+          <h2>{{ stat.value }}</h2>
+          <p>{{ stat.title }}</p>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <!-- Students Table -->
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Country</th>
+                <th>Status</th>
+                <th>Applied</th>
+                <th>Bookmarked</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let s of students" (click)="selectStudent(s)" class="clickable">
+                <td>
+                  <div class="student-info">
+                    <img src="https://via.placeholder.com/40" alt="avatar" />
+                    <div>
+                      <strong>{{ s.name }}</strong
+                      ><br />
+                      <small>{{ s.email }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ s.country }}</td>
+                <td>{{ s.status }}</td>
+                <td>{{ s.applied }}</td>
+                <td>{{ s.bookmarked }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Student Details -->
+        <div class="details-panel" *ngIf="selectedStudent">
+          <h3>{{ selectedStudent.name }}</h3>
+          <p><strong>Email</strong><br />{{ selectedStudent.email }}</p>
+          <p><strong>Country</strong><br />{{ selectedStudent.country }}</p>
+          <p><strong>Scholarships applied</strong><br />{{ selectedStudent.applied }}</p>
+          <p><strong>Scholarships Bookmarked</strong><br />{{ selectedStudent.bookmarked }}</p>
+          <p><strong>Last Login</strong><br />{{ selectedStudent.lastLogin }}</p>
+
+          <button class="action-btn danger">Deactivate</button>
+          <button class="action-btn warn">Ban</button>
+          <button class="action-btn">Reset Password</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>
