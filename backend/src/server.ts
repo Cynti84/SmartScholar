@@ -1,7 +1,12 @@
+import "reflect-metadata";
+import { connectDB } from "./utils/db";
+
 import express, { Request, Response } from "express";
 
 const app = express();
 const PORT = 5000;
+
+connectDB();
 
 // Routes
 app.get("/", (req: Request, res: Response) => {
@@ -10,5 +15,5 @@ app.get("/", (req: Request, res: Response) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`🚀🚀 Server is successfully running at http://localhost:${PORT}`);
 });
