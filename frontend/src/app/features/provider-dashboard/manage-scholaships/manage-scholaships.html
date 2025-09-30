@@ -310,5 +310,277 @@
         <button class="btn btn-danger" (click)="bulkDelete()">Delete Selected</button>
       </div>
     </div>
+
+    <!-- View Details Modal -->
+     <div class="modal-overlay" *ngIf="showViewModal" (click)="closeViewModal()">
+      <div class="modal-container view-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>📄 Scholarship Details</h2>
+          <button class="modal-close" (click)="closeViewModal()">✕</button>
+        </div>
+        
+        <div class="modal-body" *ngIf="currentScholarship">
+          <div class="detail-section">
+            <div class="detail-header">
+              <h3>{{ currentScholarship.title }}</h3>
+              <span 
+                class="status-badge"
+                [class]="getStatusClass(currentScholarship.status)">
+                {{ currentScholarship.status }}
+              </span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4 class="section-title">📝 Summary</h4>
+            <p class="detail-text">{{ currentScholarship.shortSummary }}</p>
+          </div>
+
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label class="detail-label">🏢 Organization</label>
+              <p class="detail-value">{{ currentScholarship.organizationName }}</p>
+            </div>
+
+            <div class="detail-item">
+              <label class="detail-label">🌍 Country</label>
+              <p class="detail-value">{{ currentScholarship.country }}</p>
+            </div>
+
+            <div class="detail-item">
+              <label class="detail-label">🎓 Education Level</label>
+              <p class="detail-value">{{ currentScholarship.educationLevel }}</p>
+            </div>
+
+            <div class="detail-item">
+              <label class="detail-label">💰 Scholarship Type</label>
+              <p class="detail-value">{{ currentScholarship.scholarshipType }}</p>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4 class="section-title">📚 Fields of Study</h4>
+            <div class="fields-tags">
+              <span class="field-tag" *ngFor="let field of currentScholarship.fieldsOfStudy">
+                {{ field }}
+              </span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4 class="section-title">📅 Important Dates</h4>
+            <div class="dates-info">
+              <div class="date-item">
+                <span class="date-label">Application Deadline:</span>
+                <span class="date-value">{{ currentScholarship.applicationDeadline | date:'MMMM dd, yyyy' }}</span>
+                <span 
+                  class="deadline-status"
+                  [class.expired]="isExpired(currentScholarship.applicationDeadline)"
+                  [class.soon]="isDeadlineSoon(currentScholarship.applicationDeadline)">
+                  ({{ getDeadlineText(currentScholarship.applicationDeadline) }})
+                </span>
+              </div>
+              <div class="date-item">
+                <span class="date-label">Date Created:</span>
+                <span class="date-value">{{ currentScholarship.dateCreated | date:'MMMM dd, yyyy' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4 class="section-title">📊 Analytics</h4>
+            <div class="analytics-display">
+              <div class="analytics-card">
+                <div class="analytics-icon">👁️</div>
+                <div class="analytics-info">
+                  <span class="analytics-number">{{ currentScholarship.analytics.views }}</span>
+                  <span class="analytics-text">Total Views</span>
+                </div>
+              </div>
+              <div class="analytics-card">
+                <div class="analytics-icon">🔖</div>
+                <div class="analytics-info">
+                  <span class="analytics-number">{{ currentScholarship.analytics.bookmarks }}</span>
+                  <span class="analytics-text">Bookmarks</span>
+                </div>
+              </div>
+              <div class="analytics-card">
+                <div class="analytics-icon">📝</div>
+                <div class="analytics-info">
+                  <span class="analytics-number">{{ currentScholarship.analytics.applications }}</span>
+                  <span class="analytics-text">Applications</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-outline" (click)="closeViewModal()">Close</button>
+          <button 
+            class="btn btn-primary" 
+            (click)="editScholarship(currentScholarship!); closeViewModal()"
+            [disabled]="currentScholarship?.status === 'Rejected'">
+            ✏️ Edit Scholarship
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" *ngIf="showEditModal" (click)="closeEditModal()">
+      <div class="modal-container edit-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>✏️ Edit Scholarship</h2>
+          <button class="modal-close" (click)="closeEditModal()">✕</button>
+        </div>
+        
+        <div class="modal-body" *ngIf="editingScholarship">
+          <form class="edit-form">
+            <div class="form-group">
+              <label class="form-label" for="edit-title">
+                Scholarship Title <span class="required">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="edit-title"
+                class="form-input"
+                [(ngModel)]="editingScholarship.title"
+                name="title"
+                placeholder="Enter scholarship title"
+                required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="edit-summary">
+                Short Summary <span class="required">*</span>
+              </label>
+              <textarea 
+                id="edit-summary"
+                class="form-textarea"
+                [(ngModel)]="editingScholarship.shortSummary"
+                name="summary"
+                rows="3"
+                placeholder="Brief description of the scholarship"
+                required></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="edit-organization">
+                  Organization Name <span class="required">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="edit-organization"
+                  class="form-input"
+                  [(ngModel)]="editingScholarship.organizationName"
+                  name="organization"
+                  placeholder="Organization name"
+                  required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="edit-country">
+                  Country <span class="required">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="edit-country"
+                  class="form-input"
+                  [(ngModel)]="editingScholarship.country"
+                  name="country"
+                  placeholder="Country"
+                  required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="edit-education">
+                  Education Level <span class="required">*</span>
+                </label>
+                <select 
+                  id="edit-education"
+                  class="form-select"
+                  [(ngModel)]="editingScholarship.educationLevel"
+                  name="educationLevel"
+                  required>
+                  <option value="Undergraduate / Bachelor's">Undergraduate / Bachelor's</option>
+                  <option value="Graduate / Master's">Graduate / Master's</option>
+                  <option value="Doctorate / PhD">Doctorate / PhD</option>
+                  <option value="Any Level">Any Level</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="edit-type">
+                  Scholarship Type <span class="required">*</span>
+                </label>
+                <select 
+                  id="edit-type"
+                  class="form-select"
+                  [(ngModel)]="editingScholarship.scholarshipType"
+                  name="scholarshipType"
+                  required>
+                  <option value="Fully Funded">Fully Funded</option>
+                  <option value="Partial Funding">Partial Funding</option>
+                  <option value="Merit-based">Merit-based</option>
+                  <option value="Need-based">Need-based</option>
+                  <option value="Fellowship">Fellowship</option>
+                  <option value="Research Grant">Research Grant</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="edit-deadline">
+                Application Deadline <span class="required">*</span>
+              </label>
+              <input 
+                type="date" 
+                id="edit-deadline"
+                class="form-input"
+                [value]="formatDateForInput(editingScholarship.applicationDeadline)"
+                (change)="updateDeadline($any($event.target).value)"
+                name="deadline"
+                required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Fields of Study
+              </label>
+              <div class="fields-edit">
+                <div class="field-tag-editable" *ngFor="let field of editingScholarship.fieldsOfStudy; let i = index">
+                  {{ field }}
+                  <button type="button" class="remove-field" (click)="editingScholarship.fieldsOfStudy.splice(i, 1)">✕</button>
+                </div>
+              </div>
+              <p class="form-hint">Note: Field management can be enhanced later</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Current Status</label>
+              <div class="status-display">
+                <span 
+                  class="status-badge"
+                  [class]="getStatusClass(editingScholarship.status)">
+                  {{ editingScholarship.status }}
+                </span>
+                <p class="form-hint">Status is managed by administrators</p>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-outline" (click)="closeEditModal()">Cancel</button>
+          <button class="btn btn-primary" (click)="saveEditedScholarship()">
+            💾 Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
   </section>
 </app-dashboard-layout>

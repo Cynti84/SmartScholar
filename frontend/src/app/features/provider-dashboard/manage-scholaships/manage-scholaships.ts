@@ -50,6 +50,12 @@ export class ManageScholaships implements OnInit {
   selectedScholarships: string[] = [];
   viewMode: ViewMode = 'table';
 
+  // Modal state
+  showViewModal = false;
+  showEditModal = false;
+  currentScholarship: Scholarship | null = null;
+  editingScholarship: Scholarship | null = null;
+
   // Filters
   searchTerm = '';
   statusFilter = '';
@@ -279,11 +285,17 @@ export class ManageScholaships implements OnInit {
     this.selectedScholarships = [];
   }
 
-  // Action methods
+  // Modal methods
   viewScholarship(scholarship: Scholarship): void {
     console.log('Viewing scholarship:', scholarship);
     // Implement navigation to scholarship detail view
-    // this.router.navigate(['/scholarship-detail', scholarship.id]);
+    this.currentScholarship = scholarship;
+    this.showViewModal = true;
+  }
+
+  closeViewModal(): void {
+    this.showViewModal = false;
+    this.currentScholarship = null;
   }
 
   editScholarship(scholarship: Scholarship): void {
@@ -294,9 +306,66 @@ export class ManageScholaships implements OnInit {
 
     console.log('Editing scholarship:', scholarship);
     // Implement navigation to edit form with pre-filled data
-    // this.router.navigate(['/edit-scholarship', scholarship.id]);
+    //create a deep copy for editing
+    this.editingScholarship = {
+      ...scholarship,
+      fieldsOfStudy: [...scholarship.fieldsOfStudy],
+      applicationDeadline: new Date(scholarship.applicationDeadline),
+      dateCreated: new Date(scholarship.dateCreated),
+      analytics: { ...scholarship.analytics },
+    };
+    this.showEditModal = true;
   }
 
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.editingScholarship = null;
+  }
+
+  saveEditedScholarship(): void {
+    if (!this.editingScholarship) return;
+
+    //validation
+    if (!this.editingScholarship.title.trim()) {
+      alert('Title is required');
+      return;
+    }
+    if (!this.editingScholarship.shortSummary.trim()) {
+      alert('Summary is required');
+      return;
+    }
+    if (!this.editingScholarship.organizationName.trim()) {
+      alert('Organization name is required');
+      return;
+    }
+
+    //find and update the scholarship in the array
+    const index = this.scholarships.findIndex((s) => s.id === this.editingScholarship!.id);
+    if (index !== -1) {
+      this.scholarships[index] = { ...this.editingScholarship };
+      this.applyFilters();
+      this.showNotification('Scholarship updated successfully', 'success');
+    }
+    this.closeEditModal();
+  }
+
+  //Helper method to formate date for input field
+  formatDateForInput(date: Date): string {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  //helper method to update deadline from input
+  updateDeadline(dateString: string): void {
+    if (this.editingScholarship) {
+      this.editingScholarship.applicationDeadline = new Date(dateString);
+    }
+  }
+
+  //action methods
   deleteScholarship(scholarship: Scholarship): void {
     const confirmMessage = `Are you sure you want to delete "${scholarship.title}"? This action cannot be undone.`;
 
