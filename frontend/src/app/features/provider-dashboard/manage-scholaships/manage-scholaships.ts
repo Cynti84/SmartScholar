@@ -64,7 +64,7 @@ export class ManageScholaships implements OnInit {
 
   constructor(private router: Router) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.loadScholarships();
     this.applyFilters();
   }
