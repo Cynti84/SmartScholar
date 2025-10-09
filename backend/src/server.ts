@@ -1,19 +1,25 @@
 import "reflect-metadata";
+import dotenv from "dotenv";
+import express, { Request, Response } from "express";
 import { connectDB } from "./utils/db";
 
-import express, { Request, Response } from "express";
+dotenv.config();
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
+// Connect to DB
 connectDB();
+
+// Middleware (parse JSON)
+app.use(express.json());
 
 // Routes
 app.get("/", (req: Request, res: Response) => {
-  res.send("Hello from Express backend (TypeScript)!");
+  res.send("Hello from SmartScholar backend (TypeScript)!");
 });
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀🚀 Server is successfully running at http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
