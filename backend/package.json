@@ -8,6 +8,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "typeorm": "typeorm-ts-node-commonjs",
+    "docker:start": "docker-compose up -d",
+    "docker:stop": "docker-compose down",
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run": "npm run typeorm -- migration:run -d src/utils/db.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d src/utils/db.ts"
