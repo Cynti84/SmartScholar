@@ -1,43 +1,435 @@
-<app-dashboard-layout [title]="'Scholarship Management'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <div class="dashboard">
-  <!-- Stats Cards -->
-  <div class="card-container">
-    <div class="stat-card" 
-         *ngFor="let stat of stats" 
-         [style.borderTopColor]="stat.color">
-      <h2>{{ stat.value }}</h2>
-      <p>{{ stat.title }}</p>
+<app-dashboard-layout [title]="'ScholarshipManagement'" [menu]="menu" logoUrl="logo.png">
+  <section>
+    <div class="scholarship-management">
+      <div class="header">
+        <!-- <h1 class="title">Scholarship Management</h1> -->
+        <div class="stats">
+          <div class="stat-item">
+            <span class="stat-number">{{ scholarships.length }}</span>
+            <span class="stat-label">Total Scholarships</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{
+              (scholarships | filter : { status: 'active' }).length
+            }}</span>
+            <span class="stat-label">Active</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{
+              (scholarships | filter : { status: 'pending' }).length
+            }}</span>
+            <span class="stat-label">Pending</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{
+              (scholarships | filter : { status: 'expired' }).length
+            }}</span>
+            <span class="stat-label">Expired</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters Section -->
+      <div class="filters-section">
+        <form [formGroup]="filterForm" class="filters-form">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label for="searchTerm">Search</label>
+              <input
+                id="searchTerm"
+                type="text"
+                formControlName="searchTerm"
+                placeholder="Search by title, description, or provider..."
+                class="search-input"
+              />
+            </div>
+
+            <div class="filter-group">
+              <label for="provider">Provider</label>
+              <select id="provider" formControlName="provider" class="filter-select">
+                <option value="">All Providers</option>
+                <option *ngFor="let provider of providers" [value]="provider">
+                  {{ provider }}
+                </option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="category">Category</label>
+              <select id="category" formControlName="category" class="filter-select">
+                <option value="">All Categories</option>
+                <option *ngFor="let category of categories" [value]="category">
+                  {{ category }}
+                </option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="status">Status</label>
+              <select id="status" formControlName="status" class="filter-select">
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="expired">Expired</option>
+              </select>
+            </div>
+
+            <div class="filter-actions">
+              <button type="button" (click)="clearFilters()" class="btn btn-secondary">
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Results Summary -->
+      <div class="results-summary">
+        <p>
+          Showing {{ paginatedScholarships.length }} of
+          {{ filteredScholarships.length }} scholarships
+        </p>
+      </div>
+
+      <!-- Scholarships Table -->
+      <div class="table-container">
+        <table class="scholarships-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Provider</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Deadline</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let scholarship of paginatedScholarships" class="table-row">
+              <td class="title-cell">
+                <div class="title-content">
+                  <h3>{{ scholarship.title }}</h3>
+                  <p class="description">{{ scholarship.description }}</p>
+                </div>
+              </td>
+              <td>{{ scholarship.provider }}</td>
+              <td>
+                <span class="category-badge">{{ scholarship.category }}</span>
+              </td>
+              <td class="amount-cell">{{ formatCurrency(scholarship.amount) }}</td>
+              <td>{{ formatDate(scholarship.deadline) }}</td>
+              <td>
+                <span [class]="'status-badge ' + getStatusClass(scholarship.status)">
+                  {{ scholarship.status | titlecase }}
+                </span>
+              </td>
+              <td class="actions-cell">
+                <div class="action-buttons">
+                  <button
+                    (click)="openViewModal(scholarship)"
+                    class="btn btn-info btn-sm"
+                    title="View Details"
+                  >
+                    View
+                  </button>
+
+                  <button
+                    *ngIf="scholarship.status === 'pending'"
+                    (click)="approveScholarship(scholarship)"
+                    class="btn btn-success btn-sm"
+                    title="Approve"
+                  >
+                    Approve
+                  </button>
+
+                  <button
+                    *ngIf="scholarship.status === 'pending'"
+                    (click)="declineScholarship(scholarship)"
+                    class="btn btn-warning btn-sm"
+                    title="Decline"
+                  >
+                    Decline
+                  </button>
+
+                  <button
+                    (click)="openEditModal(scholarship)"
+                    class="btn btn-primary btn-sm"
+                    title="Edit"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    (click)="openDeleteModal(scholarship)"
+                    class="btn btn-danger btn-sm"
+                    title="Delete"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Empty State -->
+        <div *ngIf="filteredScholarships.length === 0" class="empty-state">
+          <div class="empty-content">
+            <h3>No scholarships found</h3>
+            <p>Try adjusting your filters to see more results.</p>
+            <button (click)="clearFilters()" class="btn btn-primary">Clear All Filters</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-container" *ngIf="totalPages > 1">
+        <div class="pagination">
+          <button
+            (click)="goToPage(currentPage - 1)"
+            [disabled]="currentPage === 1"
+            class="btn btn-secondary"
+          >
+            Previous
+          </button>
+
+          <span class="page-numbers">
+            <button
+              *ngFor="let page of [].constructor(totalPages); let i = index"
+              (click)="goToPage(i + 1)"
+              [class.active]="currentPage === i + 1"
+              class="page-btn"
+            >
+              {{ i + 1 }}
+            </button>
+          </span>
+
+          <button
+            (click)="goToPage(currentPage + 1)"
+            [disabled]="currentPage === totalPages"
+            class="btn btn-secondary"
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- Scholarships Table -->
-  <div class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Provider</th>
-          <th>Deadline</th>
-          <th>Funding Type</th>
-          <th>Country</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let s of scholarships">
-          <td>{{ s.title }}</td>
-          <td>{{ s.provider }}</td>
-          <td>{{ s.deadline }}</td>
-          <td>{{ s.funding }}</td>
-          <td>{{ s.country }}</td>
-          <td>{{ s.status }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+    <!-- View Modal -->
+    <div *ngIf="isViewModalOpen" class="modal-overlay" (click)="closeViewModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Scholarship Details</h2>
+          <button (click)="closeViewModal()" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body" *ngIf="selectedScholarship">
+          <div class="detail-section">
+            <h3>{{ selectedScholarship.title }}</h3>
+            <p class="provider">by {{ selectedScholarship.provider }}</p>
+            <span [class]="'status-badge ' + getStatusClass(selectedScholarship.status)">
+              {{ selectedScholarship.status | titlecase }}
+            </span>
+          </div>
 
-      </section>
-      
-    </app-dashboard-layout>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Amount:</label>
+              <span>{{ formatCurrency(selectedScholarship.amount) }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Category:</label>
+              <span>{{ selectedScholarship.category }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Deadline:</label>
+              <span>{{ formatDate(selectedScholarship.deadline) }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Created:</label>
+              <span>{{ formatDate(selectedScholarship.createdDate) }}</span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <label>Description:</label>
+            <p>{{ selectedScholarship.description }}</p>
+          </div>
+
+          <div class="detail-section">
+            <label>Eligibility:</label>
+            <p>{{ selectedScholarship.eligibility }}</p>
+          </div>
+
+          <div class="detail-section">
+            <label>Requirements:</label>
+            <ul>
+              <li *ngFor="let req of selectedScholarship.requirements">{{ req }}</li>
+            </ul>
+          </div>
+
+          <div class="detail-section" *ngIf="selectedScholarship.applicationUrl">
+            <label>Application URL:</label>
+            <a [href]="selectedScholarship.applicationUrl" target="_blank">
+              {{ selectedScholarship.applicationUrl }}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div *ngIf="isEditModalOpen" class="modal-overlay" (click)="closeEditModal()">
+      <div class="modal-content large" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Edit Scholarship</h2>
+          <button (click)="closeEditModal()" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="editForm" (ngSubmit)="saveScholarship()">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="editTitle">Title *</label>
+                <input
+                  id="editTitle"
+                  type="text"
+                  formControlName="title"
+                  class="form-input"
+                  [class.error]="editForm.get('title')?.invalid && editForm.get('title')?.touched"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="editProvider">Provider *</label>
+                <input
+                  id="editProvider"
+                  type="text"
+                  formControlName="provider"
+                  class="form-input"
+                  [class.error]="
+                    editForm.get('provider')?.invalid && editForm.get('provider')?.touched
+                  "
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="editCategory">Category *</label>
+                <input
+                  id="editCategory"
+                  type="text"
+                  formControlName="category"
+                  class="form-input"
+                  [class.error]="
+                    editForm.get('category')?.invalid && editForm.get('category')?.touched
+                  "
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="editAmount">Amount *</label>
+                <input
+                  id="editAmount"
+                  type="number"
+                  formControlName="amount"
+                  class="form-input"
+                  [class.error]="editForm.get('amount')?.invalid && editForm.get('amount')?.touched"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="editDeadline">Deadline *</label>
+                <input
+                  id="editDeadline"
+                  type="date"
+                  formControlName="deadline"
+                  class="form-input"
+                  [class.error]="
+                    editForm.get('deadline')?.invalid && editForm.get('deadline')?.touched
+                  "
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="editApplicationUrl">Application URL</label>
+                <input
+                  id="editApplicationUrl"
+                  type="url"
+                  formControlName="applicationUrl"
+                  class="form-input"
+                />
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="editDescription">Description *</label>
+              <textarea
+                id="editDescription"
+                formControlName="description"
+                rows="3"
+                class="form-textarea"
+                [class.error]="
+                  editForm.get('description')?.invalid && editForm.get('description')?.touched
+                "
+              >
+              </textarea>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="editEligibility">Eligibility *</label>
+              <textarea
+                id="editEligibility"
+                formControlName="eligibility"
+                rows="2"
+                class="form-textarea"
+                [class.error]="
+                  editForm.get('eligibility')?.invalid && editForm.get('eligibility')?.touched
+                "
+              >
+              </textarea>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="editRequirements">Requirements (comma separated)</label>
+              <textarea
+                id="editRequirements"
+                formControlName="requirements"
+                rows="2"
+                class="form-textarea"
+                placeholder="Transcript, Essay, Recommendation letters"
+              >
+              </textarea>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" (click)="closeEditModal()" class="btn btn-secondary">
+                Cancel
+              </button>
+              <button type="submit" [disabled]="editForm.invalid" class="btn btn-primary">
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div *ngIf="isDeleteModalOpen" class="modal-overlay" (click)="closeDeleteModal()">
+      <div class="modal-content small" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Confirm Deletion</h2>
+          <button (click)="closeDeleteModal()" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body" *ngIf="selectedScholarship">
+          <p>Are you sure you want to delete the scholarship:</p>
+          <strong>"{{ selectedScholarship.title }}"</strong>
+          <p class="warning">This action cannot be undone.</p>
+        </div>
+        <div class="modal-actions">
+          <button (click)="closeDeleteModal()" class="btn btn-secondary">Cancel</button>
+          <button (click)="confirmDelete()" class="btn btn-danger">Delete</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>

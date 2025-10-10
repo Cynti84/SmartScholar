@@ -1,66 +1,451 @@
 <app-dashboard-layout [title]="'Providers Management'" [menu]="menu" logoUrl="logo.png">
   <section>
-    <div class="container">
-      <!-- Top Stats Cards -->
-      <div class="stats-cards">
-        <div class="card pending">
-          <h3>Pending Providers</h3>
-          <p>{{ pendingProviders }}</p>
+    <div class="provider-management">
+      <!-- Header -->
+      <div class="header">
+        <div class="header-content">
+          <!-- <h1>Provider Management</h1> -->
+          <p class="subtitle">Manage all scholarship providers and their activities</p>
         </div>
-        <div class="card verified">
-          <h3>Verified Providers</h3>
-          <p>{{ verifiedProviders }}</p>
-        </div>
-        <div class="card rejected">
-          <h3>Rejected Providers</h3>
-          <p>{{ rejectedProviders }}</p>
+        <div class="header-actions">
+          <button class="btn btn-secondary" (click)="exportProviders()">
+            <span class="icon">📥</span>
+            Export
+          </button>
         </div>
       </div>
 
-      <!-- Providers Table and Details -->
-      <div class="main-section">
-        <!-- Providers Table -->
-        <div class="table-container">
-          <h2>Providers Management</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Registered</th>
-                <th>Status</th>
-                <th>Scholarship</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let provider of providers" (click)="selectProvider(provider)">
-                <td>{{ provider.name }}</td>
-                <td>{{ provider.type }}</td>
-                <td>{{ provider.registered }}</td>
-                <td>{{ provider.status }}</td>
-                <td>{{ provider.scholarship }}</td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- Statistics Cards -->
+      <div class="stats-cards">
+        <div class="stat-card total">
+          <div class="stat-icon">📊</div>
+          <div class="stat-details">
+            <div class="stat-label">Total Providers</div>
+            <div class="stat-value">{{ stats.total }}</div>
+          </div>
+        </div>
+        <div class="stat-card active">
+          <div class="stat-icon">✅</div>
+          <div class="stat-details">
+            <div class="stat-label">Active</div>
+            <div class="stat-value">{{ stats.active }}</div>
+          </div>
+        </div>
+        <div class="stat-card pending">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-details">
+            <div class="stat-label">Pending</div>
+            <div class="stat-value">{{ stats.pending }}</div>
+          </div>
+        </div>
+        <div class="stat-card suspended">
+          <div class="stat-icon">🚫</div>
+          <div class="stat-details">
+            <div class="stat-label">Suspended</div>
+            <div class="stat-value">{{ stats.suspended }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters Section -->
+      <div class="filters-section">
+        <div class="search-box">
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+            placeholder="Search providers by name, email, or contact person..."
+            class="search-input"
+          />
         </div>
 
-        <!-- Provider Details -->
-        <div class="details-container">
-          <h3>Provider Details</h3>
-          <div *ngIf="selectedProvider; else noSelection">
-            <p><strong>Name:</strong> {{ selectedProvider.name }}</p>
-            <p><strong>Type:</strong> {{ selectedProvider.type }}</p>
-            <p><strong>Status:</strong> {{ selectedProvider.status }}</p>
-            <p><strong>Scholarship:</strong> {{ selectedProvider.scholarship }}</p>
-            <button (click)="approveProvider()">Approve</button>
-            <button (click)="rejectProvider()">Reject</button>
-            <button>View Details</button>
-          </div>
-          <ng-template #noSelection>
-            <p>Select a provider to view details.</p>
-          </ng-template>
+        <div class="filters">
+          <select [(ngModel)]="selectedStatus" (change)="onFilterChange()" class="filter-select">
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="suspended">Suspended</option>
+          </select>
+
+          <select [(ngModel)]="selectedType" (change)="onFilterChange()" class="filter-select">
+            <option value="all">All Types</option>
+            <option value="university">Universities</option>
+            <option value="ngo">NGOs</option>
+            <option value="company">Companies</option>
+          </select>
         </div>
+      </div>
+
+      <!-- Results Info -->
+      <div class="results-info">
+        Showing {{ (currentPage - 1) * itemsPerPage + 1 }} -
+        {{ Math.min(currentPage * itemsPerPage, filteredProviders.length) }}
+        of {{ filteredProviders.length }} providers
+      </div>
+
+      <!-- Providers Table -->
+      <div class="table-container">
+        <table class="providers-table">
+          <thead>
+            <tr>
+              <th>Provider</th>
+              <th>Type</th>
+              <th>Contact</th>
+              <th>Scholarships</th>
+              <th>Registered</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let provider of getPaginatedProviders()">
+              <td class="provider-cell">
+                <div class="provider-info">
+                  <span class="provider-icon">{{ getTypeIcon(provider.type) }}</span>
+                  <div>
+                    <div class="provider-name">{{ provider.name }}</div>
+                    <div class="provider-contact-person">{{ provider.contactPerson }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="type-badge" [class]="'type-' + provider.type">
+                  {{ provider.type | uppercase }}
+                </span>
+              </td>
+              <td class="contact-cell">
+                <div class="contact-info">
+                  <div>{{ provider.email }}</div>
+                  <div class="phone">{{ provider.phone }}</div>
+                </div>
+              </td>
+              <td class="scholarships-cell">
+                <div class="scholarship-stats">
+                  <span class="total">{{ provider.scholarshipsPosted }} posted</span>
+                  <span class="active">{{ provider.activeScholarships }} active</span>
+                </div>
+              </td>
+              <td>{{ formatDate(provider.registrationDate) }}</td>
+              <td>
+                <span [class]="'status-badge ' + getStatusClass(provider.status)">
+                  {{ provider.status | uppercase }}
+                </span>
+              </td>
+              <td class="actions-cell">
+                <button
+                  (click)="viewProviderDetails(provider)"
+                  class="btn btn-view"
+                  title="View Details"
+                >
+                  View
+                </button>
+                <button
+                  *ngIf="provider.status === 'pending'"
+                  (click)="confirmApprove(provider)"
+                  class="btn btn-approve"
+                  title="Approve"
+                >
+                  Approve
+                </button>
+                <button
+                  *ngIf="provider.status === 'pending'"
+                  (click)="confirmDecline(provider)"
+                  class="btn btn-decline"
+                  title="Decline"
+                >
+                  Decline
+                </button>
+                <button
+                  *ngIf="provider.status === 'active'"
+                  (click)="confirmSuspend(provider)"
+                  class="btn btn-suspend"
+                  title="Suspend"
+                >
+                  Suspend
+                </button>
+                <button
+                  *ngIf="provider.status === 'suspended'"
+                  (click)="confirmActivate(provider)"
+                  class="btn btn-activate"
+                  title="Activate"
+                >
+                  Activate
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="filteredProviders.length === 0" class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <h3>No providers found</h3>
+          <p>Try adjusting your search or filter criteria</p>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="getTotalPages() > 1">
+        <button
+          (click)="changePage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          class="pagination-btn"
+        >
+          ← Previous
+        </button>
+
+        <div class="pagination-numbers">
+          <button
+            *ngFor="let page of [].constructor(getTotalPages()); let i = index"
+            (click)="changePage(i + 1)"
+            [class.active]="currentPage === i + 1"
+            class="pagination-number"
+          >
+            {{ i + 1 }}
+          </button>
+        </div>
+
+        <button
+          (click)="changePage(currentPage + 1)"
+          [disabled]="currentPage === getTotalPages()"
+          class="pagination-btn"
+        >
+          Next →
+        </button>
       </div>
     </div>
   </section>
 </app-dashboard-layout>
+
+<!-- Provider Details Modal -->
+<div class="modal-overlay" *ngIf="showDetailsModal" (click)="closeDetailsModal()">
+  <div class="modal-content details-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Provider Details</h2>
+      <button class="close-btn" (click)="closeDetailsModal()">×</button>
+    </div>
+
+    <div class="modal-body" *ngIf="selectedProvider">
+      <!-- Provider Overview -->
+      <div class="provider-overview">
+        <div class="overview-header">
+          <div class="provider-icon-large">
+            {{ getTypeIcon(selectedProvider.type) }}
+          </div>
+          <div class="overview-info">
+            <h3>{{ selectedProvider.name }}</h3>
+            <span [class]="'status-badge ' + getStatusClass(selectedProvider.status)">
+              {{ selectedProvider.status | uppercase }}
+            </span>
+          </div>
+        </div>
+        <p class="description">{{ selectedProvider.description }}</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="details-tabs">
+        <div class="tab-content">
+          <!-- Basic Information -->
+          <div class="info-section">
+            <h4>Basic Information</h4>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Type</label>
+                <span class="type-badge" [class]="'type-' + selectedProvider.type">
+                  {{ selectedProvider.type | uppercase }}
+                </span>
+              </div>
+              <div class="info-item">
+                <label>Registration Date</label>
+                <span>{{ formatDate(selectedProvider.registrationDate) }}</span>
+              </div>
+              <div class="info-item">
+                <label>Last Active</label>
+                <span>{{ getTimeSinceActive(selectedProvider.lastActive) }}</span>
+              </div>
+              <div class="info-item">
+                <label>Contact Person</label>
+                <span>{{ selectedProvider.contactPerson }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Information -->
+          <div class="info-section">
+            <h4>Contact Information</h4>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Email</label>
+                <span>{{ selectedProvider.email }}</span>
+              </div>
+              <div class="info-item">
+                <label>Phone</label>
+                <span>{{ selectedProvider.phone }}</span>
+              </div>
+              <div class="info-item">
+                <label>Website</label>
+                <a [href]="'https://' + selectedProvider.website" target="_blank">
+                  {{ selectedProvider.website }}
+                </a>
+              </div>
+              <div class="info-item full-width">
+                <label>Address</label>
+                <span>{{ selectedProvider.address }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scholarship Statistics -->
+          <div class="info-section">
+            <h4>Scholarship Statistics</h4>
+            <div class="stats-grid">
+              <div class="stat-box">
+                <div class="stat-number">{{ selectedProvider.scholarshipsPosted }}</div>
+                <div class="stat-label">Total Posted</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-number">{{ selectedProvider.activeScholarships }}</div>
+                <div class="stat-label">Currently Active</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-number">
+                  {{ selectedProvider.scholarshipsPosted - selectedProvider.activeScholarships }}
+                </div>
+                <div class="stat-label">Closed/Expired</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Verification Documents -->
+          <div class="info-section">
+            <h4>Verification Documents</h4>
+            <div class="documents-list">
+              <div *ngFor="let doc of selectedProvider.verificationDocs" class="document-item">
+                <span class="doc-icon">📄</span>
+                <span class="doc-name">{{ doc }}</span>
+                <button class="btn-download" (click)="downloadDocument(doc)">Download</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity Logs -->
+          <div class="info-section">
+            <h4>Recent Activity</h4>
+            <div class="activity-logs">
+              <div *ngFor="let log of activityLogs" class="activity-item">
+                <div class="activity-icon">📋</div>
+                <div class="activity-content">
+                  <div class="activity-action">{{ log.action }}</div>
+                  <div class="activity-details">{{ log.details }}</div>
+                  <div class="activity-time">{{ formatDate(log.timestamp) }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button (click)="closeDetailsModal()" class="btn btn-secondary">Close</button>
+      <button
+        *ngIf="selectedProvider?.status === 'active'"
+        (click)="confirmSuspend(selectedProvider); closeDetailsModal()"
+        class="btn btn-danger"
+      >
+        Suspend Provider
+      </button>
+      <button
+        *ngIf="selectedProvider?.status === 'suspended'"
+        (click)="confirmActivate(selectedProvider); closeDetailsModal()"
+        class="btn btn-success"
+      >
+        Activate Provider
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showConfirmModal" (click)="closeConfirmModal()">
+  <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirm Action</h2>
+      <button class="close-btn" (click)="closeConfirmModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="confirm-content">
+        <div class="confirm-icon" [class]="confirmAction">
+          <span *ngIf="confirmAction === 'approve'">✓</span>
+          <span *ngIf="confirmAction === 'decline'">✕</span>
+          <span *ngIf="confirmAction === 'suspend'">🚫</span>
+          <span *ngIf="confirmAction === 'activate'">✓</span>
+        </div>
+
+        <h3>
+          {{
+            confirmAction === 'approve'
+              ? 'Approve Provider'
+              : confirmAction === 'decline'
+              ? 'Decline Provider'
+              : confirmAction === 'suspend'
+              ? 'Suspend Provider'
+              : 'Activate Provider'
+          }}
+        </h3>
+
+        <p *ngIf="confirmAction === 'approve'">
+          Are you sure you want to approve <strong>{{ selectedProvider?.name }}</strong
+          >? They will be able to post scholarships immediately.
+        </p>
+        <p *ngIf="confirmAction === 'decline'">
+          Are you sure you want to decline <strong>{{ selectedProvider?.name }}</strong
+          >? This action cannot be undone and they will need to re-register.
+        </p>
+        <p *ngIf="confirmAction === 'suspend'">
+          Are you sure you want to suspend <strong>{{ selectedProvider?.name }}</strong
+          >? Their active scholarships will remain visible but they won't be able to post new ones.
+        </p>
+        <p *ngIf="confirmAction === 'activate'">
+          Are you sure you want to activate <strong>{{ selectedProvider?.name }}</strong
+          >? They will regain full access to the platform.
+        </p>
+
+        <div
+          class="reason-input"
+          *ngIf="confirmAction === 'suspend' || confirmAction === 'decline'"
+        >
+          <label>Reason (optional)</label>
+          <textarea
+            [(ngModel)]="confirmReason"
+            placeholder="Provide a reason for this action..."
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button (click)="closeConfirmModal()" class="btn btn-secondary">Cancel</button>
+      <button
+        (click)="executeConfirmAction()"
+        [class]="
+          'btn ' +
+          (confirmAction === 'approve' || confirmAction === 'activate'
+            ? 'btn-success'
+            : 'btn-danger')
+        "
+      >
+        {{
+          confirmAction === 'approve'
+            ? 'Approve'
+            : confirmAction === 'decline'
+            ? 'Decline'
+            : confirmAction === 'suspend'
+            ? 'Suspend'
+            : 'Activate'
+        }}
+      </button>
+    </div>
+  </div>
+</div>
