@@ -1,81 +1,264 @@
 <app-dashboard-layout [title]="'Admin Dashboard'" [menu]="menu" logoUrl="logo.png">
   <section>
-    <div class="dashboard-container">
+    <div class="admin-dashboard">
       <!-- Header -->
-      <div class="header">
-        <h2>Admin Dashboard</h2>
-        <div class="welcome">Welcome back, Admin</div>
-      </div>
-
-      <!-- Top Stats Cards -->
-      <div class="stats-cards">
-        <div class="card">
-          <h3>Pending Providers</h3>
-          <p>{{ pendingProviders }}</p>
+      <div class="dashboard-header">
+        <div class="header-content">
+          <!-- <h1>Admin Dashboard</h1> -->
+          <p class="subtitle">Welcome back! Here's what's happening today.</p>
         </div>
-        <div class="card">
-          <h3>Pending Scholarships</h3>
-          <p>{{ pendingScholarships }}</p>
-        </div>
-        <div class="card">
-          <h3>Active Scholarships</h3>
-          <p>{{ activeScholarships }}</p>
-        </div>
-        <div class="card">
-          <h3>Total Students</h3>
-          <p>{{ totalStudents }}</p>
+        <div class="header-actions">
+          <button class="btn btn-secondary">
+            <span class="icon">📊</span>
+            Generate Report
+          </button>
+          <button class="btn btn-primary">
+            <span class="icon">➕</span>
+            Quick Actions
+          </button>
         </div>
       </div>
 
-      <!-- Recent Activities -->
-      <div class="recent-activities">
-        <h3>Recent Activities</h3>
-        <div class="activities-grid">
-          <div class="activity-box">
-            <h4>New providers</h4>
-            <ul>
-              <li *ngFor="let provider of newProviders">{{ provider }}</li>
-            </ul>
-          </div>
-          <div class="activity-box">
-            <h4>New Scholarships</h4>
-            <ul>
-              <li *ngFor="let scholarship of newScholarships">{{ scholarship }}</li>
-            </ul>
-          </div>
-          <div class="activity-box">
-            <h4>Expiring Scholarships</h4>
-            <ul>
-              <li *ngFor="let exp of expiringScholarships">
-                {{ exp.name }} <br />
-                <small>Expiring in {{ exp.expiry }}</small>
-              </li>
-            </ul>
-          </div>
-        </div>
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading dashboard data...</p>
       </div>
 
-      <!-- Analytics Section -->
-      <div class="analytics">
-        <h3>Analytics</h3>
-        <div class="analytics-grid">
-          <div class="chart-box">
-            <h4>Scholarships posted</h4>
-            <canvas
-              baseChart
-              [data]="lineChartData"
-              [options]="lineChartOptions"
-              chartType="line"
-            ></canvas>
+      <!-- Dashboard Content -->
+      <div *ngIf="!isLoading" class="dashboard-content">
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+          <div
+            *ngFor="let stat of quickStats"
+            class="stat-card"
+            [style.border-left-color]="stat.color"
+            (click)="
+              stat.label === 'Total Scholarships'
+                ? viewAllScholarships()
+                : stat.label === 'Pending Approvals'
+                ? viewPendingApprovals()
+                : stat.label === 'Active Providers'
+                ? viewProviders()
+                : viewStudents()
+            "
+          >
+            <div class="stat-icon" [style.background]="stat.color + '20'">
+              <span>{{ stat.icon }}</span>
+            </div>
+            <div class="stat-details">
+              <div class="stat-label">{{ stat.label }}</div>
+              <div class="stat-value">{{ stat.value.toLocaleString() }}</div>
+              <div
+                class="stat-change"
+                [class.positive]="stat.change > 0"
+                [class.negative]="stat.change < 0"
+              >
+                <span class="arrow">{{ stat.change > 0 ? '↑' : '↓' }}</span>
+                {{ Math.abs(stat.change) }}% from last month
+              </div>
+            </div>
           </div>
-          <div class="chart-box">
-            <h4>Scholarships by field</h4>
-            <canvas
-              baseChart
-              [data]="pieChartData"
-              [options]="pieChartOptions"
-              chartType="pie"
-            ></canvas>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="dashboard-grid">
+          <!-- Notifications Panel -->
+          <div class="panel notifications-panel">
+            <div class="panel-header">
+              <h2>
+                <span class="icon">🔔</span>
+                Notifications
+                <span class="badge">{{ notifications.length }}</span>
+              </h2>
+            </div>
+            <div class="panel-body">
+              <div class="notifications-list">
+                <div
+                  *ngFor="let notification of getVisibleNotifications()"
+                  class="notification-item"
+                  [class]="getPriorityClass(notification.priority)"
+                >
+                  <div class="notification-icon">
+                    {{ getNotificationIcon(notification.type) }}
+                  </div>
+                  <div class="notification-content">
+                    <p class="notification-message">{{ notification.message }}</p>
+                    <span class="notification-time">{{
+                      formatTimestamp(notification.timestamp)
+                    }}</span>
+                  </div>
+                  <button
+                    class="notification-dismiss"
+                    (click)="dismissNotification(notification.id)"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+              <button
+                *ngIf="notifications.length > maxNotificationsToShow"
+                class="view-all-btn"
+                (click)="toggleNotifications()"
+              >
+                {{ showAllNotifications ? 'Show Less' : 'View All Notifications' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Most Applied Scholarships -->
+          <div class="panel chart-panel">
+            <div class="panel-header">
+              <h2>
+                <span class="icon">📈</span>
+                Most Applied Scholarships
+              </h2>
+              <span class="info-text">{{ getTotalApplications() }} total applications</span>
+            </div>
+            <div class="panel-body">
+              <div class="bar-chart">
+                <div *ngFor="let item of mostAppliedScholarships" class="bar-item">
+                  <div class="bar-container">
+                    <div
+                      class="bar-fill"
+                      [style.height.%]="
+                        getBarHeight(item.value, getMaxValue(mostAppliedScholarships))
+                      "
+                      [attr.data-value]="item.value"
+                    ></div>
+                  </div>
+                  <div class="bar-label">{{ item.label }}</div>
+                  <div class="bar-value">{{ item.value }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Monthly Signups -->
+          <div class="panel chart-panel">
+            <div class="panel-header">
+              <h2>
+                <span class="icon">📊</span>
+                Monthly Student Signups
+              </h2>
+              <span class="info-text">{{ getTotalSignups() }} total this year</span>
+            </div>
+            <div class="panel-body">
+              <div class="line-chart">
+                <div class="chart-grid">
+                  <div class="grid-line"></div>
+                  <div class="grid-line"></div>
+                  <div class="grid-line"></div>
+                  <div class="grid-line"></div>
+                </div>
+                <svg class="line-svg" viewBox="0 0 700 200" preserveAspectRatio="none">
+                  <polyline
+                    [attr.points]="getMonthlySignupPoints()"
+                    stroke="#4CAF50"
+                    stroke-width="2"
+                    fill="none"
+                  ></polyline>
+                  <polygon
+                    [attr.points]="getMonthlySignupPoints() + ' 700,200 0,200'"
+                    fill="rgba(76, 175, 80, 0.3)"
+                  ></polygon>
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" style="stop-color: #4299e1; stop-opacity: 0.5" />
+                      <stop offset="100%" style="stop-color: #4299e1; stop-opacity: 0" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div class="chart-labels">
+                  <div *ngFor="let item of monthlySignups" class="chart-label">
+                    <span>{{ item.label }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category Distribution -->
+          <div class="panel">
+            <div class="panel-header">
+              <h2>
+                <span class="icon">📚</span>
+                Scholarship Categories
+              </h2>
+            </div>
+            <div class="panel-body">
+              <div class="category-list">
+                <div *ngFor="let category of categoryDistribution" class="category-item">
+                  <div class="category-info">
+                    <span class="category-name">{{ category.label }}</span>
+                    <span class="category-percentage">{{ category.value }}%</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="category.value"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Provider Activity -->
+          <div class="panel">
+            <div class="panel-header">
+              <h2>
+                <span class="icon">🏆</span>
+                Top Active Providers
+              </h2>
+            </div>
+            <div class="panel-body">
+              <div class="provider-list">
+                <div *ngFor="let provider of providerActivity; let i = index" class="provider-item">
+                  <div class="provider-rank">{{ i + 1 }}</div>
+                  <div class="provider-details">
+                    <div class="provider-name">{{ provider.label }}</div>
+                    <div class="provider-scholarships">
+                      {{ provider.value }} active scholarships
+                    </div>
+                  </div>
+                  <div class="provider-badge">
+                    <span *ngIf="i === 0">🥇</span>
+                    <span *ngIf="i === 1">🥈</span>
+                    <span *ngIf="i === 2">🥉</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions Footer -->
+        <div class="quick-actions-footer">
+          <div class="action-card" (click)="viewPendingApprovals()">
+            <div class="action-icon">⏳</div>
+            <div class="action-text">
+              <h3>Review Pending</h3>
+              <p>15 items awaiting approval</p>
+            </div>
+          </div>
+          <div class="action-card" (click)="viewAllScholarships()">
+            <div class="action-icon">🎓</div>
+            <div class="action-text">
+              <h3>Manage Scholarships</h3>
+              <p>View all 248 scholarships</p>
+            </div>
+          </div>
+          <div class="action-card" (click)="viewProviders()">
+            <div class="action-icon">🏢</div>
+            <div class="action-text">
+              <h3>Provider Management</h3>
+              <p>87 active providers</p>
+            </div>
+          </div>
+          <div class="action-card" (click)="viewStudents()">
+            <div class="action-icon">👥</div>
+            <div class="action-text">
+              <h3>Student Database</h3>
+              <p>3,542 registered students</p>
+            </div>
           </div>
         </div>
       </div>
