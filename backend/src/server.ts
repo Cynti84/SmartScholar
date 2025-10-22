@@ -2,6 +2,7 @@ import "reflect-metadata";
 import dotenv from "dotenv";
 import express, { Request, Response } from "express";
 import { connectDB } from "./utils/db";
+import authRoutes from "./routes/auth.routes";
 
 dotenv.config();
 
@@ -15,9 +16,36 @@ connectDB();
 app.use(express.json());
 
 // Routes
+
+app.use("/api/auth", authRoutes);
+
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello from SmartScholar backend (TypeScript)!");
 });
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
+
+// Error handler
+app.use(
+  (
+    err: Error,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error("Error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+);
 
 // Start server
 app.listen(PORT, () => {
