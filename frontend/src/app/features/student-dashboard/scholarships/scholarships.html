@@ -1,83 +1,503 @@
 <app-dashboard-layout [title]="'Browse Scholarships'" [menu]="menu" logoUrl="logo.png">
   <section>
-    <!-- <h2>Scholarships Works!!</h2> -->
-    <!-- student content -->
     <div class="scholarships-container">
-      <!-- Header -->
-      <div class="header">
-        <h2>Scholarships</h2>
-        <div class="profile">
-          <img src="https://via.placeholder.com/40" alt="profile" class="profile-pic" />
-          <!-- <div class="profile-info">
-        <p class="name">John Doe</p>
-        <p class="country">Kenyan</p>
-      </div> -->
+      <!-- List View -->
+      <div class="list-view" *ngIf="!selectedScholarship">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Browse Scholarships</h1>
+            <p class="page-subtitle">Find and apply for scholarships that match your profile</p>
+          </div>
+          <button class="filter-toggle-btn" (click)="toggleFilters()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="4" y1="21" x2="4" y2="14" />
+              <line x1="4" y1="10" x2="4" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12" y2="3" />
+              <line x1="20" y1="21" x2="20" y2="16" />
+              <line x1="20" y1="12" x2="20" y2="3" />
+              <line x1="1" y1="14" x2="7" y2="14" />
+              <line x1="9" y1="8" x2="15" y2="8" />
+              <line x1="17" y1="16" x2="23" y2="16" />
+            </svg>
+            {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
+          </button>
+        </div>
+
+        <div class="content-wrapper">
+          <aside class="filters-sidebar" [class.collapsed]="!showFilters">
+            <div class="filters-header">
+              <h3>Filters</h3>
+              <button class="clear-btn" (click)="clearFilters()">Clear All</button>
+            </div>
+
+            <div class="filter-group">
+              <label>Search</label>
+              <div class="search-input">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search by keyword, university, program..."
+                  [(ngModel)]="filters.keyword"
+                  (input)="applyFilters()"
+                />
+              </div>
+            </div>
+
+            <div class="filter-group">
+              <label>Country</label>
+              <select [(ngModel)]="filters.country" (change)="applyFilters()">
+                <option value="">All Countries</option>
+                <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Study Level</label>
+              <select [(ngModel)]="filters.level" (change)="applyFilters()">
+                <option value="">All Levels</option>
+                <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Funding Type</label>
+              <select [(ngModel)]="filters.fundingType" (change)="applyFilters()">
+                <option value="">All Types</option>
+                <option *ngFor="let type of fundingTypes" [value]="type">{{ type }}</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Field of Study</label>
+              <select [(ngModel)]="filters.fieldOfStudy" (change)="applyFilters()">
+                <option value="">All Fields</option>
+                <option *ngFor="let field of fieldsOfStudy" [value]="field">{{ field }}</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Deadline Before</label>
+              <input type="date" [(ngModel)]="filters.deadlineBefore" (change)="applyFilters()" />
+            </div>
+          </aside>
+
+          <main class="main-content">
+            <div class="results-header">
+              <p class="results-count">{{ filteredScholarships.length }} scholarships found</p>
+              <div class="sort-controls">
+                <label>Sort by:</label>
+                <select [(ngModel)]="sortBy" (change)="onSortChange()">
+                  <option value="deadline">Deadline</option>
+                  <option value="amount">Amount</option>
+                  <option value="title">Title</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="scholarships-grid">
+              <div class="scholarship-card" *ngFor="let scholarship of getPaginatedScholarships()">
+                <button
+                  class="save-btn"
+                  [class.saved]="scholarship.isSaved"
+                  (click)="toggleSave(scholarship)"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                  </svg>
+                </button>
+
+                <div class="card-header">
+                  <span
+                    class="funding-badge"
+                    [class.full]="scholarship.fundingType === 'Full Funding'"
+                  >
+                    {{ scholarship.fundingType }}
+                  </span>
+                  <span class="level-badge">{{ scholarship.level }}</span>
+                </div>
+
+                <h3 class="scholarship-title" (click)="viewScholarship(scholarship)">
+                  {{ scholarship.title }}
+                </h3>
+                <p class="provider">{{ scholarship.provider }}</p>
+
+                <div class="scholarship-meta">
+                  <div class="meta-item">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="12" cy="10" r="3" />
+                      <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z" />
+                    </svg>
+                    {{ scholarship.country }}
+                  </div>
+                  <div class="meta-item">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                    </svg>
+                    {{ scholarship.fieldOfStudy }}
+                  </div>
+                </div>
+
+                <div class="scholarship-footer">
+                  <div class="amount">{{ scholarship.amount }}</div>
+                  <div
+                    class="deadline"
+                    [class.urgent]="getDaysRemaining(scholarship.deadline) <= 30"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    {{ getDaysRemaining(scholarship.deadline) }} days left
+                  </div>
+                </div>
+
+                <button class="view-details-btn" (click)="viewScholarship(scholarship)">
+                  View Details
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="no-results" *ngIf="filteredScholarships.length === 0">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+              <h3>No scholarships found</h3>
+              <p>Try adjusting your filters or search terms</p>
+              <button class="clear-filters-btn" (click)="clearFilters()">Clear Filters</button>
+            </div>
+
+            <div class="pagination" *ngIf="totalPages > 1">
+              <button class="page-btn" [disabled]="currentPage === 1" (click)="prevPage()">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+
+              <button
+                class="page-number"
+                *ngFor="let page of getPageNumbers()"
+                [class.active]="page === currentPage"
+                (click)="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button class="page-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
+          </main>
         </div>
       </div>
 
-      <!-- Search and Filter -->
-      <div class="filter-bar">
-        <input type="text" placeholder="Search by title or keyword" />
-        <button class="btn-filter">Apply Filter</button>
-      </div>
+      <!-- Detail View -->
+      <div class="detail-view" *ngIf="selectedScholarship">
+        <button class="back-btn" (click)="backToList()">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+          Back to Scholarships
+        </button>
 
-      <div class="content">
-        <!-- Scholarship List -->
-        <div class="scholarship-list">
-          <div class="scholarship-card">
-            <div class="icon">💡</div>
-            <div class="info">
-              <h4>Scholarship Title</h4>
-              <p>Provider</p>
-              <p>Deadline &nbsp;&nbsp;&nbsp; Country</p>
+        <div class="detail-container">
+          <div class="detail-main">
+            <div class="detail-header">
+              <div class="header-top">
+                <div>
+                  <h1 class="detail-title">{{ selectedScholarship.title }}</h1>
+                  <p class="detail-provider">{{ selectedScholarship.provider }}</p>
+                </div>
+                <button
+                  class="save-btn-large"
+                  [class.saved]="selectedScholarship.isSaved"
+                  (click)="toggleSave(selectedScholarship)"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                  </svg>
+                  {{ selectedScholarship.isSaved ? 'Saved' : 'Save' }}
+                </button>
+              </div>
+
+              <div class="header-badges">
+                <span class="badge funding">{{ selectedScholarship.fundingType }}</span>
+                <span class="badge level">{{ selectedScholarship.level }}</span>
+                <span class="badge country">{{ selectedScholarship.country }}</span>
+                <span class="badge field">{{ selectedScholarship.fieldOfStudy }}</span>
+              </div>
             </div>
-            <button class="btn-bookmark">Bookmark</button>
-          </div>
 
-          <div class="scholarship-card">
-            <div class="icon">💡</div>
-            <div class="info">
-              <h4>Scholarship Title</h4>
-              <p>Provider</p>
-              <p>Deadline &nbsp;&nbsp;&nbsp; Country</p>
+            <div class="detail-section">
+              <h2>Description</h2>
+              <p>{{ selectedScholarship.description }}</p>
             </div>
-            <button class="btn-bookmark">Bookmark</button>
-          </div>
 
-          <div class="scholarship-card">
-            <div class="icon">💡</div>
-            <div class="info">
-              <h4>Scholarship Title</h4>
-              <p>Provider</p>
-              <p>Deadline &nbsp;&nbsp;&nbsp; Country</p>
+            <div class="detail-section">
+              <h2>Eligibility Criteria</h2>
+              <ul class="criteria-list">
+                <li *ngFor="let criterion of selectedScholarship.eligibility">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  {{ criterion }}
+                </li>
+              </ul>
             </div>
-            <button class="btn-bookmark">Bookmark</button>
-          </div>
 
-          <div class="scholarship-card">
-            <div class="icon">💡</div>
-            <div class="info">
-              <h4>Scholarship Title</h4>
-              <p>Provider</p>
-              <p>Deadline &nbsp;&nbsp;&nbsp; Country</p>
+            <div class="detail-section">
+              <h2>Funding Details</h2>
+              <div class="funding-box">
+                <div class="funding-amount">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <line x1="12" y1="1" x2="12" y2="23" />
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                  </svg>
+                  <div>
+                    <span class="amount-label">Award Amount</span>
+                    <span class="amount-value">{{ selectedScholarship.amount }}</span>
+                  </div>
+                </div>
+                <p class="funding-description">{{ selectedScholarship.fundingDetails }}</p>
+              </div>
             </div>
-            <button class="btn-bookmark">Bookmark</button>
+
+            <div class="detail-section">
+              <h2>Application Requirements</h2>
+              <ul class="requirements-list">
+                <li *ngFor="let requirement of selectedScholarship.requirements">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+                  {{ requirement }}
+                </li>
+              </ul>
+            </div>
           </div>
 
-          <div class="footer-btns">
-            <button class="btn-recommended">Recommended For You</button>
-            <a href="#" class="view-more">View more</a>
-          </div>
+          <aside class="detail-sidebar">
+            <div class="deadline-card">
+              <div class="deadline-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              </div>
+              <div class="deadline-info">
+                <span class="deadline-label">Application Deadline</span>
+                <span class="deadline-date">{{ selectedScholarship.deadline }}</span>
+                <span
+                  class="deadline-countdown"
+                  [class.urgent]="getDaysRemaining(selectedScholarship.deadline) <= 30"
+                >
+                  {{ getDaysRemaining(selectedScholarship.deadline) }} days remaining
+                </span>
+              </div>
+            </div>
+
+            <button class="apply-btn" (click)="applyScholarship(selectedScholarship)">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+              Apply Now
+            </button>
+
+            <div class="info-cards">
+              <div class="info-card">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="10" r="3" />
+                  <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z" />
+                </svg>
+                <div>
+                  <span class="info-label">Country</span>
+                  <span class="info-value">{{ selectedScholarship.country }}</span>
+                </div>
+              </div>
+
+              <div class="info-card">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                  <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                </svg>
+                <div>
+                  <span class="info-label">Study Level</span>
+                  <span class="info-value">{{ selectedScholarship.level }}</span>
+                </div>
+              </div>
+
+              <div class="info-card">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg>
+                <div>
+                  <span class="info-label">Field</span>
+                  <span class="info-value">{{ selectedScholarship.fieldOfStudy }}</span>
+                </div>
+              </div>
+            </div>
+          </aside>
         </div>
 
-        <!-- Scholarship Details Panel -->
-        <div class="scholarship-details">
-          <p class="placeholder">Click on a Scholarship to view its details</p>
-          <div class="details-box"></div>
-          <div class="actions">
-            <button class="btn-apply">Apply Now</button>
-            <button class="btn-bookmark-outline">Bookmark</button>
-            <button class="btn-applied">Mark as applied</button>
+        <div class="related-section" *ngIf="relatedScholarships.length > 0">
+          <h2 class="related-title">Related Scholarships</h2>
+          <div class="related-grid">
+            <div class="related-card" *ngFor="let related of relatedScholarships">
+              <div class="related-header">
+                <span class="funding-tag" [class.full]="related.fundingType === 'Full Funding'">
+                  {{ related.fundingType }}
+                </span>
+              </div>
+              <h3 class="related-card-title" (click)="viewScholarship(related)">
+                {{ related.title }}
+              </h3>
+              <p class="related-provider">{{ related.provider }}</p>
+              <div class="related-footer">
+                <span class="related-amount">{{ related.amount }}</span>
+                <span class="related-deadline"
+                  >{{ getDaysRemaining(related.deadline) }} days left</span
+                >
+              </div>
+              <button class="view-related-btn" (click)="viewScholarship(related)">View</button>
+            </div>
           </div>
         </div>
       </div>
