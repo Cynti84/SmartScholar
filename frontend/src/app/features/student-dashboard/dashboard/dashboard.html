@@ -1,89 +1,233 @@
 <app-dashboard-layout [title]="'Dashboard Overview'" [menu]="menu" logoUrl="logo.png">
   <section>
-    <!-- <h2>Student dashboard Works!!</h2> -->
-    <!-- student content -->
     <div class="dashboard-container">
-      <!-- Top Search + Profile -->
-      <div class="topbar">
-        <input type="text" placeholder="Search" class="search-bar" />
-        <!-- <div class="profile">
-          <img src="https://via.placeholder.com/40" alt="profile" class="profile-pic" />
-          <div class="profile-info">
-            <p class="name">John Doe</p>
-            <p class="country">Kenyan</p>
+      <!-- Welcome Section -->
+      <div class="welcome-section">
+        <h1 class="welcome-title">Welcome back, {{ studentName }}!</h1>
+        <p class="welcome-subtitle">Here's your scholarship overview for today</p>
+      </div>
+
+      <!-- Overview Cards -->
+      <div class="overview-grid">
+        <div class="stat-card primary">
+          <div class="stat-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+              <path d="M6 12v5c3 3 9 3 12 0v-5" />
+            </svg>
           </div>
-        </div> -->
-      </div>
-
-      <!-- Welcome Card -->
-      <div class="welcome-card">
-        <div class="welcome-text">
-          <p class="date">September 4, 2025</p>
-          <h2>Welcome back, John!</h2>
-          <p class="subtitle">Always stay updated in your page</p>
-        </div>
-        <img
-          src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-          alt="student"
-          class="welcome-img"
-        />
-      </div>
-
-      <!-- Scholarships Stats -->
-      <div class="stats">
-        <div class="stat-card">
-          <div class="bar"></div>
-          <p class="number">6</p>
-          <p>Applied</p>
-        </div>
-        <div class="stat-card active">
-          <div class="bar"></div>
-          <p class="number">4</p>
-          <p>Bookmarked</p>
-        </div>
-        <div class="stat-card">
-          <div class="bar"></div>
-          <p class="number">25</p>
-          <p>Available</p>
-        </div>
-      </div>
-
-      <!-- Main Content (Scholarships + Updates) -->
-      <div class="main-section">
-        <!-- Top Available -->
-        <div class="available">
-          <div class="header">
-            <h3>Top Available</h3>
-            <a href="#">See all</a>
+          <div class="stat-content">
+            <h3 class="stat-value">{{ stats.totalScholarships }}</h3>
+            <p class="stat-label">Total Scholarships Available</p>
           </div>
-          <div class="available-cards">
-            <div class="country-card">
-              <h4>Kenya</h4>
-              <button>View</button>
+        </div>
+
+        <div class="stat-card success">
+          <div class="stat-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-value">{{ stats.applied }}</h3>
+            <p class="stat-label">Scholarships Applied</p>
+          </div>
+        </div>
+
+        <div class="stat-card warning">
+          <div class="stat-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-value">{{ stats.pending }}</h3>
+            <p class="stat-label">Applications Pending</p>
+          </div>
+        </div>
+
+        <div class="stat-card approved">
+          <div class="stat-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-value">{{ stats.approved }}</h3>
+            <p class="stat-label">Applications Approved</p>
+          </div>
+        </div>
+
+        <div class="stat-card rejected">
+          <div class="stat-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="15" y1="9" x2="9" y2="15" />
+              <line x1="9" y1="9" x2="15" y2="15" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-value">{{ stats.rejected }}</h3>
+            <p class="stat-label">Applications Rejected</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <h2 class="section-title">Quick Actions</h2>
+        <div class="actions-grid">
+          <button class="action-btn primary" (click)="onApplyNow()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            <span>Apply Now</span>
+          </button>
+          <button class="action-btn secondary" (click)="onViewSaved()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+            <span>View Saved</span>
+          </button>
+          <button class="action-btn tertiary" (click)="onEditProfile()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span>Edit Profile</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Recommended Scholarships -->
+      <div class="recommended-section">
+        <div class="section-header">
+          <h2 class="section-title">Recommended For You</h2>
+          <span class="ai-badge">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+              />
+            </svg>
+            AI Powered
+          </span>
+        </div>
+
+        <div class="scholarships-grid">
+          <div class="scholarship-card" *ngFor="let scholarship of recommendedScholarships">
+            <div class="card-header">
+              <div class="match-badge" [class.high-match]="scholarship.matchScore >= 85">
+                {{ scholarship.matchScore }}% Match
+              </div>
+              <span class="category-tag">{{ scholarship.category }}</span>
             </div>
-            <div class="country-card">
-              <h4>Spain</h4>
-              <button>View</button>
-            </div>
-          </div>
-        </div>
 
-        <!-- Important Updates -->
-        <div class="updates">
-          <h3>Important Updates</h3>
-          <div class="update-item">
-            <h4>Prelim payment due</h4>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              <a href="#">See more</a>
-            </p>
-          </div>
-          <div class="update-item">
-            <h4>Exam schedule</h4>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              <a href="#">See more</a>
-            </p>
+            <h3 class="scholarship-title">{{ scholarship.title }}</h3>
+            <p class="scholarship-provider">{{ scholarship.provider }}</p>
+
+            <div class="scholarship-details">
+              <div class="detail-item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <line x1="12" y1="1" x2="12" y2="23" />
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+                <span class="amount">{{ scholarship.amount }}</span>
+              </div>
+              <div class="detail-item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                <span class="deadline">{{ getDaysRemaining(scholarship.deadline) }} days left</span>
+              </div>
+            </div>
+
+            <button class="view-btn" (click)="onViewScholarship(scholarship.id)">
+              View Details
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>

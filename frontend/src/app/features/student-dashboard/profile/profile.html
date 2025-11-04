@@ -1,7 +1,569 @@
-<app-dashboard-layout [title]="'Profile page'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Student Profile Works!!</h2>
-        <!-- student content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout [title]="'Profile page'" [menu]="menu" logoUrl="logo.png">
+  <section>
+    <!-- student content -->
+
+    <div class="user-profile-page">
+      <div class="profile-container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+          <div class="profile-avatar-section">
+            <div class="avatar-wrapper">
+              <div
+                class="avatar"
+                [style.background-image]="
+                  userProfile.profileImage ? 'url(' + userProfile.profileImage + ')' : 'none'
+                "
+              >
+                <span *ngIf="!userProfile.profileImage" class="avatar-initials">{{
+                  getInitials()
+                }}</span>
+              </div>
+              <div class="profile-completion" [style.--completion]="profileCompletion">
+                <svg viewBox="0 0 36 36" class="circular-chart">
+                  <path
+                    class="circle-bg"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path
+                    class="circle"
+                    [attr.stroke-dasharray]="profileCompletion + ', 100'"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                </svg>
+                <span class="completion-text">{{ profileCompletion }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-info">
+            <h1>{{ userProfile.firstName }} {{ userProfile.lastName }}</h1>
+            <p class="email">{{ userProfile.email }}</p>
+            <p class="role-badge">{{ userProfile.role | uppercase }}</p>
+            <p class="member-since">Member since {{ formatDate(userProfile.accountCreated) }}</p>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="profile-tabs">
+          <button
+            class="tab"
+            [class.active]="activeTab === 'profile'"
+            (click)="switchTab('profile')"
+          >
+            <span class="tab-icon">👤</span>
+            Profile
+          </button>
+          <button
+            class="tab"
+            [class.active]="activeTab === 'security'"
+            (click)="switchTab('security')"
+          >
+            <span class="tab-icon">🔒</span>
+            Security
+          </button>
+          <button
+            class="tab"
+            [class.active]="activeTab === 'preferences'"
+            (click)="switchTab('preferences')"
+          >
+            <span class="tab-icon">⚙️</span>
+            Preferences
+          </button>
+          <button
+            class="tab"
+            [class.active]="activeTab === 'account'"
+            (click)="switchTab('account')"
+          >
+            <span class="tab-icon">🗑️</span>
+            Account
+          </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <!-- PROFILE TAB -->
+          <div *ngIf="activeTab === 'profile'" class="content-section">
+            <div class="section-header">
+              <div>
+                <h2>Personal Information</h2>
+                <p class="section-subtitle">Update your personal details and profile information</p>
+              </div>
+              <button *ngIf="!isEditingProfile" class="btn btn-primary" (click)="enableEditMode()">
+                <span class="icon">✏️</span>
+                Edit Profile
+              </button>
+            </div>
+
+            <!-- Profile Image Upload -->
+            <div class="profile-image-section" *ngIf="isEditingProfile">
+              <div class="image-upload">
+                <div class="current-image">
+                  <img
+                    *ngIf="imagePreview || userProfile.profileImage"
+                    [src]="imagePreview || userProfile.profileImage"
+                    alt="Profile"
+                  />
+                  <div *ngIf="!imagePreview && !userProfile.profileImage" class="placeholder">
+                    {{ getInitials() }}
+                  </div>
+                </div>
+                <div class="upload-actions">
+                  <input
+                    type="file"
+                    id="profileImage"
+                    accept="image/*"
+                    (change)="onFileSelected($event)"
+                    hidden
+                  />
+                  <label for="profileImage" class="btn btn-secondary btn-sm">
+                    📷 Upload Photo
+                  </label>
+                  <button
+                    *ngIf="userProfile.profileImage || imagePreview"
+                    class="btn btn-outline btn-sm"
+                    (click)="removeProfileImage()"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Errors -->
+            <div class="error-messages" *ngIf="profileErrors.length > 0">
+              <div *ngFor="let error of profileErrors" class="error-message">⚠️ {{ error }}</div>
+            </div>
+
+            <!-- Form -->
+            <div class="form-grid">
+              <div class="form-group">
+                <label>First Name *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="userProfile.firstName"
+                  [readonly]="!isEditingProfile"
+                  class="form-input"
+                  placeholder="Enter first name"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Last Name *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="userProfile.lastName"
+                  [readonly]="!isEditingProfile"
+                  class="form-input"
+                  placeholder="Enter last name"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Email Address *</label>
+                <input
+                  type="email"
+                  [(ngModel)]="userProfile.email"
+                  readonly
+                  class="form-input disabled"
+                  title="Email cannot be changed"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Phone Number</label>
+                <input
+                  type="tel"
+                  [(ngModel)]="userProfile.phone"
+                  [readonly]="!isEditingProfile"
+                  class="form-input"
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Date of Birth</label>
+                <input
+                  type="date"
+                  [ngModel]="userProfile.dateOfBirth | date : 'yyyy-MM-dd'"
+                  (ngModelChange)="userProfile.dateOfBirth = $event"
+                  [readonly]="!isEditingProfile"
+                  class="form-input"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Student ID</label>
+                <input
+                  type="text"
+                  [(ngModel)]="userProfile.studentId"
+                  readonly
+                  class="form-input disabled"
+                />
+              </div>
+
+              <div class="form-group full-width">
+                <label>Address</label>
+                <input
+                  type="text"
+                  [(ngModel)]="userProfile.address"
+                  [readonly]="!isEditingProfile"
+                  class="form-input"
+                  placeholder="Enter your address"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>University</label>
+                <input
+                  type="text"
+                  [(ngModel)]="userProfile.university"
+                  [readonly]="!isEditingProfile"
+                  class="form-input"
+                  placeholder="Enter university name"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Major</label>
+                <input
+                  type="text"
+                  [(ngModel)]="userProfile.major"
+                  [readonly]="!isEditingProfile"
+                  class="form-input"
+                  placeholder="Enter your major"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>GPA</label>
+                <input
+                  type="number"
+                  [(ngModel)]="userProfile.gpa"
+                  [readonly]="!isEditingProfile"
+                  step="0.01"
+                  min="0"
+                  max="4.0"
+                  class="form-input"
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Expected Graduation Year</label>
+                <input
+                  type="number"
+                  [(ngModel)]="userProfile.graduationYear"
+                  [readonly]="!isEditingProfile"
+                  class="form-input"
+                  placeholder="2026"
+                />
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions" *ngIf="isEditingProfile">
+              <button class="btn btn-outline" (click)="cancelEdit()">Cancel</button>
+              <button class="btn btn-success" (click)="saveProfile()" [disabled]="isSaving">
+                <span class="spinner" *ngIf="isSaving"></span>
+                {{ isSaving ? 'Saving...' : 'Save Changes' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- SECURITY TAB -->
+          <div *ngIf="activeTab === 'security'" class="content-section">
+            <div class="section-header">
+              <div>
+                <h2>Security Settings</h2>
+                <p class="section-subtitle">Manage your password and security preferences</p>
+              </div>
+            </div>
+
+            <!-- Password Section -->
+            <div class="security-card">
+              <div class="card-header">
+                <div>
+                  <h3>Password</h3>
+                  <p>Last changed: Never</p>
+                </div>
+                <button
+                  *ngIf="!isChangingPassword"
+                  class="btn btn-primary"
+                  (click)="enablePasswordChange()"
+                >
+                  Change Password
+                </button>
+              </div>
+
+              <!-- Password Change Form -->
+              <div *ngIf="isChangingPassword" class="password-form">
+                <!-- Errors -->
+                <div class="error-messages" *ngIf="passwordErrors.length > 0">
+                  <div *ngFor="let error of passwordErrors" class="error-message">
+                    ⚠️ {{ error }}
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Current Password *</label>
+                  <div class="password-input">
+                    <input
+                      [type]="showCurrentPassword ? 'text' : 'password'"
+                      [(ngModel)]="passwordData.currentPassword"
+                      class="form-input"
+                      placeholder="Enter current password"
+                    />
+                    <button
+                      type="button"
+                      class="toggle-password"
+                      (click)="showCurrentPassword = !showCurrentPassword"
+                    >
+                      {{ showCurrentPassword ? '👁️' : '👁️‍🗨️' }}
+                    </button>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>New Password *</label>
+                  <div class="password-input">
+                    <input
+                      [type]="showNewPassword ? 'text' : 'password'"
+                      [(ngModel)]="passwordData.newPassword"
+                      class="form-input"
+                      placeholder="Enter new password"
+                    />
+                    <button
+                      type="button"
+                      class="toggle-password"
+                      (click)="showNewPassword = !showNewPassword"
+                    >
+                      {{ showNewPassword ? '👁️' : '👁️‍🗨️' }}
+                    </button>
+                  </div>
+                  <div class="password-strength" *ngIf="passwordData.newPassword">
+                    <div class="strength-bar" [class]="getPasswordStrength()">
+                      <div class="strength-fill"></div>
+                    </div>
+                    <span class="strength-label">{{ getPasswordStrength() | uppercase }}</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Confirm New Password *</label>
+                  <div class="password-input">
+                    <input
+                      [type]="showConfirmPassword ? 'text' : 'password'"
+                      [(ngModel)]="passwordData.confirmPassword"
+                      class="form-input"
+                      placeholder="Confirm new password"
+                    />
+                    <button
+                      type="button"
+                      class="toggle-password"
+                      (click)="showConfirmPassword = !showConfirmPassword"
+                    >
+                      {{ showConfirmPassword ? '👁️' : '👁️‍🗨️' }}
+                    </button>
+                  </div>
+                </div>
+
+                <div class="password-requirements">
+                  <p>Password must contain:</p>
+                  <ul>
+                    <li>At least 8 characters</li>
+                    <li>One uppercase letter</li>
+                    <li>One lowercase letter</li>
+                    <li>One number</li>
+                    <li>One special character (@$!%*?&)</li>
+                  </ul>
+                </div>
+
+                <div class="form-actions">
+                  <button class="btn btn-outline" (click)="cancelPasswordChange()">Cancel</button>
+                  <button class="btn btn-success" (click)="changePassword()" [disabled]="isSaving">
+                    <span class="spinner" *ngIf="isSaving"></span>
+                    {{ isSaving ? 'Changing...' : 'Change Password' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Two-Factor Authentication -->
+            <div class="security-card">
+              <div class="card-header">
+                <div>
+                  <h3>Two-Factor Authentication</h3>
+                  <p>Add an extra layer of security to your account</p>
+                </div>
+                <button class="btn btn-outline">Enable 2FA</button>
+              </div>
+            </div>
+
+            <!-- Active Sessions -->
+            <div class="security-card">
+              <div class="card-header">
+                <div>
+                  <h3>Active Sessions</h3>
+                  <p>Manage devices where you're logged in</p>
+                </div>
+              </div>
+              <div class="sessions-list">
+                <div class="session-item">
+                  <div class="session-info">
+                    <div class="session-device">🖥️ Chrome on MacOS</div>
+                    <div class="session-details">
+                      <span>Current Session</span>
+                      <span>•</span>
+                      <span>Last active: Just now</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PREFERENCES TAB -->
+          <div *ngIf="activeTab === 'preferences'" class="content-section">
+            <div class="section-header">
+              <div>
+                <h2>Email Preferences</h2>
+                <p class="section-subtitle">Choose what emails you want to receive</p>
+              </div>
+            </div>
+
+            <div class="preferences-list">
+              <div class="preference-item">
+                <div class="preference-info">
+                  <h3>Scholarship Alerts</h3>
+                  <p>Get notified about new scholarships matching your profile</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" [(ngModel)]="emailPreferences.scholarshipAlerts" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="preference-item">
+                <div class="preference-info">
+                  <h3>Application Updates</h3>
+                  <p>Receive updates on your scholarship applications</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" [(ngModel)]="emailPreferences.applicationUpdates" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="preference-item">
+                <div class="preference-info">
+                  <h3>Weekly Digest</h3>
+                  <p>Get a weekly summary of new opportunities</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" [(ngModel)]="emailPreferences.weeklyDigest" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="preference-item">
+                <div class="preference-info">
+                  <h3>New Scholarships</h3>
+                  <p>Be the first to know about newly posted scholarships</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" [(ngModel)]="emailPreferences.newScholarships" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="preference-item">
+                <div class="preference-info">
+                  <h3>Deadline Reminders</h3>
+                  <p>Get reminders before scholarship deadlines</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" [(ngModel)]="emailPreferences.deadlineReminders" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="preference-item">
+                <div class="preference-info">
+                  <h3>Marketing Emails</h3>
+                  <p>Receive promotional content and tips</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" [(ngModel)]="emailPreferences.marketingEmails" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button
+                class="btn btn-success"
+                (click)="saveEmailPreferences()"
+                [disabled]="isSaving"
+              >
+                <span class="spinner" *ngIf="isSaving"></span>
+                {{ isSaving ? 'Saving...' : 'Save Preferences' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- ACCOUNT TAB -->
+          <div *ngIf="activeTab === 'account'" class="content-section">
+            <div class="section-header">
+              <div>
+                <h2>Account Management</h2>
+                <p class="section-subtitle">Manage your account data and settings</p>
+              </div>
+            </div>
+
+            <!-- Download Data -->
+            <div class="danger-card">
+              <div class="card-content">
+                <div class="card-icon">📥</div>
+                <div>
+                  <h3>Download Your Data</h3>
+                  <p>
+                    Get a copy of all your account data including profile, applications, and saved
+                    scholarships
+                  </p>
+                </div>
+              </div>
+              <button class="btn btn-outline" (click)="downloadData()">Download Data</button>
+            </div>
+
+            <!-- Delete Account -->
+            <div class="danger-card delete-warning">
+              <div class="card-content">
+                <div class="card-icon">⚠️</div>
+                <div>
+                  <h3>Delete Account</h3>
+                  <p>
+                    Permanently delete your account and all associated data. This action cannot be
+                    undone.
+                  </p>
+                  <div class="warning-list">
+                    <p><strong>This will:</strong></p>
+                    <ul>
+                      <li>Delete all your personal information</li>
+                      <li>Remove all scholarship applications</li>
+                      <li>Cancel any pending applications</li>
+                      <li>Remove you from all saved lists</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn-danger" (click)="deleteAccount()" [disabled]="isDeleting">
+                <span class="spinner" *ngIf="isDeleting"></span>
+                {{ isDeleting ? 'Deleting...' : 'Delete Account' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>

@@ -10,6 +10,7 @@ import {
   SignupDTO,
   LoginDTO,
   AuthResponse,
+  JwtPayloadData,
 } from "../types/auth.types";
 import { UserRepository } from "../repositories/user.repository";
 
@@ -382,14 +383,21 @@ export class AuthController {
         return; // stop execution
       }
 
+      function isJwtPayloadData(v: any): v is JwtPayloadData {
+        return v && typeof v === "object" && typeof v.id === "string"; // adjust checks as needed
+      }
+
       const decoded = JWTUtil.verifyToken(refreshToken);
+      if (!isJwtPayloadData(decoded)) {
+        throw new Error("Invalid token payload");
+      }
+
       const newToken = JWTUtil.generateToken({
         email: decoded.email,
         role: decoded.role,
         status: decoded.status,
-        id: decoded.id, // use 'id' instead of 'userId' if JWT stores 'id'
+        id: decoded.id,
       });
-
       res.status(200).json({ success: true, data: { token: newToken } });
     } catch (error) {
       res
