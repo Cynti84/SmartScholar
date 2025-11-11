@@ -1,80 +1,157 @@
 <app-dashboard-layout [title]="'Recommended For You'" [menu]="menu" logoUrl="logo.png">
   <section>
-    <div class="recommended-container">
-      <h2>Recommended for you</h2>
+    <div class="recommendations-container">
+  <div class="header">
+    <h1>Your Scholarship Recommendations</h1>
+    <p class="subtitle">AI-powered matches based on your profile</p>
+  </div>
 
-      <!-- Scholarship Card -->
-      <div class="scholarship-card">
-        <div class="scholarship-info">
-          <div class="scholarship-icon">🎓</div>
-          <div>
-            <h3>Mastercard Foundation Scholarship (Africa)</h3>
-            <p>Matches your university course: Science and finance</p>
-            <p><strong>Nov 30, 2025</strong> | Fully Funded</p>
-          </div>
-        </div>
-        <div class="scholarship-actions">
-          <span class="match">92% ✅</span>
-          <button class="btn apply">Apply</button>
-          <button class="btn bookmark">Bookmark</button>
-          <!-- use Angular (click) -->
-          <button class="btn details" (click)="openModal()">Details</button>
+  <div class="scholarships-grid">
+    <div *ngFor="let scholarship of scholarships" class="scholarship-card">
+      <!-- Match Badge -->
+      <div class="match-badge" [ngClass]="getMatchClass(scholarship.matchPercentage)">
+        <div class="match-circle">
+          <span class="percentage">{{scholarship.matchPercentage}}%</span>
+          <span class="match-label">Match</span>
         </div>
       </div>
 
-      <!-- Another Scholarship -->
-      <div class="scholarship-card">
-        <div class="scholarship-info">
-          <div class="scholarship-icon">💡</div>
-          <div>
-            <h3>Google Africa Developer Scholarship</h3>
-            <p>Recommended based on location in Kenya</p>
-            <p><strong>Nov 30, 2025</strong> | Partial</p>
-          </div>
+      <!-- Bookmark Button -->
+      <button 
+        class="bookmark-btn" 
+        (click)="toggleBookmark(scholarship)"
+        [class.bookmarked]="scholarship.isBookmarked">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" 
+                [attr.fill]="scholarship.isBookmarked ? 'currentColor' : 'none'"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <!-- Card Content -->
+      <div class="card-header">
+        <h3 class="scholarship-name">{{scholarship.name}}</h3>
+        <p class="provider">{{scholarship.provider}}</p>
+      </div>
+
+      <div class="scholarship-info">
+        <div class="info-row">
+          <span class="label">Amount:</span>
+          <span class="value amount">{{scholarship.amount}}</span>
         </div>
-        <div class="scholarship-actions">
-          <span class="match">87% ✅</span>
-          <button class="btn apply">Apply</button>
-          <button class="btn bookmark">Bookmark</button>
-          <button class="btn details" (click)="openModal()">Details</button>
+        <div class="info-row">
+          <span class="label">Deadline:</span>
+          <span class="value deadline">
+            {{formatDeadline(scholarship.deadline)}}
+            <span class="days-left" *ngIf="getDaysUntilDeadline(scholarship.deadline) <= 30">
+              ({{getDaysUntilDeadline(scholarship.deadline)}} days left)
+            </span>
+          </span>
         </div>
+        <div class="info-row">
+          <span class="label">Location:</span>
+          <span class="value">{{scholarship.location}}</span>
+        </div>
+      </div>
+
+      <!-- Match Reasons -->
+      <div class="match-reasons">
+        <h4>Why you're a great match:</h4>
+        <ul>
+          <li *ngFor="let reason of scholarship.matchReasons.slice(0, 3)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polyline points="20 6 9 17 4 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            {{reason}}
+          </li>
+        </ul>
+        <span class="more-reasons" *ngIf="scholarship.matchReasons.length > 3">
+          +{{scholarship.matchReasons.length - 3}} more reasons
+        </span>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn btn-secondary" (click)="viewDetails(scholarship)">
+          View Details
+        </button>
+        <button class="btn btn-primary" (click)="applyForScholarship(scholarship)">
+          Apply Now
+        </button>
       </div>
     </div>
+  </div>
 
-    <!-- Modal -->
-    <div class="modal" *ngIf="isModalOpen" (click)="closeOnOutside($event)">
-      <div class="modal-content" (click)="$event.stopPropagation()">
-        <span class="close" (click)="closeModal()">&times;</span>
+  <!-- Details Modal -->
+  <div class="modal-overlay" *ngIf="showDetails" (click)="closeDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()" *ngIf="selectedScholarship">
+      <button class="close-btn" (click)="closeDetails()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="18" y1="6" x2="6" y2="18" stroke-width="2" stroke-linecap="round"/>
+          <line x1="6" y1="6" x2="18" y2="18" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
 
-        <h2>Mastercard Foundation Scholarship</h2>
-        <p><strong>Deadline:</strong> Dec 1, 2025</p>
-        <p><strong>Country:</strong> Kenya</p>
-        <p><strong>Level:</strong> Undergraduate</p>
-        <p><strong>Funding:</strong> Fully Funded</p>
-
-        <h3>Description</h3>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-
-        <h3>Eligibility</h3>
-        <ul>
-          <li>Must be a Kenyan citizen</li>
-          <li>Undergraduate degree holder</li>
-          <li>GPA 3.0+</li>
-        </ul>
-
-        <h3>Benefits</h3>
-        <ul>
-          <li>Tuition coverage</li>
-          <li>Monthly stipend</li>
-          <li>Travel allowance</li>
-        </ul>
-
-        <div class="modal-buttons">
-          <button class="btn apply">Apply Now</button>
-          <button class="btn bookmark">Bookmark</button>
-          <button class="btn mark">Mark as Applied</button>
+      <div class="modal-header">
+        <h2>{{selectedScholarship.name}}</h2>
+        <div class="match-badge-large" [ngClass]="getMatchClass(selectedScholarship.matchPercentage)">
+          {{selectedScholarship.matchPercentage}}% Match
         </div>
       </div>
+
+      <div class="modal-body">
+        <section class="detail-section">
+          <h3>Description</h3>
+          <p>{{selectedScholarship.description}}</p>
+        </section>
+
+        <section class="detail-section">
+          <h3>Match Reasons</h3>
+          <ul class="full-reasons-list">
+            <li *ngFor="let reason of selectedScholarship.matchReasons">{{reason}}</li>
+          </ul>
+        </section>
+
+        <section class="detail-section">
+          <h3>Eligibility Criteria</h3>
+          <ul>
+            <li *ngFor="let criterion of selectedScholarship.eligibility">{{criterion}}</li>
+          </ul>
+        </section>
+
+        <section class="detail-section">
+          <h3>Requirements</h3>
+          <ul>
+            <li *ngFor="let requirement of selectedScholarship.requirements">{{requirement}}</li>
+          </ul>
+        </section>
+
+        <section class="detail-section scholarship-meta">
+          <div class="meta-item">
+            <strong>Amount:</strong> {{selectedScholarship.amount}}
+          </div>
+          <div class="meta-item">
+            <strong>Deadline:</strong> {{formatDeadline(selectedScholarship.deadline)}}
+          </div>
+          <div class="meta-item">
+            <strong>Location:</strong> {{selectedScholarship.location}}
+          </div>
+          <div class="meta-item">
+            <strong>Category:</strong> {{selectedScholarship.category}}
+          </div>
+        </section>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="toggleBookmark(selectedScholarship)">
+          {{selectedScholarship.isBookmarked ? 'Remove Bookmark' : 'Bookmark'}}
+        </button>
+        <button class="btn btn-primary" (click)="applyForScholarship(selectedScholarship)">
+          Apply Now
+        </button>
+      </div>
     </div>
+  </div>
+</div>
   </section>
 </app-dashboard-layout>
