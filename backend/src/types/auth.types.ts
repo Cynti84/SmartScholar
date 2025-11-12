@@ -49,7 +49,7 @@ export interface LoginDTO {
 }
 
 export interface JWTPayload {
-  userId: string;
+  id: number;
   email: string;
   role: UserRole;
   status: UserStatus;

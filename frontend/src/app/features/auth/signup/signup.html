@@ -10,26 +10,45 @@
           </h1>
           <p class="form-subtitle">
             Start your journey with SmartScholar. Fill in your basic details to get started.
-          </p>          
+          </p>
         </div>
 
         <form class="signup-form" (ngSubmit)="onSubmit()" #signupForm="ngForm">
-          <!-- Full Name Field -->
+          <!-- First Name Field -->
           <div class="form-group">
-            <label for="fullname" class="form-label">Your fullname*</label>
+            <label for="firstname" class="form-label">First Name*</label>
             <input
               type="text"
-              id="fullname"
-              name="fullname"
+              id="firstname"
+              name="firstname"
               class="form-input"
-              placeholder="John Doe"
-              [(ngModel)]="formData.fullname"
+              placeholder="John"
+              [(ngModel)]="formData.firstname"
               required
-              #fullname="ngModel"
-              [class.error]="fullname.invalid && fullname.touched"
+              #firstname="ngModel"
+              [class.error]="firstname.invalid && firstname.touched"
             />
-            <div *ngIf="fullname.invalid && fullname.touched" class="error-message">
-              Full name is required
+            <div *ngIf="firstname.invalid && firstname.touched" class="error-message">
+              First name is required
+            </div>
+          </div>
+
+          <!-- Last Name Field -->
+          <div class="form-group">
+            <label for="lastname" class="form-label">Last Name*</label>
+            <input
+              type="text"
+              id="lastname"
+              name="lastname"
+              class="form-input"
+              placeholder="Doe"
+              [(ngModel)]="formData.lastname"
+              required
+              #lastname="ngModel"
+              [class.error]="lastname.invalid && lastname.touched"
+            />
+            <div *ngIf="lastname.invalid && lastname.touched" class="error-message">
+              Last name is required
             </div>
           </div>
 
@@ -112,6 +131,39 @@
                 </svg>
               </button>
             </div>
+
+            <!-- Password Strength Indicator -->
+            <div *ngIf="formData.password" class="password-strength">
+              <div class="strength-bars">
+                <div
+                  class="strength-bar"
+                  [class.active]="
+                    getPasswordStrength() === 'weak' ||
+                    getPasswordStrength() === 'medium' ||
+                    getPasswordStrength() === 'strong'
+                  "
+                  [class.weak]="getPasswordStrength() === 'weak'"
+                ></div>
+                <div
+                  class="strength-bar"
+                  [class.active]="
+                    getPasswordStrength() === 'medium' || getPasswordStrength() === 'strong'
+                  "
+                  [class.medium]="getPasswordStrength() === 'medium'"
+                ></div>
+                <div
+                  class="strength-bar"
+                  [class.active]="getPasswordStrength() === 'strong'"
+                  [class.strong]="getPasswordStrength() === 'strong'"
+                ></div>
+              </div>
+              <span class="strength-text" [class]="getPasswordStrength()">
+                <span *ngIf="getPasswordStrength() === 'weak'">Weak password</span>
+                <span *ngIf="getPasswordStrength() === 'medium'">Medium password</span>
+                <span *ngIf="getPasswordStrength() === 'strong'">Strong password</span>
+              </span>
+            </div>
+
             <div *ngIf="password.invalid && password.touched" class="error-message">
               <span *ngIf="password.errors?.['required']">Password is required</span>
               <span *ngIf="password.errors?.['minlength']"
