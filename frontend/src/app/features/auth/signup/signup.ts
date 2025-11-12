@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 
 interface SignupFormData {
-  fullname: string;
+  firstname: string;
+  lastname: string;
   email: string;
   password: string;
   role: string;
@@ -22,7 +23,8 @@ export class Signup {
   isLoading: boolean = false;
 
   formData: SignupFormData = {
-    fullname: '',
+    firstname: '',
+    lastname: '',
     email: '',
     password: '',
     role: '',
@@ -58,7 +60,9 @@ export class Signup {
 
       // Here you would typically make an API call to register the user
       const signupData = {
-        fullName: this.formData.fullname,
+        firstName: this.formData.firstname,
+        lastName: this.formData.lastname,
+        fullName: `${this.formData.firstname} ${this.formData.lastname}`,
         email: this.formData.email,
         password: this.formData.password,
         role: this.formData.role,
@@ -82,9 +86,15 @@ export class Signup {
    * Validate form data
    */
   private validateForm(): boolean {
-    // Check if all required fields are filled
-    if (!this.formData.fullname.trim()) {
-      this.showError('Please enter your full name');
+    // Check if first name is filled
+    if (!this.formData.firstname.trim()) {
+      this.showError('Please enter your first name');
+      return false;
+    }
+
+    // Check if last name is filled
+    if (!this.formData.lastname.trim()) {
+      this.showError('Please enter your last name');
       return false;
     }
 
@@ -134,56 +144,61 @@ export class Signup {
    */
   private handleSuccessfulSignup(): void {
     // Show success message
-    this.showSuccess(
-      'Account created successfully! Please complete your profile setup.'
-    );
+    this.showSuccess('Account created successfully! Please complete your profile setup.');
 
     const tempUserData = {
-      fullname: this.formData.fullname,
+      firstname: this.formData.firstname,
+      lastname: this.formData.lastname,
+      fullname: `${this.formData.firstname} ${this.formData.lastname}`,
       email: this.formData.email,
-      role: this.formData.role
-    }
-    localStorage.setItem('tempUserData', JSON.stringify(tempUserData))
-    
+      role: this.formData.role,
+    };
+    localStorage.setItem('tempUserData', JSON.stringify(tempUserData));
 
     // Clear form
     // this.resetForm();
 
     // Continue to role-specific signup page
     setTimeout(() => {
-      this.continueToProfileSetup()
+      this.continueToProfileSetup();
     }, 2000);
   }
 
   /**
    * Continue to role-specific profile setup page
    */
-
-  private continueToProfileSetup(): void{
+  private continueToProfileSetup(): void {
     if (!this.formData.role) {
-      this.showError('No role selected. Please try again.')
+      this.showError('No role selected. Please try again.');
       return;
     }
+
+    const fullname = `${this.formData.firstname} ${this.formData.lastname}`;
+
     if (this.formData.role === 'student') {
       this.router.navigate(['/auth/signup/student'], {
         queryParams: {
           email: this.formData.email,
-          fullname: this.formData.fullname,
-          step: 'profile-setup'
+          firstname: this.formData.firstname,
+          lastname: this.formData.lastname,
+          fullname: fullname,
+          step: 'profile-setup',
         },
-      })
+      });
     } else if (this.formData.role === 'provider') {
       this.router.navigate(['/auth/signup/provider'], {
         queryParams: {
           email: this.formData.email,
-          fullname: this.formData.fullname,
-          step: 'profile-setup'
-        }
-      })
+          firstname: this.formData.firstname,
+          lastname: this.formData.lastname,
+          fullname: fullname,
+          step: 'profile-setup',
+        },
+      });
     } else {
       //handle any other roles or fallback
-      console.error('Invalid role selected:', this.formData.role)
-      this.showError('Invalid role selected. Please try again')
+      console.error('Invalid role selected:', this.formData.role);
+      this.showError('Invalid role selected. Please try again');
     }
   }
 
@@ -213,7 +228,8 @@ export class Signup {
    */
   private resetForm(): void {
     this.formData = {
-      fullname: '',
+      firstname: '',
+      lastname: '',
       email: '',
       password: '',
       role: '',
@@ -267,13 +283,6 @@ export class Signup {
   }
 
   /**
-   * Navigate to login page
-   */
-  // navigateToLogin(): void {
-  //   this.router.navigate(['/login']);
-  // }
-
-  /**
    * Get password strength indicator
    */
   getPasswordStrength(): string {
@@ -302,7 +311,8 @@ export class Signup {
    */
   hasUnsavedChanges(): boolean {
     return !!(
-      this.formData.fullname ||
+      this.formData.firstname ||
+      this.formData.lastname ||
       this.formData.email ||
       this.formData.password ||
       this.formData.role ||
