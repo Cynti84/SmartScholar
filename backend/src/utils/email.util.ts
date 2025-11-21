@@ -25,7 +25,7 @@ export class EmailUtil {
     firstName: string,
     verificationToken: string
   ): Promise<void> {
-    const verificationUrl = `${authConfig.verification.baseUrl}/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${authConfig.verification.baseUrl}/api/auth/verify-email?token=${verificationToken}`;
 
     const mailOptions = {
       from: authConfig.email.from,

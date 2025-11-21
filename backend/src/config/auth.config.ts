@@ -11,18 +11,20 @@ export const authConfig = {
   },
   verification: {
     tokenExpiry: 24 * 60 * 60 * 1000, // 24 hours
-    baseUrl: process.env.FRONTEND_URL || "http://localhost:4200",
+    baseUrl: process.env.BACKEND_URL || "http://localhost:5000",
+    path: "/api/auth/verify-email",
   },
   passwordReset: {
     tokenExpiry: 60 * 60 * 1000, // 1 hour
-    baseUrl: process.env.FRONTEND_URL || "http://localhost:4200",
+    baseUrl: process.env.BACKEND_URL || "http://localhost:5000",
+    path: "/api/auth/reset-password",
   },
   email: {
-    from: process.env.EMAIL_FROM || "noreply@smartscholar.com",
-    service: process.env.EMAIL_SERVICE || "gmail",
+    from: process.env.EMAIL_FROM || "noreply.smartscholar.com",
+    // service: process.env.EMAIL_SERVICE || "gmail",
     host: process.env.EMAIL_HOST || "smtp.gmail.com",
-    port: parseInt(process.env.EMAIL_PORT || "587"),
-    secure: false,
+    port: parseInt(process.env.EMAIL_PORT || "465"),
+    secure: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD,
