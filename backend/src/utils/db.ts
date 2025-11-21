@@ -1,5 +1,6 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
+import { UserRepository } from "../repositories/user.repository";
 import dotenv from "dotenv"
 import { User } from "../models/users";
 import { Scholarship } from "../models/scholarships";
@@ -36,6 +37,10 @@ export const connectDB = async () => {
   try {
     await AppDataSource.initialize();
     console.log("✅ Database connected successfully with TypeORM!");
+
+    //Initialize UserRepository
+    UserRepository.initialize(AppDataSource.getRepository(User))
+    console.log("✅ UserRepository initialized")
   } catch (error) {
     console.error("❌ Database connection error:", error);
     process.exit(1);

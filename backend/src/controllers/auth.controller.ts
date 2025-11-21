@@ -61,7 +61,10 @@ export class AuthController {
         email: signupData.email,
         password: hashedPassword,
         role: signupData.role,
-        status: UserStatus.PENDING,
+        status:
+          signupData.role === UserRole.PROVIDER
+            ? UserStatus.PENDING
+            : UserStatus.ACTIVE,
         firstName: signupData.firstName,
         lastName: signupData.lastName,
         isEmailVerified: false,
@@ -148,30 +151,30 @@ export class AuthController {
         return;
       }
 
-      if (user.status === UserStatus.PENDING) {
-        res.status(403).json({
-          success: false,
-          message: "Your account is pending approval by an administrator",
-        });
-        return;
-      }
-
-      // Generate JWT token
-      const token = JWTUtil.generateToken({
+      // Generate JWT tokens
+      const accessToken = JWTUtil.generateToken({
         id: user.id,
         email: user.email,
         role: user.role,
         status: user.status,
       });
 
-      // Send success response
+      const refreshToken = JWTUtil.generateRefreshToken({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+      });
+
+      // Send success response with both tokens
       res.status(200).json({
         success: true,
         message: "Login successful",
         data: {
-          token,
+          accessToken,
+          refreshToken,
           user: {
-            userId: user.id, // matches AuthRequest.user.userId
+            userId: user.id,
             email: user.email,
             role: user.role,
             status: user.status,
@@ -289,6 +292,62 @@ export class AuthController {
       res.status(500).json({
         success: false,
         message: "An error occurred. Please try again.",
+      });
+    }
+  }
+
+  /** VERIFY EMAIL */
+  static async verifyEmail(req: Request, res: Response): Promise<void> {
+    try {
+      const token = req.query.token as string;
+      if (!token) {
+        res
+          .status(400)
+          .json({ success: false, message: "Verification token is required" });
+        return;
+      }
+
+      const user = await UserRepository.findByVerificationToken(token);
+      if (!user) {
+        res
+          .status(400)
+          .json({ success: false, message: "Invalid or expired token" });
+        return;
+      }
+
+      // Check if token has expired
+      if (
+        user.verificationTokenExpires &&
+        new Date() > user.verificationTokenExpires
+      ) {
+        res
+          .status(400)
+          .json({ success: false, message: "Verification token has expired" });
+        return;
+      }
+
+      // Mark user as verified
+      user.isEmailVerified = true;
+      // user.verificationToken = null;
+      // user.verificationTokenExpires = null;
+
+      await UserRepository.update(user.id, user);
+
+      // Optionally send a welcome email
+      await EmailUtil.sendWelcomeEmail(
+        user.email,
+        user.firstName || "User",
+        user.role
+      );
+
+      res
+        .status(200)
+        .json({ success: true, message: "Email verified successfully!" });
+    } catch (error) {
+      console.error("Email verification error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to verify email. Please try again.",
       });
     }
   }

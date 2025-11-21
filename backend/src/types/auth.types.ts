@@ -30,7 +30,7 @@ export interface IUser {
 export interface SignupDTO {
   email: string;
   password: string;
-  confirmPassword: string;
+  // confirmPassword: string;
   role: UserRole;
   firstName?: string;
   lastName?: string;

@@ -13,7 +13,7 @@ const router = Router();
 // Public routes
 router.post("/signup", signupValidation, AuthController.signup);
 router.post("/login", loginValidation, AuthController.login);
-router.get("/verify-email", AuthController.resendVerification);
+router.get("/verify-email", AuthController.verifyEmail);
 router.post(
   "/forgot-password",
   forgotPasswordValidation,
