@@ -50,7 +50,7 @@
             [class.active]="activeTab === 'profile'"
             (click)="switchTab('profile')"
           >
-            <span class="tab-icon">👤</span>
+            <span class="tab-icon"><mat-icon style="color: #000000">person</mat-icon></span>
             Profile
           </button>
           <button
@@ -58,7 +58,7 @@
             [class.active]="activeTab === 'security'"
             (click)="switchTab('security')"
           >
-            <span class="tab-icon">🔒</span>
+            <span class="tab-icon"><mat-icon style="color: #4299e1">security</mat-icon> </span>
             Security
           </button>
           <button
@@ -66,7 +66,7 @@
             [class.active]="activeTab === 'preferences'"
             (click)="switchTab('preferences')"
           >
-            <span class="tab-icon">⚙️</span>
+            <span class="tab-icon"><mat-icon style="color: #4299e1">settings</mat-icon> </span>
             Preferences
           </button>
           <button
@@ -74,7 +74,9 @@
             [class.active]="activeTab === 'account'"
             (click)="switchTab('account')"
           >
-            <span class="tab-icon">🗑️</span>
+            <span class="tab-icon"
+              ><mat-icon style="color: #4299e1">account_circle</mat-icon>
+            </span>
             Account
           </button>
         </div>
@@ -89,7 +91,7 @@
                 <p class="section-subtitle">Update your personal details and profile information</p>
               </div>
               <button *ngIf="!isEditingProfile" class="btn btn-primary" (click)="enableEditMode()">
-                <span class="icon">✏️</span>
+                <span class="icon"><mat-icon style="color: #ffffff">edit</mat-icon> </span>
                 Edit Profile
               </button>
             </div>
@@ -115,9 +117,7 @@
                     (change)="onFileSelected($event)"
                     hidden
                   />
-                  <label for="profileImage" class="btn btn-secondary btn-sm">
-                    📷 Upload Photo
-                  </label>
+                  <label for="profileImage" class="btn btn-secondary btn-sm"> Upload Photo </label>
                   <button
                     *ngIf="userProfile.profileImage || imagePreview"
                     class="btn btn-outline btn-sm"
@@ -131,7 +131,9 @@
 
             <!-- Errors -->
             <div class="error-messages" *ngIf="profileErrors.length > 0">
-              <div *ngFor="let error of profileErrors" class="error-message">⚠️ {{ error }}</div>
+              <div *ngFor="let error of profileErrors" class="error-message">
+                <mat-icon style="color: #f59e0b">warning</mat-icon> {{ error }}
+              </div>
             </div>
 
             <!-- Form -->
@@ -300,7 +302,8 @@
                 <!-- Errors -->
                 <div class="error-messages" *ngIf="passwordErrors.length > 0">
                   <div *ngFor="let error of passwordErrors" class="error-message">
-                    ⚠️ {{ error }}
+                    <mat-icon style="color: #f59e0b">warning</mat-icon>
+                    {{ error }}
                   </div>
                 </div>
 
@@ -318,7 +321,12 @@
                       class="toggle-password"
                       (click)="showCurrentPassword = !showCurrentPassword"
                     >
-                      {{ showCurrentPassword ? '👁️' : '👁️‍🗨️' }}
+                      <mat-icon
+                        (click)="showCurrentPassword = !showCurrentPassword"
+                        style="cursor: pointer"
+                      >
+                        {{ showCurrentPassword ? 'visibility' : 'visibility_off' }}
+                      </mat-icon>
                     </button>
                   </div>
                 </div>
@@ -337,7 +345,12 @@
                       class="toggle-password"
                       (click)="showNewPassword = !showNewPassword"
                     >
-                      {{ showNewPassword ? '👁️' : '👁️‍🗨️' }}
+                      <mat-icon
+                        (click)="showCurrentPassword = !showCurrentPassword"
+                        style="cursor: pointer"
+                      >
+                        {{ showCurrentPassword ? 'visibility' : 'visibility_off' }}
+                      </mat-icon>
                     </button>
                   </div>
                   <div class="password-strength" *ngIf="passwordData.newPassword">
@@ -362,7 +375,12 @@
                       class="toggle-password"
                       (click)="showConfirmPassword = !showConfirmPassword"
                     >
-                      {{ showConfirmPassword ? '👁️' : '👁️‍🗨️' }}
+                      <mat-icon
+                        (click)="showCurrentPassword = !showCurrentPassword"
+                        style="cursor: pointer"
+                      >
+                        {{ showCurrentPassword ? 'visibility' : 'visibility_off' }}
+                      </mat-icon>
                     </button>
                   </div>
                 </div>
@@ -410,7 +428,10 @@
               <div class="sessions-list">
                 <div class="session-item">
                   <div class="session-info">
-                    <div class="session-device">🖥️ Chrome on MacOS</div>
+                    <div class="session-device">
+                      <mat-icon style="color: #4299e1; font-size: 32px">desktop_windows</mat-icon>
+                      Chrome on MacOS
+                    </div>
                     <div class="session-details">
                       <span>Current Session</span>
                       <span>•</span>
@@ -523,7 +544,9 @@
             <!-- Download Data -->
             <div class="danger-card">
               <div class="card-content">
-                <div class="card-icon">📥</div>
+                <div class="card-icon">
+                  <mat-icon style="color: #4299e1; font-size: 24px">download</mat-icon>
+                </div>
                 <div>
                   <h3>Download Your Data</h3>
                   <p>
@@ -538,7 +561,7 @@
             <!-- Delete Account -->
             <div class="danger-card delete-warning">
               <div class="card-content">
-                <div class="card-icon">⚠️</div>
+                <div class="card-icon"><mat-icon style="color: #f59e0b">warning</mat-icon></div>
                 <div>
                   <h3>Delete Account</h3>
                   <p>

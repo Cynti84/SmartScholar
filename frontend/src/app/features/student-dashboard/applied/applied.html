@@ -16,7 +16,7 @@
           [class.active]="selectedFilter === 'all'"
         >
           <div class="stat-icon">
-            <i class="icon-document"></i>
+            <mat-icon>description</mat-icon>
           </div>
           <div class="stat-content">
             <h3>{{ totalApplied }}</h3>
@@ -30,7 +30,7 @@
           [class.active]="selectedFilter === 'active'"
         >
           <div class="stat-icon">
-            <i class="icon-check"></i>
+            <mat-icon style="color: green">check_circle</mat-icon>
           </div>
           <div class="stat-content">
             <h3>{{ activeCount }}</h3>
@@ -44,7 +44,7 @@
           [class.active]="selectedFilter === 'pending'"
         >
           <div class="stat-icon">
-            <i class="icon-clock"></i>
+            <mat-icon style="color: orange">hourglass_empty</mat-icon>
           </div>
           <div class="stat-content">
             <h3>{{ pendingCount }}</h3>
@@ -58,7 +58,7 @@
           [class.active]="selectedFilter === 'expired'"
         >
           <div class="stat-icon">
-            <i class="icon-close"></i>
+            <mat-icon style="color: red">block</mat-icon>
           </div>
           <div class="stat-content">
             <h3>{{ expiredCount }}</h3>
@@ -211,7 +211,7 @@
               </div>
             </div>
 
-            <div class="modal-section timeline-section">
+            <!-- <div class="modal-section timeline-section">
               <h3>Application Timeline</h3>
               <div class="timeline">
                 <div class="timeline-item completed">
@@ -243,7 +243,7 @@
                   </div>
                 </div>
               </div>
-            </div>
+            </div> -->
           </div>
 
           <div class="modal-footer">

@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 
 export interface UserProfile {
   // Basic Info
@@ -44,7 +45,7 @@ export interface PasswordChange {
 
 @Component({
   selector: 'app-profile',
-  imports: [CommonModule, DashboardLayout, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, DashboardLayout, FormsModule, ReactiveFormsModule, MatIconModule],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })

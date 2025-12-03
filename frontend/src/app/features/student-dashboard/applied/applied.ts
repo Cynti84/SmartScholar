@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
+import { MatIconModule } from '@angular/material/icon';
 
 interface Scholarship {
   id: number;
@@ -17,7 +18,7 @@ interface Scholarship {
 
 @Component({
   selector: 'app-applied',
-  imports: [CommonModule, DashboardLayout],
+  imports: [CommonModule, DashboardLayout, MatIconModule],
   templateUrl: './applied.html',
   styleUrl: './applied.scss',
 })

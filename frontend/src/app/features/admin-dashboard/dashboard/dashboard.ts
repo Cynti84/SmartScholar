@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
+import { MatIconModule } from '@angular/material/icon';
 interface QuickStat {
   label: string;
   value: number;
@@ -27,7 +28,7 @@ interface ChartData {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, DashboardLayout, NgChartsModule],
+  imports: [CommonModule, DashboardLayout, NgChartsModule, MatIconModule],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
 })
@@ -117,31 +118,45 @@ export class Dashboard {
         label: 'Total Scholarships',
         value: 248,
         change: 12.5,
-        icon: '🎓',
+        icon: 'school',
         color: '#4299e1',
       },
       {
         label: 'Pending Approvals',
         value: 15,
         change: -5.2,
-        icon: '⏳',
+        icon: 'hourglass_empty',
         color: '#ed8936',
       },
       {
         label: 'Active Providers',
         value: 87,
         change: 8.3,
-        icon: '🏢',
+        icon: 'apartment',
         color: '#48bb78',
       },
       {
         label: 'Registered Students',
         value: 3542,
         change: 15.7,
-        icon: '👥',
+        icon: 'group',
         color: '#9f7aea',
       },
     ];
+  }
+  getNotificationIcon(type: string): string {
+    switch (type) {
+      case 'scholarship':
+        return 'school'; // 🎓
+      case 'provider':
+        return 'apartment'; // 🏢
+      case 'student':
+        return 'group'; // 👥
+      case 'pending':
+        return 'hourglass_top'; // ⏳ for pending approval
+      default:
+        return 'notifications';
+    }
   }
 
   loadNotifications(): void {
@@ -242,10 +257,6 @@ export class Dashboard {
 
   toggleNotifications(): void {
     this.showAllNotifications = !this.showAllNotifications;
-  }
-
-  getNotificationIcon(type: string): string {
-    return type === 'scholarship' ? '🎓' : '🏢';
   }
 
   getPriorityClass(priority: string): string {

@@ -9,7 +9,8 @@
         </div>
         <div class="header-actions">
           <button class="btn btn-secondary" (click)="exportProviders()">
-            <span class="icon">📥</span>
+            <mat-icon style="color: #4299e1">file_download</mat-icon>
+
             Export
           </button>
         </div>
@@ -18,28 +19,28 @@
       <!-- Statistics Cards -->
       <div class="stats-cards">
         <div class="stat-card total">
-          <div class="stat-icon">📊</div>
+          <div class="stat-icon"><mat-icon style="color: #4299e1">bar_chart</mat-icon></div>
           <div class="stat-details">
             <div class="stat-label">Total Providers</div>
             <div class="stat-value">{{ stats.total }}</div>
           </div>
         </div>
         <div class="stat-card active">
-          <div class="stat-icon">✅</div>
+          <div class="stat-icon"><mat-icon style="color: #10b981">check_circle</mat-icon></div>
           <div class="stat-details">
             <div class="stat-label">Active</div>
             <div class="stat-value">{{ stats.active }}</div>
           </div>
         </div>
         <div class="stat-card pending">
-          <div class="stat-icon">⏳</div>
+          <div class="stat-icon"><mat-icon style="color: #f59e0b">hourglass_top</mat-icon></div>
           <div class="stat-details">
             <div class="stat-label">Pending</div>
             <div class="stat-value">{{ stats.pending }}</div>
           </div>
         </div>
         <div class="stat-card suspended">
-          <div class="stat-icon">🚫</div>
+          <div class="stat-icon"><mat-icon style="color: #ef4444">block</mat-icon></div>
           <div class="stat-details">
             <div class="stat-label">Suspended</div>
             <div class="stat-value">{{ stats.suspended }}</div>
@@ -101,7 +102,10 @@
             <tr *ngFor="let provider of getPaginatedProviders()">
               <td class="provider-cell">
                 <div class="provider-info">
-                  <span class="provider-icon">{{ getTypeIcon(provider.type) }}</span>
+                  <mat-icon *ngIf="selectedProvider">
+                    {{ getTypeIcon(selectedProvider.type) }}
+                  </mat-icon>
+
                   <div>
                     <div class="provider-name">{{ provider.name }}</div>
                     <div class="provider-contact-person">{{ provider.contactPerson }}</div>
@@ -177,7 +181,7 @@
         </table>
 
         <div *ngIf="filteredProviders.length === 0" class="empty-state">
-          <div class="empty-icon">🔍</div>
+          <div class="empty-icon"><mat-icon style="color: #4299e1">search</mat-icon></div>
           <h3>No providers found</h3>
           <p>Try adjusting your search or filter criteria</p>
         </div>
@@ -229,7 +233,9 @@
       <div class="provider-overview">
         <div class="overview-header">
           <div class="provider-icon-large">
-            {{ getTypeIcon(selectedProvider.type) }}
+            <mat-icon *ngIf="selectedProvider">
+              {{ getTypeIcon(selectedProvider.type) }}
+            </mat-icon>
           </div>
           <div class="overview-info">
             <h3>{{ selectedProvider.name }}</h3>
@@ -271,7 +277,10 @@
 
           <!-- Contact Information -->
           <div class="info-section">
-            <h4>Contact Information</h4>
+            <h4>
+              <mat-icon style="color: #4299e1; vertical-align: middle">call</mat-icon>Contact
+              Information
+            </h4>
             <div class="info-grid">
               <div class="info-item">
                 <label>Email</label>
@@ -296,7 +305,10 @@
 
           <!-- Scholarship Statistics -->
           <div class="info-section">
-            <h4>Scholarship Statistics</h4>
+            <h4>
+              <mat-icon style="color: #4299e1; vertical-align: middle">school</mat-icon>Scholarship
+              Statistics
+            </h4>
             <div class="stats-grid">
               <div class="stat-box">
                 <div class="stat-number">{{ selectedProvider.scholarshipsPosted }}</div>
@@ -317,10 +329,15 @@
 
           <!-- Verification Documents -->
           <div class="info-section">
-            <h4>Verification Documents</h4>
+            <h4>
+              <mat-icon style="color: #4299e1; vertical-align: middle">assignment</mat-icon
+              >Verification Documents
+            </h4>
             <div class="documents-list">
               <div *ngFor="let doc of selectedProvider.verificationDocs" class="document-item">
-                <span class="doc-icon">📄</span>
+                <span class="doc-icon">
+                  <mat-icon style="color: #ffffff">description</mat-icon></span
+                >
                 <span class="doc-name">{{ doc }}</span>
                 <button class="btn-download" (click)="downloadDocument(doc)">Download</button>
               </div>
@@ -329,10 +346,15 @@
 
           <!-- Activity Logs -->
           <div class="info-section">
-            <h4>Recent Activity</h4>
+            <h4>
+              <mat-icon style="color: #4299e1; vertical-align: middle">history</mat-icon>Recent
+              Activity
+            </h4>
             <div class="activity-logs">
               <div *ngFor="let log of activityLogs" class="activity-item">
-                <div class="activity-icon">📋</div>
+                <div class="activity-icon">
+                  <mat-icon style="color: #4299e1">assignment</mat-icon>
+                </div>
                 <div class="activity-content">
                   <div class="activity-action">{{ log.action }}</div>
                   <div class="activity-details">{{ log.details }}</div>
