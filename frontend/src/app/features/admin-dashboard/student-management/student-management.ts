@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 
 interface Student {
   id: number;
@@ -34,7 +35,7 @@ interface Application {
 @Component({
   selector: 'app-student-management',
   standalone: true,
-  imports: [CommonModule, DashboardLayout, FormsModule],
+  imports: [CommonModule, DashboardLayout, FormsModule, MatIconModule],
   templateUrl: './student-management.html',
   styleUrls: ['./student-management.scss'],
 })
@@ -46,6 +47,7 @@ export class StudentManagement {
     { label: 'Scholarships', route: '/admin/scholarships' },
     { label: 'Reports', route: '/admin/reports' },
   ];
+
   students: Student[] = [];
   filteredStudents: Student[] = [];
 
@@ -340,6 +342,13 @@ export class StudentManagement {
     this.updateStatistics();
     this.applyFilters();
     this.closeConfirmModal();
+  }
+
+  openConfirmModal(action: 'approve' | 'decline' | 'suspend' | 'activate', student: Student) {
+    this.selectedStudent = student;
+    this.confirmAction = action;
+    this.showConfirmModal = true;
+    this.confirmReason = '';
   }
 
   closeDetailsModal(): void {

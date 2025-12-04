@@ -9,11 +9,21 @@
         </div>
         <div class="header-actions">
           <button class="btn btn-secondary">
-            <span class="icon">📊</span>
+            <span class="icon">
+              <svg
+                class="h-6 w-6"
+                style="color: #4299e1"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M3 3v18h18" />
+              </svg>
+            </span>
             Generate Report
           </button>
           <button class="btn btn-primary">
-            <span class="icon">➕</span>
+            <span class="icon" style="color: #4299e1"> </span>
             Quick Actions
           </button>
         </div>
@@ -44,7 +54,8 @@
             "
           >
             <div class="stat-icon" [style.background]="stat.color + '20'">
-              <span>{{ stat.icon }}</span>
+              <mat-icon [style.color]="stat.color">{{ stat.icon }}</mat-icon>
+              <!-- <span>{{ stat.icon }}</span> -->
             </div>
             <div class="stat-details">
               <div class="stat-label">{{ stat.label }}</div>
@@ -67,7 +78,7 @@
           <div class="panel notifications-panel">
             <div class="panel-header">
               <h2>
-                <span class="icon">🔔</span>
+                <mat-icon style="color: #4299e1">notifications</mat-icon>
                 Notifications
                 <span class="badge">{{ notifications.length }}</span>
               </h2>
@@ -80,7 +91,9 @@
                   [class]="getPriorityClass(notification.priority)"
                 >
                   <div class="notification-icon">
-                    {{ getNotificationIcon(notification.type) }}
+                    <mat-icon [style.color]="'#4299e1'">
+                      {{ getNotificationIcon(notification.type) }}
+                    </mat-icon>
                   </div>
                   <div class="notification-content">
                     <p class="notification-message">{{ notification.message }}</p>
@@ -110,7 +123,8 @@
           <div class="panel chart-panel">
             <div class="panel-header">
               <h2>
-                <span class="icon">📈</span>
+                <mat-icon style="color: #4299e1">insert_chart</mat-icon>
+
                 Most Applied Scholarships
               </h2>
               <span class="info-text">{{ getTotalApplications() }} total applications</span>
@@ -138,7 +152,8 @@
           <div class="panel chart-panel">
             <div class="panel-header">
               <h2>
-                <span class="icon">📊</span>
+                <mat-icon style="color: #4299e1">bar_chart</mat-icon>
+
                 Monthly Student Signups
               </h2>
               <span class="info-text">{{ getTotalSignups() }} total this year</span>
@@ -182,7 +197,8 @@
           <div class="panel">
             <div class="panel-header">
               <h2>
-                <span class="icon">📚</span>
+                <mat-icon style="color: #4299e1">menu_book</mat-icon>
+
                 Scholarship Categories
               </h2>
             </div>
@@ -205,7 +221,8 @@
           <div class="panel">
             <div class="panel-header">
               <h2>
-                <span class="icon">🏆</span>
+                <mat-icon style="color: #4299e1">emoji_events</mat-icon>
+
                 Top Active Providers
               </h2>
             </div>
@@ -233,28 +250,30 @@
         <!-- Quick Actions Footer -->
         <div class="quick-actions-footer">
           <div class="action-card" (click)="viewPendingApprovals()">
-            <div class="action-icon">⏳</div>
+            <div class="action-icon">
+              <mat-icon style="color: #ffffff">hourglass_empty</mat-icon>
+            </div>
             <div class="action-text">
               <h3>Review Pending</h3>
               <p>15 items awaiting approval</p>
             </div>
           </div>
           <div class="action-card" (click)="viewAllScholarships()">
-            <div class="action-icon">🎓</div>
+            <div class="action-icon"><mat-icon style="color: #ffffff">school</mat-icon></div>
             <div class="action-text">
               <h3>Manage Scholarships</h3>
               <p>View all 248 scholarships</p>
             </div>
           </div>
           <div class="action-card" (click)="viewProviders()">
-            <div class="action-icon">🏢</div>
+            <div class="action-icon"><mat-icon style="color: #ffffff">apartment</mat-icon></div>
             <div class="action-text">
               <h3>Provider Management</h3>
               <p>87 active providers</p>
             </div>
           </div>
           <div class="action-card" (click)="viewStudents()">
-            <div class="action-icon">👥</div>
+            <div class="action-icon"><mat-icon style="color: #ffffff">group</mat-icon></div>
             <div class="action-text">
               <h3>Student Database</h3>
               <p>3,542 registered students</p>

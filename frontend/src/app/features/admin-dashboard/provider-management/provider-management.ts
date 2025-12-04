@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 interface Provider {
   id: number;
   name: string;
@@ -30,7 +31,7 @@ interface ActivityLog {
 @Component({
   selector: 'app-provider-management',
   standalone: true,
-  imports: [CommonModule, DashboardLayout, FormsModule],
+  imports: [CommonModule, DashboardLayout, FormsModule, MatIconModule],
   templateUrl: './provider-management.html',
   styleUrl: './provider-management.scss',
 })
@@ -348,13 +349,30 @@ export class ProviderManagement {
   getTypeIcon(type: string): string {
     switch (type) {
       case 'university':
-        return '🎓';
+        return 'school';
       case 'ngo':
-        return '🤝';
+        return 'handshake';
       case 'company':
-        return '🏢';
+        return 'apartment';
       default:
-        return '📋';
+        return 'assignment';
+    }
+  }
+
+  getStatIcon(index: number): string {
+    switch (index) {
+      case 1:
+        return 'bar_chart';
+      case 2:
+        return 'call';
+      case 3:
+        return 'school';
+      case 4:
+        return 'description';
+      case 5:
+        return 'edit';
+      default:
+        return 'insert_chart';
     }
   }
 

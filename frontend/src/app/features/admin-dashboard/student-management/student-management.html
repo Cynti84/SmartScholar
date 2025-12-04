@@ -9,7 +9,7 @@
         </div>
         <div class="header-actions">
           <button class="btn btn-secondary" (click)="exportStudents()">
-            <span class="icon">📥</span>
+            <span class="icon"> <mat-icon style="color: #4299e1">file_download</mat-icon></span>
             Export Data
           </button>
         </div>
@@ -18,28 +18,28 @@
       <!-- Statistics Cards -->
       <div class="stats-cards">
         <div class="stat-card total">
-          <div class="stat-icon">👥</div>
+          <div class="stat-icon"><mat-icon style="color: #4299e1">bar_chart</mat-icon></div>
           <div class="stat-details">
             <div class="stat-label">Total Students</div>
             <div class="stat-value">{{ stats.total }}</div>
           </div>
         </div>
         <div class="stat-card active">
-          <div class="stat-icon">✅</div>
+          <div class="stat-icon"><mat-icon style="color: #10b981">check_circle</mat-icon></div>
           <div class="stat-details">
             <div class="stat-label">Active</div>
             <div class="stat-value">{{ stats.active }}</div>
           </div>
         </div>
         <div class="stat-card pending">
-          <div class="stat-icon">⏳</div>
+          <div class="stat-icon"><mat-icon style="color: #f59e0b">hourglass_top</mat-icon></div>
           <div class="stat-details">
             <div class="stat-label">Pending Approval</div>
             <div class="stat-value">{{ stats.pending }}</div>
           </div>
         </div>
         <div class="stat-card suspended">
-          <div class="stat-icon">🚫</div>
+          <div class="stat-icon"><mat-icon style="color: #ef4444">block</mat-icon></div>
           <div class="stat-details">
             <div class="stat-label">Suspended</div>
             <div class="stat-value">{{ stats.suspended }}</div>
@@ -180,7 +180,7 @@
         </table>
 
         <div *ngIf="filteredStudents.length === 0" class="empty-state">
-          <div class="empty-icon">🔍</div>
+          <div class="empty-icon"><mat-icon style="color: #4299e1">search</mat-icon></div>
           <h3>No students found</h3>
           <p>Try adjusting your search or filter criteria</p>
         </div>
@@ -222,7 +222,9 @@
 <div class="modal-overlay" *ngIf="showDetailsModal" (click)="closeDetailsModal()">
   <div class="modal-content details-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2>Student Profile</h2>
+      <h2>
+        <mat-icon style="color: #4299e1; vertical-align: middle">person</mat-icon>Student Profile
+      </h2>
       <button class="close-btn" (click)="closeDetailsModal()">×</button>
     </div>
 
@@ -242,15 +244,15 @@
         </div>
         <div class="quick-stats">
           <div class="quick-stat">
-            <span class="stat-icon">🎓</span>
+            <span class="stat-icon"> <mat-icon style="color: #ffffff">school</mat-icon></span>
             <span>{{ selectedStudent.university }}</span>
           </div>
           <div class="quick-stat">
-            <span class="stat-icon">📚</span>
+            <span class="stat-icon"><mat-icon style="color: #ffffff">menu_book</mat-icon></span>
             <span>{{ selectedStudent.major }}</span>
           </div>
           <div class="quick-stat">
-            <span class="stat-icon">📊</span>
+            <span class="stat-icon"><mat-icon style="color: #ffffff">bar_chart</mat-icon></span>
             <span>GPA: {{ selectedStudent.gpa.toFixed(2) }}</span>
           </div>
         </div>
@@ -258,7 +260,10 @@
 
       <!-- Personal Information -->
       <div class="info-section">
-        <h4>Personal Information</h4>
+        <h4>
+          <mat-icon style="color: #4299e1; vertical-align: middle">person</mat-icon>Personal
+          Information
+        </h4>
         <div class="info-grid">
           <div class="info-item">
             <label>Full Name</label>
@@ -285,7 +290,10 @@
 
       <!-- Academic Information -->
       <div class="info-section">
-        <h4>Academic Information</h4>
+        <h4>
+          <mat-icon style="color: #4299e1; vertical-align: middle">school</mat-icon>Academic
+          Information
+        </h4>
         <div class="info-grid">
           <div class="info-item">
             <label>University</label>
@@ -310,7 +318,10 @@
 
       <!-- Account Information -->
       <div class="info-section">
-        <h4>Account Information</h4>
+        <h4>
+          <mat-icon style="color: #4299e1; vertical-align: middle">account_circle</mat-icon>Account
+          Information
+        </h4>
         <div class="info-grid">
           <div class="info-item">
             <label>Registration Date</label>
@@ -331,7 +342,10 @@
 
       <!-- Application Statistics -->
       <div class="info-section">
-        <h4>Scholarship Statistics</h4>
+        <h4>
+          <mat-icon style="color: #4299e1; vertical-align: middle">school</mat-icon>Scholarship
+          Statistics
+        </h4>
         <div class="stats-grid">
           <div class="stat-box">
             <div class="stat-number">{{ selectedStudent.applicationsCount }}</div>
@@ -352,10 +366,13 @@
 
       <!-- Recent Applications -->
       <div class="info-section">
-        <h4>Recent Applications</h4>
+        <h4>
+          <mat-icon style="color: #4299e1; vertical-align: middle">description</mat-icon>Recent
+          Applications
+        </h4>
         <div class="applications-list">
           <div *ngFor="let app of studentApplications" class="application-item">
-            <div class="app-icon">📄</div>
+            <div class="app-icon"><mat-icon style="color: #ffffff">description</mat-icon></div>
             <div class="app-content">
               <div class="app-title">{{ app.scholarshipTitle }}</div>
               <div class="app-provider">{{ app.provider }}</div>
@@ -376,26 +393,32 @@
 
     <div class="modal-footer">
       <button (click)="closeDetailsModal()" class="btn btn-secondary">Close</button>
+
+      <!-- Approve -->
+      <button
+        *ngIf="selectedStudent?.status === 'pending'"
+        (click)="openConfirmModal('approve', selectedStudent!)"
+        class="btn btn-success"
+      >
+        Approve Student
+      </button>
+
+      <!-- Suspend -->
       <button
         *ngIf="selectedStudent?.status === 'active'"
-        (click)="confirmSuspend(selectedStudent); closeDetailsModal()"
+        (click)="openConfirmModal('suspend', selectedStudent!)"
         class="btn btn-danger"
       >
         Suspend Account
       </button>
+
+      <!-- Activate -->
       <button
         *ngIf="selectedStudent?.status === 'suspended'"
-        (click)="confirmActivate(selectedStudent); closeDetailsModal()"
+        (click)="openConfirmModal('activate', selectedStudent!)"
         class="btn btn-success"
       >
         Activate Account
-      </button>
-      <button
-        *ngIf="selectedStudent?.status === 'pending'"
-        (click)="confirmApprove(selectedStudent); closeDetailsModal()"
-        class="btn btn-success"
-      >
-        Approve Student
       </button>
     </div>
   </div>
