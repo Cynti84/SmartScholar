@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import express, { Request, Response } from "express";
 import { connectDB } from "./utils/db";
 import authRoutes from "./routes/auth.routes";
-import providerRoutes from "./routes/providerProfile.routes"
+import providerRoutes from "./routes/providerProfile.routes";
 import adminRoutes from "./routes/admin.routes";
 
 dotenv.config();
@@ -20,7 +20,7 @@ app.use(express.json());
 // Routes
 
 app.use("/api/auth", authRoutes);
-app.use("/api/provider", providerRoutes)
+app.use("/api/provider", providerRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.get("/", (req: Request, res: Response) => {
@@ -53,5 +53,5 @@ app.use(
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(` Server running at http://localhost:${PORT}`);
 });

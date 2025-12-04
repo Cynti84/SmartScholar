@@ -119,7 +119,7 @@ export class EmailUtil {
           <body>
             <div class="container">
               <div class="header">
-                <h1>🔐 Password Reset Request</h1>
+                <h1> Password Reset Request</h1>
               </div>
               <div class="content">
                 <p>Hello ${firstName},</p>
@@ -133,7 +133,7 @@ export class EmailUtil {
                   ${resetUrl}
                 </p>
                 <div class="warning">
-                  <strong>⚠️ Important:</strong>
+                  <strong> Important:</strong>
                   <ul>
                     <li>This link will expire in 1 hour</li>
                     <li>If you didn't request this reset, please ignore this email</li>
@@ -195,26 +195,26 @@ export class EmailUtil {
           <body>
             <div class="container">
               <div class="header">
-                <h1>✅ Account Verified!</h1>
+                <h1> Account Verified!</h1>
               </div>
               <div class="content">
                 <p>Hello ${firstName},</p>
-                <p>Your SmartScholar account has been successfully verified! 🎉</p>
+                <p>Your SmartScholar account has been successfully verified! </p>
                 <p>You can now access all features available for ${role}s:</p>
                 <div class="features">
                   ${
                     role === "student"
                       ? `
                     <div class="feature-item">📚 Browse thousands of scholarships</div>
-                    <div class="feature-item">✍️ Submit scholarship applications</div>
-                    <div class="feature-item">📊 Track your application status</div>
-                    <div class="feature-item">🔔 Get notifications for new opportunities</div>
+                    <div class="feature-item"> Submit scholarship applications</div>
+                    <div class="feature-item"> Track your application status</div>
+                    <div class="feature-item"> Get notifications for new opportunities</div>
                   `
                       : `
-                    <div class="feature-item">📝 Post scholarship opportunities</div>
-                    <div class="feature-item">👥 Manage applications</div>
-                    <div class="feature-item">📈 View analytics and insights</div>
-                    <div class="feature-item">💼 Build your organization profile</div>
+                    <div class="feature-item"> Post scholarship opportunities</div>
+                    <div class="feature-item"> Manage applications</div>
+                    <div class="feature-item">View analytics and insights</div>
+                    <div class="feature-item"> Build your organization profile</div>
                   `
                   }
                 </div>
