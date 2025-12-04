@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import express, { Request, Response } from "express";
 import { connectDB } from "./utils/db";
 import authRoutes from "./routes/auth.routes";
+import providerRoutes from "./routes/providerProfile.routes"
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 // Routes
 
 app.use("/api/auth", authRoutes);
+app.use("/api/provider", providerRoutes)
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello from SmartScholar backend (TypeScript)!");
