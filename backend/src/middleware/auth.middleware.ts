@@ -43,7 +43,6 @@ export class AuthMiddleware {
         });
         return;
       }
-
       // Attach user info to request
       req.user = {
         id: decoded.id,
