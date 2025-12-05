@@ -65,6 +65,9 @@ export class User {
   @Column({ type: "timestamp", nullable: true })
   resetPasswordExpires: Date;
 
+  @Column({ nullable: true })
+  twoFactorSecret?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
