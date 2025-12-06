@@ -10,6 +10,7 @@ import {
 import { User } from "./users";
 import { MatchResult } from "./match_result";
 import { Application } from "./applications";
+import { Bookmark } from "./Bookmark";
 @Entity("scholarships")
 export class Scholarship {
   @PrimaryGeneratedColumn()
@@ -43,6 +44,9 @@ export class Scholarship {
 
   @OneToMany(() => Application, (application) => application.scholarship)
   applications?: Application[];
+
+  @OneToMany(() => Bookmark, (bookmark) => bookmark.scholarship)
+  bookmarks: Bookmark[];
 
   @OneToMany(() => MatchResult, (matchResult) => matchResult.scholarship)
   matchResults?: MatchResult[];
