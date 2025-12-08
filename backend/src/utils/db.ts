@@ -9,6 +9,7 @@ import { ProviderProfile } from "../models/provider_profiles";
 import { MatchResult } from "../models/match_result";
 import { Application } from "../models/applications";
 import { StudentProfile } from "../models/student_profiles";
+import { Bookmark } from "../models/Bookmark";
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ export const AppDataSource = new DataSource({
     MatchResult,
     Application,
     StudentProfile,
+    Bookmark,
   ],
   synchronize: false,
   logging: false,

@@ -7,6 +7,7 @@ import providerRoutes from "./routes/providerProfile.routes";
 import adminRoutes from "./routes/admin.routes";
 import providerScholarshipRoutes from "./routes/providerScholarship.routes"
 import scholarshipAnalyticsRoutes from "./routes/scholarshipAnalytics.routes"
+import studentRoutes from "./routes/student.routes";
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use("/api/provider", providerRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/provider", providerScholarshipRoutes, scholarshipAnalyticsRoutes)
 
+app.use("/api/student", studentRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello from SmartScholar backend (TypeScript)!");

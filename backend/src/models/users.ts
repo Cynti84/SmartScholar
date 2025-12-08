@@ -13,6 +13,7 @@ import { Scholarship } from "./scholarships";
 import { ProviderProfile } from "./provider_profiles";
 import { MatchResult } from "./match_result";
 import { Application } from "./applications";
+import { Bookmark } from "./Bookmark";
 
 // Enums
 export enum UserRole {
@@ -65,6 +66,9 @@ export class User {
   @Column({ type: "timestamp", nullable: true })
   resetPasswordExpires: Date;
 
+  @Column({ nullable: true })
+  twoFactorSecret?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -74,6 +78,8 @@ export class User {
   // Relations
   @OneToOne(() => StudentProfile, (profile) => profile.user)
   profile?: StudentProfile;
+  @OneToMany(() => Bookmark, (bookmark) => bookmark.user)
+  bookmarks: Bookmark[];
 
   @OneToMany(() => Scholarship, (scholarship) => scholarship.provider)
   scholarships?: Scholarship[];

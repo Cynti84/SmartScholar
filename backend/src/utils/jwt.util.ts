@@ -26,7 +26,7 @@ export class JWTUtil {
   static generateToken(payload: JWTPayload | JwtPayloadData): string {
     const secret = JWTUtil.secret();
     const expiresIn = normalizeExpiresIn(
-      process.env.JWT_EXPIRES_IN ?? authConfig?.jwt?.expiresIn ?? "1h"
+      process.env.JWT_EXPIRES_IN ?? authConfig?.jwt?.expiresIn ?? "1d"
     );
     const options: SignOptions = { expiresIn };
     return jwt.sign(payload as any, secret, options);
