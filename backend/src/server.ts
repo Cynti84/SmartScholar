@@ -5,6 +5,8 @@ import { connectDB } from "./utils/db";
 import authRoutes from "./routes/auth.routes";
 import providerRoutes from "./routes/providerProfile.routes";
 import adminRoutes from "./routes/admin.routes";
+import providerScholarshipRoutes from "./routes/providerScholarship.routes"
+import scholarshipAnalyticsRoutes from "./routes/scholarshipAnalytics.routes"
 
 dotenv.config();
 
@@ -22,6 +24,8 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/provider", providerRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/provider", providerScholarshipRoutes, scholarshipAnalyticsRoutes)
+
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello from SmartScholar backend (TypeScript)!");
