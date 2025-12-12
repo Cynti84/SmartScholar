@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 
 interface SignupFormData {
   firstname: string;
@@ -31,7 +32,7 @@ export class Signup {
     agreeToTerms: false,
   };
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
 
   /**
    * Toggle password visibility
@@ -55,28 +56,30 @@ export class Signup {
         return;
       }
 
-      // Simulate API call delay
-      await this.delay(2000);
-
-      // Here you would typically make an API call to register the user
-      const signupData = {
+      // Prepare payload for backend
+      const payload = {
         firstName: this.formData.firstname,
         lastName: this.formData.lastname,
-        fullName: `${this.formData.firstname} ${this.formData.lastname}`,
         email: this.formData.email,
         password: this.formData.password,
         role: this.formData.role,
-        agreeToTerms: this.formData.agreeToTerms,
-        timestamp: new Date().toISOString(),
       };
 
-      console.log('Signup data:', signupData);
+      // Call backend signup API
+      this.authService.signup(payload).subscribe({
+        next: (response) => {
+          console.log('Signup success:', response);
 
-      // Simulate successful registration
-      this.handleSuccessfulSignup();
-    } catch (error) {
-      console.error('Signup error:', error);
-      this.handleSignupError(error);
+          // Move to next step (profile setup)
+          this.handleSuccessfulSignup();
+        },
+
+        error: (error) => {
+          console.error('Signup error:', error);
+          console.error('Validation errors', error.error);
+          this.handleSignupError(error);
+        },
+      });
     } finally {
       this.isLoading = false;
     }

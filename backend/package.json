@@ -20,6 +20,7 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cloudinary": "^1.41.3",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-rate-limit": "^8.2.1",
@@ -40,6 +41,7 @@
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/bluebird": "^3.5.42",
+    "@types/cors": "^2.8.19",
     "@types/dotenv": "^6.1.1",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",

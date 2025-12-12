@@ -105,33 +105,27 @@ export class AuthController {
   /** LOGIN */
   static async login(req: Request, res: Response): Promise<void> {
     try {
-      const loginData: LoginDTO = req.body;
-      const user = await UserRepository.findByEmail(loginData.email);
+      const { email, password } = req.body; // ⬅ role removed
+      const user = await UserRepository.findByEmail(email);
 
       if (!user) {
-        res
-          .status(401)
-          .json({ success: false, message: "Invalid email or password" });
-        return;
-      }
-
-      if (user.role !== loginData.role) {
         res.status(401).json({
           success: false,
-          message: `This account is not registered as a ${loginData.role}`,
+          message: "Invalid email or password",
         });
         return;
       }
 
       const isPasswordValid = await PasswordUtil.comparePassword(
-        loginData.password,
+        password,
         user.password
       );
 
       if (!isPasswordValid) {
-        res
-          .status(401)
-          .json({ success: false, message: "Invalid email or password" });
+        res.status(401).json({
+          success: false,
+          message: "Invalid email or password",
+        });
         return;
       }
 
@@ -151,22 +145,18 @@ export class AuthController {
         return;
       }
 
-      // Generate JWT tokens
-      const accessToken = JWTUtil.generateToken({
+      // JWT payload uses actual DB role — not user input
+      const payload = {
         id: user.id,
         email: user.email,
         role: user.role,
         status: user.status,
-      });
+      };
 
-      const refreshToken = JWTUtil.generateRefreshToken({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        status: user.status,
-      });
+      const accessToken = JWTUtil.generateToken(payload);
+      const refreshToken = JWTUtil.generateRefreshToken(payload);
 
-      // Send success response with both tokens
+      // Send success response
       res.status(200).json({
         success: true,
         message: "Login successful",
