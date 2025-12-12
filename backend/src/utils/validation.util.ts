@@ -14,9 +14,9 @@ export const signupValidation: ValidationChain[] = [
       "Password must contain uppercase, lowercase, number and special character"
     ),
 
-  body("confirmPassword")
-    .custom((value, { req }) => value === req.body.password)
-    .withMessage("Passwords do not match"),
+  // body("confirmPassword")
+  //   .custom((value, { req }) => value === req.body.password)
+  //   .withMessage("Passwords do not match"),
 
   body("role")
     .isIn(["student", "provider"])

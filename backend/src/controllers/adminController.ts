@@ -3,6 +3,7 @@ import { AppDataSource } from "../utils/db";
 import { Scholarship } from "../models/scholarships";
 import { StudentProfile } from "../models/student_profiles";
 import { User, UserRole, UserStatus } from "../models/users";
+import { ProviderProfile } from "../models/provider_profiles";
 
 export class AdminController {
   /** Get all scholarships */
@@ -103,11 +104,11 @@ export class AdminController {
   //Getting providers
   static async getProviders(req: Request, res: Response): Promise<void> {
     try {
-      const providerRepo = AppDataSource.getRepository(User);
+      const providerRepo = AppDataSource.getRepository(ProviderProfile);
 
       const providers = await providerRepo.find({
-        relations: ["scholarships"],
-        order: { createdAt: "DESC" },
+        // relations: ["provider_id"],
+        order: { created_at: "DESC" },
       });
 
       res.json({

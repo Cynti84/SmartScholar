@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service'; // adjust path if needed
 
 interface LoginFormData {
   email: string;
@@ -18,38 +19,57 @@ interface LoginFormData {
 export class Login {
   showPassword = false;
   isLoading = false;
-  formData: LoginFormData = { email: '', password: '' };
 
-  constructor(private router: Router) {}
+  formData: LoginFormData = {
+    email: '',
+    password: '',
+  };
+
+  constructor(private router: Router, private auth: AuthService) {}
 
   togglePassword(): void {
     this.showPassword = !this.showPassword;
   }
 
-  async onSubmit(): Promise<void> {
+  onSubmit(): void {
     if (this.isLoading) return;
 
     this.isLoading = true;
+
     if (!this.validateForm()) {
       this.isLoading = false;
       return;
     }
 
-    try {
-      // simulate backend request
-      await this.delay(2000);
+    // Prepare payload
+    const loginPayload = {
+      email: this.formData.email,
+      password: this.formData.password,
+    };
 
-      // mock login check (replace with API call)
-      if (this.formData.email === 'test@example.com' && this.formData.password === 'password123') {
-        this.handleSuccessfulLogin();
-      } else {
-        this.showError('Invalid email or password');
-      }
-    } catch (err) {
-      this.showError('An error occurred during login. Please try again.');
-    } finally {
-      this.isLoading = false;
-    }
+    this.auth.login(loginPayload).subscribe({
+      next: (res) => {
+        this.handleSuccessfulLogin(res.data.user);
+      },
+
+      error: (err) => {
+        console.error('Login failed:', err);
+
+        let msg = 'Login failed. Please try again.';
+        if (err?.error?.message) msg = err.error.message;
+
+        // common errors
+        if (msg.toLowerCase().includes('invalid')) {
+          msg = 'Invalid email or password.';
+        }
+
+        this.showError(msg);
+      },
+
+      complete: () => {
+        this.isLoading = false;
+      },
+    });
   }
 
   private validateForm(): boolean {
@@ -57,26 +77,56 @@ export class Login {
       this.showError('Please enter your email address');
       return false;
     }
+
     if (!this.isValidEmail(this.formData.email)) {
       this.showError('Please enter a valid email address');
       return false;
     }
+
     if (!this.formData.password) {
       this.showError('Please enter your password');
       return false;
     }
+
     return true;
   }
 
   private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
   }
 
-  private handleSuccessfulLogin(): void {
+  private handleSuccessfulLogin(user: any): void {
     this.showSuccess('Logged in successfully!');
-    this.resetForm();
-    setTimeout(() => this.router.navigate(['/dashboard']), 1000);
+
+    // Redirect based on role
+    switch (user.role) {
+      case 'student':
+        this.router.navigate(['/student'])
+          .then(success => console.log("Navigation success: ", success))
+          .catch(err => console.error("Navigation error: ", err));
+        break;
+
+      case 'provider':
+        this.router
+          .navigate(['/provider'])
+          .then((success) => console.log('Navigation success: ', success))
+          .catch((err) => console.error('Navigation error: ', err));;
+        break;
+
+      case 'admin':
+        this.router
+          .navigate(['/admin'])
+          .then((success) => console.log('Navigation success: ', success))
+          .catch((err) => console.error('Navigation error: ', err));
+        break;
+
+      default:
+        this.router.navigate(['/']);
+        break;
+    }
+
+    // this.resetForm()
   }
 
   private resetForm(): void {
@@ -85,16 +135,10 @@ export class Login {
   }
 
   private showError(message: string): void {
-    alert(message);
-    console.error('Login error:', message);
+    alert(message); // replace later with ToastService
   }
 
   private showSuccess(message: string): void {
     alert(message);
-    console.log('Login success:', message);
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise((res) => setTimeout(res, ms));
   }
 }
