@@ -29,6 +29,8 @@ const router = Router();
 router.post("/profile", AuthMiddleware.authenticate, createStudentProfile);
 router.get("/profile", AuthMiddleware.authenticate, getStudentProfile);
 
+router.get('/get-profile', AuthMiddleware.authenticate, getStudentProfile)
+
 router.put(
   "/update-profile",
   AuthMiddleware.authenticate,

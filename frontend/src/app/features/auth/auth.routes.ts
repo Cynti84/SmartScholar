@@ -4,12 +4,23 @@ import { Signup } from './signup/signup';
 import { StudentSignup } from './student-signup/student-signup';
 import { ProviderSignup } from './provider-signup/provider-signup';
 import { Terms } from './terms/terms';
+import { AuthGuard } from '../../core/guards/auth.guard';
+import { RoleGuard } from '../../core/guards/role.guard';
 
 export const AUTH_ROUTES: Routes = [
   { path: 'login', component: Login },
   { path: 'signup', component: Signup },
-  { path: 'signup/student', component: StudentSignup },
-  { path: 'signup/provider', component: ProviderSignup },
-  { path: 'terms', component: Terms }
-  
+  {
+    path: 'signup/student',
+    component: StudentSignup,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['student'] },
+  },
+  {
+    path: 'signup/provider',
+    component: ProviderSignup,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['provider'] },
+  },
+  { path: 'terms', component: Terms },
 ];

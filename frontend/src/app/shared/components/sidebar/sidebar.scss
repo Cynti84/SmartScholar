@@ -210,6 +210,27 @@
     min-width: 0;
   }
 }
+/* Normalize action buttons to look like nav links */
+.nav-link.action-link {
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+/* Logout specific styling */
+.nav-link.logout {
+  color: #f87171; // soft red, matches Tailwind red-400
+}
+
+.nav-link.logout:hover {
+  background: rgba(248, 113, 113, 0.12);
+  color: #fecaca;
+}
+
+
 
 .icon { 
   width: 20px;

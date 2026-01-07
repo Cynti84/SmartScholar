@@ -3,6 +3,10 @@ import { CommonModule } from '@angular/common';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { FormsModule } from '@angular/forms';
 import { Chart, ChartConfiguration, ChartType, registerables } from 'chart.js';
+import { AuthService } from '../../../core/services/auth.service';
+import { Router } from '@angular/router';
+import { NavItem } from '../../../shared/components/sidebar/sidebar';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -40,7 +44,7 @@ interface ScholarshipTableData {
 
 @Component({
   selector: 'app-applicants',
-  imports: [CommonModule, DashboardLayout, FormsModule],
+  imports: [CommonModule, DashboardLayout, FormsModule, ConfirmModal],
   templateUrl: './applicants.html',
   styleUrl: './applicants.scss',
 })
@@ -52,6 +56,7 @@ export class Applicants implements OnInit, AfterViewInit {
     { label: 'Manage Scholarships', route: '/provider/manage' },
     { label: 'Applicants', route: '/provider/applicants' },
     { label: 'Profile', route: '/provider/profile' },
+    { label: 'Logout', action: 'logout' },
   ];
 
   @ViewChild('educationChart', { static: false }) educationChartRef!: ElementRef<HTMLCanvasElement>;
@@ -148,6 +153,8 @@ export class Applicants implements OnInit, AfterViewInit {
       this.initializeCharts();
     }, 100);
   }
+
+  constructor(private authService: AuthService, private router: Router) {}
 
   private loadInitialData(): void {
     // In a real application, these would be service calls
@@ -360,5 +367,26 @@ export class Applicants implements OnInit, AfterViewInit {
     if (this.countryChart) {
       this.countryChart.destroy();
     }
+  }
+
+  showLogoutModal = false;
+
+  onSidebarAction(item: NavItem) {
+    if (item.action === 'logout') {
+      this.showLogoutModal = true;
+    }
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login']),
+    });
+  }
+
+  cancelLogout() {
+    this.showLogoutModal = false;
   }
 }

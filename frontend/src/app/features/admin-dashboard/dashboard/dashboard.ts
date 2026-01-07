@@ -4,6 +4,10 @@ import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashbo
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { MatIconModule } from '@angular/material/icon';
+import { Router } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
+import { NavItem } from '../../../shared/components/sidebar/sidebar';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 interface QuickStat {
   label: string;
   value: number;
@@ -28,7 +32,7 @@ interface ChartData {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, DashboardLayout, NgChartsModule, MatIconModule],
+  imports: [CommonModule, DashboardLayout, NgChartsModule, MatIconModule, ConfirmModal],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
 })
@@ -39,9 +43,12 @@ export class Dashboard {
     { label: 'Students', route: '/admin/students' },
     { label: 'Scholarships', route: '/admin/scholarships' },
     { label: 'Reports', route: '/admin/reports' },
+    { label: 'Logout', action: 'logout' },
   ];
 
   Math = Math; // ✅ Fix for Math.abs()
+
+  constructor(private router: Router, private authService: AuthService) {}
 
   getMonthlySignupPoints(): string {
     const max = this.getMaxValue(this.monthlySignups);
@@ -309,5 +316,26 @@ export class Dashboard {
 
   viewStudents(): void {
     console.log('Navigate to students page');
+  }
+
+  showLogoutModal = false;
+
+  onSidebarAction(item: NavItem) {
+    if (item.action === 'logout') {
+      this.showLogoutModal = true;
+    }
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login']),
+    });
+  }
+
+  cancelLogout() {
+    this.showLogoutModal = false;
   }
 }

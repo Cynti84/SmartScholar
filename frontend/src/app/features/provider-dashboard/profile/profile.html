@@ -1,4 +1,4 @@
-<app-dashboard-layout [title]="'Profile'" [menu]="menu" logoUrl='logo.png'>
+<app-dashboard-layout [title]="'Profile'" [menu]="menu" logoUrl='logo.png' (action)="onSidebarAction($event)">
   <section class="profile-container">
     <form [formGroup]="profileForm" (ngSubmit)="onSave()" class="profile-form">
       
@@ -452,3 +452,10 @@
     </div>
   </div>
 </app-dashboard-layout>
+<app-confirm-modal
+  *ngIf="showLogoutModal"
+  title="Log out"
+  message="Are you sure you want to log out of SmartScholar?"
+  (confirm)="confirmLogout()"
+  (cancel)="cancelLogout()"
+></app-confirm-modal>

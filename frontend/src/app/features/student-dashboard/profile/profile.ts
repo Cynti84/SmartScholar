@@ -4,11 +4,58 @@ import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashbo
 import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { UserService, UserProfile } from '../../../../app/core/services/user.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { NavItem } from '../../../shared/components/sidebar/sidebar';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+
+export interface UserProfile {
+  // Basic Info
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: Date | null;
+  address: string;
+
+  // Student Specific
+  university?: string;
+  major?: string;
+  gpa?: number;
+  graduationYear?: number;
+  studentId?: string;
+
+  // Account Info
+  role: 'student' | 'provider' | 'admin';
+  accountCreated: Date;
+  lastLogin: Date;
+  profileImage?: string;
+}
+
+export interface EmailPreferences {
+  scholarshipAlerts: boolean;
+  applicationUpdates: boolean;
+  weeklyDigest: boolean;
+  marketingEmails: boolean;
+  newScholarships: boolean;
+  deadlineReminders: boolean;
+}
+
+export interface PasswordChange {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
 
 @Component({
   selector: 'app-profile',
-  imports: [CommonModule, DashboardLayout, FormsModule, ReactiveFormsModule, MatIconModule],
+  imports: [
+    CommonModule,
+    DashboardLayout,
+    FormsModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    ConfirmModal,
+  ],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
@@ -29,33 +76,7 @@ export class Profile implements OnInit {
 
   profileCompletion = 60;
 
-  userProfile: UserProfile = {
-    firstName: '',
-    lastName: '',
-    email: '',
-
-    dateOfBirth: undefined,
-    gender: '',
-    phoneNumber: '',
-
-    address: {
-      street: '',
-      city: '',
-      state: '',
-      country: '',
-      zipCode: '',
-    },
-
-    education: {
-      level: '',
-      institution: '',
-      fieldOfStudy: '',
-      gpa: undefined,
-      graduationYear: undefined,
-    },
-
-    avatar: '',
-  };
+  constructor(private router: Router, private authService: AuthService) {}
 
   get address() {
     return this.userProfile.address;
@@ -305,5 +326,26 @@ export class Profile implements OnInit {
 
   saveEmailPreferences(): void {
     alert('Email preferences saved (API not connected yet)');
+  }
+
+  showLogoutModal = false;
+
+  onSidebarAction(item: NavItem) {
+    if (item.action === 'logout') {
+      this.showLogoutModal = true;
+    }
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login']),
+    });
+  }
+
+  cancelLogout() {
+    this.showLogoutModal = false;
   }
 }

@@ -3,6 +3,10 @@ import { CommonModule } from '@angular/common';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { Router } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
+import { NavItem } from '../../../shared/components/sidebar/sidebar';
 
 interface Student {
   id: number;
@@ -35,7 +39,7 @@ interface Application {
 @Component({
   selector: 'app-student-management',
   standalone: true,
-  imports: [CommonModule, DashboardLayout, FormsModule, MatIconModule],
+  imports: [CommonModule, DashboardLayout, FormsModule, MatIconModule, ConfirmModal],
   templateUrl: './student-management.html',
   styleUrls: ['./student-management.scss'],
 })
@@ -46,7 +50,10 @@ export class StudentManagement {
     { label: 'Students', route: '/admin/students' },
     { label: 'Scholarships', route: '/admin/scholarships' },
     { label: 'Reports', route: '/admin/reports' },
+    { label: 'Logout', action: 'logout' },
   ];
+
+  constructor(private router: Router, private authService: AuthService) {}
 
   students: Student[] = [];
   filteredStudents: Student[] = [];
@@ -413,4 +420,25 @@ export class StudentManagement {
   }
 
   Math = Math;
+
+  showLogoutModal = false;
+
+  onSidebarAction(item: NavItem) {
+    if (item.action === 'logout') {
+      this.showLogoutModal = true;
+    }
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login']),
+    });
+  }
+
+  cancelLogout() {
+    this.showLogoutModal = false;
+  }
 }
