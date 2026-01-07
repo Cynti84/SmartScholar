@@ -49,6 +49,7 @@ export class Scholarships {
     { label: 'Profile', route: '/student/profile' },
     { label: 'Logout', action: 'logout' },
   ];
+
   scholarships: Scholarship[] = [];
   filteredScholarships: Scholarship[] = [];
   selectedScholarship: Scholarship | null = null;

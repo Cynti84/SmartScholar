@@ -11,10 +11,12 @@
               <div
                 class="avatar"
                 [style.background-image]="
-                  userProfile.avatar ? 'url(' + userProfile.avatar + ')' : 'none'
+                  userProfile.profileImage ? 'url(' + userProfile.profileImage + ')' : 'none'
                 "
               >
-                <span *ngIf="!userProfile.avatar" class="avatar-initials">{{ getInitials() }}</span>
+                <span *ngIf="!userProfile.profileImage" class="avatar-initials">{{
+                  getInitials()
+                }}</span>
               </div>
               <div class="profile-completion" [style.--completion]="profileCompletion">
                 <svg viewBox="0 0 36 36" class="circular-chart">
@@ -36,7 +38,8 @@
           <div class="profile-info">
             <h1>{{ userProfile.firstName }} {{ userProfile.lastName }}</h1>
             <p class="email">{{ userProfile.email }}</p>
-            <p class="role-badge">STUDENT</p>
+            <p class="role-badge">{{ userProfile.role | uppercase }}</p>
+            <p class="member-since">Member since {{ formatDate(userProfile.accountCreated) }}</p>
           </div>
         </div>
 
@@ -98,10 +101,11 @@
               <div class="image-upload">
                 <div class="current-image">
                   <img
-                    *ngIf="imagePreview || userProfile.avatar"
-                    [src]="imagePreview || userProfile.avatar"
+                    *ngIf="imagePreview || userProfile.profileImage"
+                    [src]="imagePreview || userProfile.profileImage"
+                    alt="Profile"
                   />
-                  <div *ngIf="!imagePreview && !userProfile.avatar" class="placeholder">
+                  <div *ngIf="!imagePreview && !userProfile.profileImage" class="placeholder">
                     {{ getInitials() }}
                   </div>
                 </div>
@@ -115,7 +119,7 @@
                   />
                   <label for="profileImage" class="btn btn-secondary btn-sm"> Upload Photo </label>
                   <button
-                    *ngIf="userProfile.avatar || imagePreview"
+                    *ngIf="userProfile.profileImage || imagePreview"
                     class="btn btn-outline btn-sm"
                     (click)="removeProfileImage()"
                   >
@@ -171,7 +175,7 @@
                 <label>Phone Number</label>
                 <input
                   type="tel"
-                  [(ngModel)]="userProfile.phoneNumber"
+                  [(ngModel)]="userProfile.phone"
                   [readonly]="!isEditingProfile"
                   class="form-input"
                   placeholder="+1 (555) 123-4567"
@@ -189,11 +193,21 @@
                 />
               </div>
 
+              <div class="form-group">
+                <label>Student ID</label>
+                <input
+                  type="text"
+                  [(ngModel)]="userProfile.studentId"
+                  readonly
+                  class="form-input disabled"
+                />
+              </div>
+
               <div class="form-group full-width">
                 <label>Address</label>
                 <input
                   type="text"
-                  [(ngModel)]="address.country"
+                  [(ngModel)]="userProfile.address"
                   [readonly]="!isEditingProfile"
                   class="form-input"
                   placeholder="Enter your address"
@@ -204,7 +218,7 @@
                 <label>University</label>
                 <input
                   type="text"
-                  [(ngModel)]="education.institution"
+                  [(ngModel)]="userProfile.university"
                   [readonly]="!isEditingProfile"
                   class="form-input"
                   placeholder="Enter university name"
@@ -215,7 +229,7 @@
                 <label>Major</label>
                 <input
                   type="text"
-                  [(ngModel)]="userProfile.education.fieldOfStudy"
+                  [(ngModel)]="userProfile.major"
                   [readonly]="!isEditingProfile"
                   class="form-input"
                   placeholder="Enter your major"
@@ -226,7 +240,7 @@
                 <label>GPA</label>
                 <input
                   type="number"
-                  [(ngModel)]="userProfile.education.gpa"
+                  [(ngModel)]="userProfile.gpa"
                   [readonly]="!isEditingProfile"
                   step="0.01"
                   min="0"
@@ -240,7 +254,7 @@
                 <label>Expected Graduation Year</label>
                 <input
                   type="number"
-                  [(ngModel)]="userProfile.education.graduationYear"
+                  [(ngModel)]="userProfile.graduationYear"
                   [readonly]="!isEditingProfile"
                   class="form-input"
                   placeholder="2026"
@@ -541,7 +555,7 @@
                   </p>
                 </div>
               </div>
-              <button (click)="downloadProfile()">Download Profile</button>
+              <button class="btn btn-outline" (click)="downloadData()">Download Data</button>
             </div>
 
             <!-- Delete Account -->
