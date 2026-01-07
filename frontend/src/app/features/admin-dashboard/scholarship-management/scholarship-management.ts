@@ -9,10 +9,6 @@ import {
 import { TitleCasePipe, CommonModule } from '@angular/common';
 import { FilterPipe } from './filter.pipe';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
-import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
-import { NavItem } from '../../../shared/components/sidebar/sidebar';
-import { Router } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
 
 export interface Scholarship {
   id: number;
@@ -48,7 +44,6 @@ export interface FilterCriteria {
     TitleCasePipe,
     FilterPipe,
     DashboardLayout,
-    ConfirmModal,
   ],
 })
 export class ScholarshipManagement implements OnInit {
@@ -58,7 +53,6 @@ export class ScholarshipManagement implements OnInit {
     { label: 'Students', route: '/admin/students' },
     { label: 'Scholarships', route: '/admin/scholarships' },
     { label: 'Reports', route: '/admin/reports' },
-    { label: 'Logout', action: 'logout' },
   ];
 
   scholarships: Scholarship[] = [];
@@ -84,7 +78,7 @@ export class ScholarshipManagement implements OnInit {
   itemsPerPage = 10;
   totalItems = 0;
 
-  constructor(private fb: FormBuilder, private router: Router, private authService: AuthService) {
+  constructor(private fb: FormBuilder) {
     this.filterForm = this.fb.group({
       provider: [''],
       category: [''],
@@ -339,26 +333,5 @@ export class ScholarshipManagement implements OnInit {
       status: 'all',
       searchTerm: '',
     });
-  }
-
-  showLogoutModal = false;
-
-  onSidebarAction(item: NavItem) {
-    if (item.action === 'logout') {
-      this.showLogoutModal = true;
-    }
-  }
-
-  confirmLogout() {
-    this.showLogoutModal = false;
-
-    this.authService.logout().subscribe({
-      next: () => this.router.navigate(['/auth/login']),
-      error: () => this.router.navigate(['/auth/login']),
-    });
-  }
-
-  cancelLogout() {
-    this.showLogoutModal = false;
   }
 }

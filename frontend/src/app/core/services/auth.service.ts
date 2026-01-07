@@ -162,7 +162,7 @@ export class AuthService {
     return this.getUserFromToken();
   }
 
-   getUserFromToken() {
+  private getUserFromToken() {
     const token = this.getAccessToken();
     return token ? parseJwt(token) : null;
   }
@@ -179,5 +179,4 @@ export class AuthService {
     const raw = localStorage.getItem(TEMP_USER_KEY);
     return raw ? JSON.parse(raw) : null;
   }
- 
 }

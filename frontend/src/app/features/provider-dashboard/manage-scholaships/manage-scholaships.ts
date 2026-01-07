@@ -3,9 +3,6 @@ import { CommonModule } from '@angular/common';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
-import { NavItem } from '../../../shared/components/sidebar/sidebar';
-import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 
 interface ScholarshipAnalytics {
   views: number;
@@ -33,7 +30,7 @@ type SortOption = 'dateCreated' | 'title' | 'applications' | 'views';
 
 @Component({
   selector: 'app-manage-scholaships',
-  imports: [CommonModule, DashboardLayout, FormsModule, ConfirmModal],
+  imports: [CommonModule, DashboardLayout, FormsModule],
   templateUrl: './manage-scholaships.html',
   styleUrl: './manage-scholaships.scss',
 })
@@ -45,7 +42,6 @@ export class ManageScholaships implements OnInit {
     { label: 'Manage Scholarships', route: '/provider/manage' },
     { label: 'Applicants', route: '/provider/applicants' },
     { label: 'Profile', route: '/provider/profile' },
-    { label: 'Logout', action: 'logout' },
   ];
 
   // Component state
@@ -66,7 +62,7 @@ export class ManageScholaships implements OnInit {
   sortBy: SortOption = 'dateCreated';
   showExpiredOnly = false;
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(private router: Router) {}
 
   ngOnInit() {
     this.loadScholarships();
@@ -475,26 +471,5 @@ export class ManageScholaships implements OnInit {
     this.loadScholarships();
     this.applyFilters();
     this.showNotification('Data refreshed successfully', 'success');
-  }
-
-  showLogoutModal = false;
-
-  onSidebarAction(item: NavItem) {
-    if (item.action === 'logout') {
-      this.showLogoutModal = true;
-    }
-  }
-
-  confirmLogout() {
-    this.showLogoutModal = false;
-
-    this.authService.logout().subscribe({
-      next: () => this.router.navigate(['/auth/login']),
-      error: () => this.router.navigate(['/auth/login']),
-    });
-  }
-
-  cancelLogout() {
-    this.showLogoutModal = false;
   }
 }
