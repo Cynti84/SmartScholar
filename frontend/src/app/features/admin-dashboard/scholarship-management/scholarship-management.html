@@ -1,4 +1,4 @@
-<app-dashboard-layout [title]="'ScholarshipManagement'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
+<app-dashboard-layout [title]="'ScholarshipManagement'" [menu]="menu" logoUrl="logo.png">
   <section>
     <div class="scholarship-management">
       <div class="header">
@@ -433,12 +433,3 @@
     </div>
   </section>
 </app-dashboard-layout>
-
-<!-- logout confirm modal -->
-<app-confirm-modal
-  *ngIf="showLogoutModal"
-  title="Log out"
-  message="Are you sure you want to log out of SmartScholar?"
-  (confirm)="confirmLogout()"
-  (cancel)="cancelLogout()"
-></app-confirm-modal>

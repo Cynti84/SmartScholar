@@ -3,8 +3,6 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service'; // adjust path if needed
-import { ProviderService } from '../../../core/services/provider.service';
-import { StudentService } from '../../../core/services/student.service';
 
 interface LoginFormData {
   email: string;
@@ -27,12 +25,7 @@ export class Login {
     password: '',
   };
 
-  constructor(
-    private router: Router,
-    private auth: AuthService,
-    private providerAuth: ProviderService,
-    private studentAuth: StudentService
-  ) {}
+  constructor(private router: Router, private auth: AuthService) {}
 
   togglePassword(): void {
     this.showPassword = !this.showPassword;
@@ -106,40 +99,34 @@ export class Login {
   private handleSuccessfulLogin(user: any): void {
     this.showSuccess('Logged in successfully!');
 
-    if (user.role === 'provider') {
-      this.providerAuth.getProvider().subscribe({
-        next: (profile) => {
-          // Provider profile exists → dashboard
-          this.router.navigate(['/provider']);
-        },
-        error: () => {
-          // No provider profile yet → onboarding
-          this.router.navigate(['/auth/signup/provider']);
-        },
-      });
-      return;
+    // Redirect based on role
+    switch (user.role) {
+      case 'student':
+        this.router.navigate(['/student'])
+          .then(success => console.log("Navigation success: ", success))
+          .catch(err => console.error("Navigation error: ", err));
+        break;
+
+      case 'provider':
+        this.router
+          .navigate(['/provider'])
+          .then((success) => console.log('Navigation success: ', success))
+          .catch((err) => console.error('Navigation error: ', err));;
+        break;
+
+      case 'admin':
+        this.router
+          .navigate(['/admin'])
+          .then((success) => console.log('Navigation success: ', success))
+          .catch((err) => console.error('Navigation error: ', err));
+        break;
+
+      default:
+        this.router.navigate(['/']);
+        break;
     }
 
-    if (user.role === 'student') {
-      this.studentAuth.getProfile().subscribe({
-        next: () => {
-          // student profile exists -> dashboard
-          this.router.navigate(['/student']);
-        },
-        error: () => {
-          // No student profile -> onboarding
-          this.router.navigate(['/auth/signup/student'])
-        }
-      });
-      return;
-    }
-
-    if (user.role === 'admin') {
-      this.router.navigate(['/admin']);
-      return;
-    }
-
-    this.router.navigate(['/']);
+    // this.resetForm()
   }
 
   private resetForm(): void {

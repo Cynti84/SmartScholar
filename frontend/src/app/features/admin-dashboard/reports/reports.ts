@@ -4,15 +4,11 @@ import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashbo
 import { NgChartsModule } from 'ng2-charts';
 
 import { ChartConfiguration, ChartOptions } from 'chart.js';
-import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
-import { Router } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
-import { NavItem } from '../../../shared/components/sidebar/sidebar';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, DashboardLayout, NgChartsModule, ConfirmModal],
+  imports: [CommonModule, DashboardLayout, NgChartsModule],
   templateUrl: './reports.html',
   styleUrls: ['./reports.scss'],
 })
@@ -23,10 +19,7 @@ export class Reports {
     { label: 'Students', route: '/admin/students' },
     { label: 'Scholarships', route: '/admin/scholarships' },
     { label: 'Reports', route: '/admin/reports' },
-    { label: 'Logout', action: 'logout' },
   ];
-
-  constructor(private router: Router, private authService: AuthService) {}
 
   // Line Chart (Students Growth)
   lineChartData: ChartConfiguration<'line'>['data'] = {
@@ -107,25 +100,4 @@ export class Reports {
     indexAxis: 'y',
     plugins: { legend: { display: false } },
   };
-
-  showLogoutModal = false;
-
-  onSidebarAction(item: NavItem) {
-    if (item.action === 'logout') {
-      this.showLogoutModal = true;
-    }
-  }
-
-  confirmLogout() {
-    this.showLogoutModal = false;
-
-    this.authService.logout().subscribe({
-      next: () => this.router.navigate(['/auth/login']),
-      error: () => this.router.navigate(['/auth/login']),
-    });
-  }
-
-  cancelLogout() {
-    this.showLogoutModal = false;
-  }
 }

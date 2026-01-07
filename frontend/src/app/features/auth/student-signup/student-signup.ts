@@ -2,8 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { StudentService } from '../../../core/services/student.service';
-import { AuthService } from '../../../core/services/auth.service';
 
 interface StudentProfileData {
   country: string;
@@ -86,11 +84,7 @@ export class StudentSignup {
     'Entrepreneurship',
   ];
 
-  constructor(
-    private router: Router,
-    private studentService: StudentService,
-    private authService: AuthService
-  ) {}
+  constructor(private router: Router) {}
 
   ngOnInit(): void {
     this.loadTempUserData();
@@ -100,16 +94,14 @@ export class StudentSignup {
    * Load temporary user data from session/local storage
    */
   loadTempUserData(): void {
+    // In a real app, you'd get this from your auth service
+    // For now, we'll simulate getting data from the previous step
     const tempData = localStorage.getItem('tempUserData');
-
     if (tempData) {
       this.tempUserData = JSON.parse(tempData);
     } else {
-      // fallback to authenticated user
-      const user = this.authService.getUserFromToken();
-      if (!user) {
-        this.router.navigate(['/auth/signup']);
-      }
+      // If no temp data, redirect back to initial signup
+      this.router.navigate(['/auth/signup']);
     }
   }
 
@@ -151,7 +143,7 @@ export class StudentSignup {
       if (!allowedTypes.includes(file.type)) {
         this.showError('Please select a PDF or Word document for your CV');
         return;
-      }
+      } 
 
       if (file.size > 10 * 1024 * 1024) {
         // 10MB limit
@@ -203,36 +195,46 @@ export class StudentSignup {
    */
   async onSubmit(): Promise<void> {
     if (this.isLoading) return;
-    if (!this.validateForm()) return;
 
-    this.isLoading = true;
+    try {
+      this.isLoading = true;
 
-    const payload = {
-      country: this.profileData.country,
-      academic_level: this.profileData.educationLevel,
-      field_of_study: this.profileData.fieldOfStudy,
-      interest: this.profileData.interest,
-      profile_image_url: null, // later when you add uploads
-      cv_url: null,
-    };
-
-    this.studentService.createProfile(payload).subscribe({
-      next: () => {
-        this.showSuccess('Profile completed successfully! Welcome to SmartScholar 🎉');
-
-        localStorage.removeItem('tempUserData');
-
-        setTimeout(() => {
-          this.router.navigate(['/student']);
-        }, 1000);
-      },
-      error: (err) => {
-        this.handleSignupError(err);
-      },
-      complete: () => {
+      if (!this.validateForm()) {
         this.isLoading = false;
-      },
-    });
+        return;
+      }
+
+      // Simulate API call delay
+      await this.delay(2000);
+
+      // Create FormData for file uploads
+      const formData = new FormData();
+      formData.append('country', this.profileData.country);
+      formData.append('educationLevel', this.profileData.educationLevel);
+      formData.append('fieldOfStudy', this.profileData.fieldOfStudy);
+      formData.append('interest', this.profileData.interest);
+
+      if (this.profileData.profileImage) {
+        formData.append('profileImage', this.profileData.profileImage);
+      }
+
+      if (this.profileData.cvFile) {
+        formData.append('cvFile', this.profileData.cvFile);
+      }
+
+      // Here you would make the API call to complete student signup
+      console.log('Student profile data:', {
+        ...this.profileData,
+        tempUserData: this.tempUserData,
+      });
+
+      this.handleSuccessfulSignup();
+    } catch (error) {
+      console.error('Student profile setup error:', error);
+      this.handleSignupError(error);
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   /**

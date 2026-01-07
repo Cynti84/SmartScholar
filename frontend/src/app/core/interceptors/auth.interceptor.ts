@@ -17,8 +17,13 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const access = this.auth.getAccessToken();
-    // console.log('AuthInteceptor -> token:', access)
-    const authReq = access ? req.clone({ setHeaders: { Authorization: `Bearer ${access}` } }) : req;
+    let authReq = req;
+
+    if (access) {
+      authReq = req.clone({
+        setHeaders: { Authorization: `Bearer ${access}` },
+      });
+    }
 
     return next.handle(authReq).pipe(
       catchError((err) => {
@@ -31,36 +36,34 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   private handle401(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    if (this.isRefreshing) {
-      return throwError(() => new Error('Refresh already in progress'));
+    if (!this.isRefreshing) {
+      this.isRefreshing = true;
+
+      return this.auth.refreshToken().pipe(
+        switchMap((tokens) => {
+          this.isRefreshing = false;
+
+          // Save new tokens
+          this.auth.storeTokens(tokens.accessToken, tokens.refreshToken);
+
+          // Retry original request with new access token
+          const newReq = req.clone({
+            setHeaders: {
+              Authorization: `Bearer ${tokens.accessToken}`,
+            },
+          });
+
+          return next.handle(newReq);
+        }),
+        catchError((err) => {
+          this.isRefreshing = false;
+          this.auth.logout();
+          return throwError(() => err);
+        })
+      );
     }
 
-    this.isRefreshing = true;
-
-    return this.auth.refreshToken().pipe(
-      switchMap((res: any) => {
-        this.isRefreshing = false;
-
-        const accessToken = res?.data?.accessToken;
-        const refreshToken = res?.data?.refreshToken;
-
-        if (!accessToken || !refreshToken) {
-          throw new Error('Invalid refresh response');
-        }
-
-        this.auth.storeTokens(accessToken, refreshToken);
-
-        const newReq = req.clone({
-          setHeaders: { Authorization: `Bearer ${accessToken}` },
-        });
-
-        return next.handle(newReq);
-      }),
-      catchError((err) => {
-        this.isRefreshing = false;
-        this.auth.logout().subscribe();
-        return throwError(() => err);
-      })
-    );
+    // If a refresh is already in progress → block or queue requests
+    return throwError(() => new Error('Request blocked while refreshing token'));
   }
 }

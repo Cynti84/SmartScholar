@@ -1,4 +1,4 @@
-<app-dashboard-layout [title]="'Profile page'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
+<app-dashboard-layout [title]="'Profile page'" [menu]="menu" logoUrl="logo.png">
   <section>
     <!-- student content -->
 
@@ -11,12 +11,10 @@
               <div
                 class="avatar"
                 [style.background-image]="
-                  userProfile.profileImage ? 'url(' + userProfile.profileImage + ')' : 'none'
+                  userProfile.avatar ? 'url(' + userProfile.avatar + ')' : 'none'
                 "
               >
-                <span *ngIf="!userProfile.profileImage" class="avatar-initials">{{
-                  getInitials()
-                }}</span>
+                <span *ngIf="!userProfile.avatar" class="avatar-initials">{{ getInitials() }}</span>
               </div>
               <div class="profile-completion" [style.--completion]="profileCompletion">
                 <svg viewBox="0 0 36 36" class="circular-chart">
@@ -38,8 +36,7 @@
           <div class="profile-info">
             <h1>{{ userProfile.firstName }} {{ userProfile.lastName }}</h1>
             <p class="email">{{ userProfile.email }}</p>
-            <p class="role-badge">{{ userProfile.role | uppercase }}</p>
-            <p class="member-since">Member since {{ formatDate(userProfile.accountCreated) }}</p>
+            <p class="role-badge">STUDENT</p>
           </div>
         </div>
 
@@ -101,11 +98,10 @@
               <div class="image-upload">
                 <div class="current-image">
                   <img
-                    *ngIf="imagePreview || userProfile.profileImage"
-                    [src]="imagePreview || userProfile.profileImage"
-                    alt="Profile"
+                    *ngIf="imagePreview || userProfile.avatar"
+                    [src]="imagePreview || userProfile.avatar"
                   />
-                  <div *ngIf="!imagePreview && !userProfile.profileImage" class="placeholder">
+                  <div *ngIf="!imagePreview && !userProfile.avatar" class="placeholder">
                     {{ getInitials() }}
                   </div>
                 </div>
@@ -119,7 +115,7 @@
                   />
                   <label for="profileImage" class="btn btn-secondary btn-sm"> Upload Photo </label>
                   <button
-                    *ngIf="userProfile.profileImage || imagePreview"
+                    *ngIf="userProfile.avatar || imagePreview"
                     class="btn btn-outline btn-sm"
                     (click)="removeProfileImage()"
                   >
@@ -175,7 +171,7 @@
                 <label>Phone Number</label>
                 <input
                   type="tel"
-                  [(ngModel)]="userProfile.phone"
+                  [(ngModel)]="userProfile.phoneNumber"
                   [readonly]="!isEditingProfile"
                   class="form-input"
                   placeholder="+1 (555) 123-4567"
@@ -193,21 +189,11 @@
                 />
               </div>
 
-              <div class="form-group">
-                <label>Student ID</label>
-                <input
-                  type="text"
-                  [(ngModel)]="userProfile.studentId"
-                  readonly
-                  class="form-input disabled"
-                />
-              </div>
-
               <div class="form-group full-width">
                 <label>Address</label>
                 <input
                   type="text"
-                  [(ngModel)]="userProfile.address"
+                  [(ngModel)]="address.country"
                   [readonly]="!isEditingProfile"
                   class="form-input"
                   placeholder="Enter your address"
@@ -218,7 +204,7 @@
                 <label>University</label>
                 <input
                   type="text"
-                  [(ngModel)]="userProfile.university"
+                  [(ngModel)]="education.institution"
                   [readonly]="!isEditingProfile"
                   class="form-input"
                   placeholder="Enter university name"
@@ -229,7 +215,7 @@
                 <label>Major</label>
                 <input
                   type="text"
-                  [(ngModel)]="userProfile.major"
+                  [(ngModel)]="userProfile.education.fieldOfStudy"
                   [readonly]="!isEditingProfile"
                   class="form-input"
                   placeholder="Enter your major"
@@ -240,7 +226,7 @@
                 <label>GPA</label>
                 <input
                   type="number"
-                  [(ngModel)]="userProfile.gpa"
+                  [(ngModel)]="userProfile.education.gpa"
                   [readonly]="!isEditingProfile"
                   step="0.01"
                   min="0"
@@ -254,7 +240,7 @@
                 <label>Expected Graduation Year</label>
                 <input
                   type="number"
-                  [(ngModel)]="userProfile.graduationYear"
+                  [(ngModel)]="userProfile.education.graduationYear"
                   [readonly]="!isEditingProfile"
                   class="form-input"
                   placeholder="2026"
@@ -555,7 +541,7 @@
                   </p>
                 </div>
               </div>
-              <button class="btn btn-outline" (click)="downloadData()">Download Data</button>
+              <button (click)="downloadProfile()">Download Profile</button>
             </div>
 
             <!-- Delete Account -->
@@ -590,11 +576,3 @@
     </div>
   </section>
 </app-dashboard-layout>
-
-<app-confirm-modal
-  *ngIf="showLogoutModal"
-  title="Log out"
-  message="Are you sure you want to log out of SmartScholar?"
-  (confirm)="confirmLogout()"
-  (cancel)="cancelLogout()"
-></app-confirm-modal>
