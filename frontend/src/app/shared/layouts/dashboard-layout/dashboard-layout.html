@@ -1,6 +1,7 @@
-<div class="app-shell" [ngClass]="{'dark-mode': isDarkMode}">
+<div class="app-shell" [ngClass]="{ 'dark-mode': isDarkMode }">
   <app-sidebar
     [items]="menu"
+    (action)="onSidebarAction($event)"
     [collapsed]="collapsed"
     [logoUrl]="logoUrl"
     [logoIconUrl]="logoIconUrl"

@@ -2,15 +2,16 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
-
+import { AuthService } from '../../../core/services/auth.service';
+import { NavItem } from '../../../shared/components/sidebar/sidebar';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { ScholarshipService, Scholarship } from '../../../core/services/scholarship.service';
 import { UserScholarshipService } from '../../../core/services/user-scholarship.service';
 
 @Component({
   selector: 'app-dashboard',
-  standalone: true,
-  imports: [CommonModule, DashboardLayout],
+  imports: [CommonModule, DashboardLayout, ConfirmModal],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -49,7 +50,8 @@ export class DashboardComponent implements OnInit {
   constructor(
     private scholarshipService: ScholarshipService,
     private userScholarshipService: UserScholarshipService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -112,5 +114,26 @@ export class DashboardComponent implements OnInit {
   getDaysRemaining(deadline: Date): number {
     const diff = new Date(deadline).getTime() - Date.now();
     return Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0);
+  }
+
+  showLogoutModal = false;
+
+  onSidebarAction(item: NavItem) {
+    if (item.action === 'logout') {
+      this.showLogoutModal = true;
+    }
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login']),
+    });
+  }
+
+  cancelLogout() {
+    this.showLogoutModal = false;
   }
 }

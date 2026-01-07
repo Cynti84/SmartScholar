@@ -6,12 +6,20 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { StudentProfileService, StudentProfile } from '../../../core/services/studentProfile';
 import { AuthService, user } from '../../../core/services/auth.service';
+import { NavItem } from '../../../shared/components/sidebar/sidebar';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 
 export type ProfileTab = 'profile' | 'security' | 'preferences' | 'account';
 @Component({
   selector: 'app-profile',
-  standalone: true,
-  imports: [CommonModule, DashboardLayout, FormsModule, ReactiveFormsModule, MatIconModule],
+  imports: [
+    CommonModule,
+    DashboardLayout,
+    FormsModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    ConfirmModal,
+  ],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
@@ -283,5 +291,26 @@ export class Profile implements OnInit {
   deleteAccount(): void {
     if (!confirm('Are you sure you want to delete your account?')) return;
     alert('Delete account API not implemented yet');
+  }
+
+  showLogoutModal = false;
+
+  onSidebarAction(item: NavItem) {
+    if (item.action === 'logout') {
+      this.showLogoutModal = true;
+    }
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login']),
+    });
+  }
+
+  cancelLogout() {
+    this.showLogoutModal = false;
   }
 }

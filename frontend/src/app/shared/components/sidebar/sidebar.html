@@ -1,31 +1,45 @@
 <!-- Mobile menu button -->
-<button 
-  class="mobile-menu-button" 
-  (click)="toggleMobileMenu()" 
+<button
+  class="mobile-menu-button"
+  (click)="toggleMobileMenu()"
   aria-label="Open navigation menu"
   *ngIf="!mobileMenuOpen"
 >
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+  >
     <line x1="3" y1="6" x2="21" y2="6"></line>
     <line x1="3" y1="12" x2="21" y2="12"></line>
     <line x1="3" y1="18" x2="21" y2="18"></line>
   </svg>
 </button>
 
-<nav 
-  class="sidebar" 
-  [class.collapsed]="collapsed" 
+<nav
+  class="sidebar"
+  [class.collapsed]="collapsed"
   [class.mobile-open]="mobileMenuOpen"
   aria-label="main navigation"
   (click)="onSidebarClick($event)"
 >
   <!-- Mobile close button -->
-  <button 
-    class="mobile-close-button" 
-    (click)="closeMobileMenu()" 
+  <button
+    class="mobile-close-button"
+    (click)="closeMobileMenu()"
     aria-label="Close navigation menu"
   >
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+    >
       <line x1="18" y1="6" x2="6" y2="18"></line>
       <line x1="6" y1="6" x2="18" y2="18"></line>
     </svg>
@@ -34,55 +48,82 @@
   <!-- Logo Section -->
   <div class="sidebar-logo">
     <div class="logo-container">
-      <img 
-        [src]="logoUrl || 'assets/logo.png'" 
+      <img
+        [src]="logoUrl || 'assets/logo.png'"
         [alt]="logoAlt || 'Logo'"
         class="logo-image"
         *ngIf="!collapsed || isMobile"
-      >
-      <img 
-        [src]="logoIconUrl || logoUrl || 'assets/logo.png'" 
+      />
+      <img
+        [src]="logoIconUrl || logoUrl || 'assets/logo.png'"
         [alt]="logoAlt || 'Logo'"
         class="logo-icon"
         *ngIf="collapsed && !isMobile"
-      >
+      />
       <span class="logo-text" *ngIf="!collapsed || isMobile">{{ logoText || 'SmartScholar' }}</span>
     </div>
   </div>
-  
+
   <div class="sidebar-header" *ngIf="(!collapsed || isMobile) && showNavigationTitle">
     <!-- <h2 class="sidebar-title">Navigation</h2> -->
   </div>
-  
+
   <!-- Navigation container with scroll -->
   <div class="nav-container">
     <ul class="nav-list">
       <li *ngFor="let item of items" class="nav-item">
-        <a 
-          [routerLink]="item.route" 
-          routerLinkActive="active" 
-          [routerLinkActiveOptions]="{ exact: true }" 
+        <!-- ROUTE ITEM -->
+        <a
+          *ngIf="item.route"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
           class="nav-link"
           [class.has-children]="item.children?.length"
           (click)="onNavItemClick(item)"
         >
           <div class="nav-link-content">
             <span class="icon" *ngIf="item.icon">{{ item.icon }}</span>
-            <span class="label" [class.sr-only]="collapsed && !isMobile">{{ item.label }}</span>
+            <span class="label" [class.sr-only]="collapsed && !isMobile">
+              {{ item.label }}
+            </span>
           </div>
+
           <span class="chevron" *ngIf="item.children?.length && (!collapsed || isMobile)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <polyline points="9,18 15,12 9,6"></polyline>
             </svg>
           </span>
         </a>
 
-        <!-- nested children -->
+        <!-- ACTION ITEM (LOGOUT) -->
+        <button
+          *ngIf="item.action"
+          type="button"
+          class="nav-link action-link logout"
+          (click)="onActionClick(item)"
+        >
+          <div class="nav-link-content">
+            <span class="icon" *ngIf="item.icon">{{ item.icon }}</span>
+            <span class="label" [class.sr-only]="collapsed && !isMobile">
+              {{ item.label }}
+            </span>
+          </div>
+        </button>
+
+        <!-- CHILDREN -->
         <ul *ngIf="item.children?.length && (!collapsed || isMobile)" class="sub-list">
           <li *ngFor="let child of item.children" class="sub-item">
-            <a 
-              [routerLink]="child.route" 
-              routerLinkActive="active" 
+            <a
+              [routerLink]="child.route"
+              routerLinkActive="active"
               class="sub-link"
               (click)="onSubItemClick(child)"
             >
@@ -94,15 +135,22 @@
       </li>
     </ul>
   </div>
-  
+
   <!-- Collapse toggle button (desktop only) -->
-  <button 
-    class="collapse-toggle" 
-    (click)="toggleCollapse()" 
+  <button
+    class="collapse-toggle"
+    (click)="toggleCollapse()"
     aria-label="Toggle sidebar"
     *ngIf="!isMobile"
   >
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+    >
       <polyline [attr.points]="collapsed ? '15,18 9,12 15,6' : '9,18 15,12 9,6'"></polyline>
     </svg>
   </button>

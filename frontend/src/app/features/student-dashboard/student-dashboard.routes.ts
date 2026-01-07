@@ -12,32 +12,22 @@ export const STUDENT_DASHBOARD_ROUTES: Routes = [
   {
     path: '',
     component: DashboardComponent,
-    // canActivate: [AuthGuard, RoleGuard],
-    // data: { roles: ['student'] },
   },
   {
     path: 'scholarships',
     component: Scholarships,
-    // canActivate: [AuthGuard, RoleGuard],
-    // data: { roles: ['student'] },
   },
 
   {
     path: 'applied',
     component: Applied,
-    // canActivate: [AuthGuard, RoleGuard],
-    // data: { roles: ['student'] },
   },
   {
     path: 'bookmarked',
     component: Bookmarked,
-    // canActivate: [AuthGuard, RoleGuard],
-    // data: { roles: ['student'] },
   },
   {
     path: 'profile',
     component: Profile,
-    // canActivate: [AuthGuard, RoleGuard],
-    // data: { roles: ['student'] },
   },
 ];

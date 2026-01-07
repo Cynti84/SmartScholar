@@ -36,13 +36,13 @@ export class AuthMiddleware {
       const decoded = JWTUtil.verifyToken(token);
 
       // Ensure user account is active
-      if (decoded.status !== UserStatus.ACTIVE) {
-        res.status(403).json({
-          success: false,
-          message: "Account is not active. Please contact support.",
-        });
-        return;
-      }
+      // if (decoded.status !== UserStatus.ACTIVE) {
+      //   res.status(403).json({
+      //     success: false,
+      //     message: "Account is not active. Please contact support.",
+      //   });
+      //   return;
+      // }
       // Attach user info to request
       req.user = {
         id: decoded.id,
@@ -84,6 +84,28 @@ export class AuthMiddleware {
 
       next();
     };
+  }
+
+  static requireActiveProvider(req: Request, res: Response, next: NextFunction): void{
+    if (!req.user) {
+      res.status(401).json({ message: "Authentication required." })
+      return
+
+    }
+
+    if (req.user.role !== UserRole.PROVIDER) {
+      res.status(403).json({ message: "Providers only." })
+      return
+    }
+
+    if (req.user.status !== UserStatus.ACTIVE) {
+      res.status(403).json({
+        message: " Your account is pending verification. You cannot post scholarships yet"
+      })
+      return
+    }
+
+    next()
   }
 
   static isAdmin(req: Request, res: Response, next: NextFunction): void {
