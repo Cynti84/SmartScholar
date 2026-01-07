@@ -3,6 +3,9 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../../core/services/auth.service';
+import { NavItem } from '../../../shared/components/sidebar/sidebar';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 
 export interface SavedScholarship {
   id: string;
@@ -22,7 +25,7 @@ export interface SavedScholarship {
 }
 @Component({
   selector: 'app-bookmarked',
-  imports: [CommonModule, DashboardLayout, FormsModule],
+  imports: [CommonModule, DashboardLayout, FormsModule, ConfirmModal],
   templateUrl: './bookmarked.html',
   styleUrl: './bookmarked.scss',
 })
@@ -30,10 +33,10 @@ export class Bookmarked {
   menu = [
     { label: 'Overview', route: '/student' },
     { label: 'Scholarships', route: '/student/scholarships' },
-    { label: 'Recommendations', route: '/student/recommendations' },
     { label: 'Applied', route: '/student/applied' },
     { label: 'Bookmarked', route: '/student/bookmarked' },
     { label: 'Profile', route: '/student/profile' },
+    { label: 'Logout', action: 'logout' },
   ];
   savedScholarships: SavedScholarship[] = [];
   filteredScholarships: SavedScholarship[] = [];
@@ -64,7 +67,7 @@ export class Bookmarked {
   selectedScholarshipIds: Set<string> = new Set();
   isSelectionMode = false;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
 
   ngOnInit(): void {
     this.loadSavedScholarships();
@@ -348,4 +351,25 @@ export class Bookmarked {
   }
 
   Math = Math;
+
+  showLogoutModal = false;
+
+  onSidebarAction(item: NavItem) {
+    if (item.action === 'logout') {
+      this.showLogoutModal = true;
+    }
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login']),
+    });
+  }
+
+  cancelLogout() {
+    this.showLogoutModal = false;
+  }
 }

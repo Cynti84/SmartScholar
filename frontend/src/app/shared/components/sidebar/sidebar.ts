@@ -15,6 +15,7 @@ export interface NavItem {
   icon?: string;
   route?: string;
   children?: NavItem[];
+  action?: string
 }
 
 @Component({
@@ -240,5 +241,13 @@ export class Sidebar implements OnInit, OnDestroy {
    */
   isOpen(): boolean {
     return this.isMobile ? this.mobileMenuOpen : true;
+  }
+
+  @Output() action = new EventEmitter<any>();
+
+  onActionClick(item: any): void {
+    // console.log('Sidebar action: ', item)
+    this.action.emit(item);
+    this.closeMobileMenu();
   }
 }

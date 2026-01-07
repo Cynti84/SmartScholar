@@ -4,6 +4,9 @@ import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashbo
 import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { AuthService } from '../../../core/services/auth.service';
+import { NavItem } from '../../../shared/components/sidebar/sidebar';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 
 export interface UserProfile {
   // Basic Info
@@ -45,7 +48,14 @@ export interface PasswordChange {
 
 @Component({
   selector: 'app-profile',
-  imports: [CommonModule, DashboardLayout, FormsModule, ReactiveFormsModule, MatIconModule],
+  imports: [
+    CommonModule,
+    DashboardLayout,
+    FormsModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    ConfirmModal,
+  ],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
@@ -53,10 +63,10 @@ export class Profile {
   menu = [
     { label: 'Overview', route: '/student' },
     { label: 'Scholarships', route: '/student/scholarships' },
-    { label: 'Recommendations', route: '/student/recommendations' },
     { label: 'Applied', route: '/student/applied' },
     { label: 'Bookmarked', route: '/student/bookmarked' },
     { label: 'Profile', route: '/student/profile' },
+    { label: 'Logout', action: 'logout' },
   ];
   activeTab: 'profile' | 'security' | 'preferences' | 'account' = 'profile';
 
@@ -123,7 +133,7 @@ export class Profile {
   selectedFile: File | null = null;
   imagePreview: string | ArrayBuffer | null = null;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
 
   ngOnInit(): void {
     this.calculateProfileCompletion();
@@ -409,5 +419,26 @@ export class Profile {
     return `${this.userProfile.firstName.charAt(0)}${this.userProfile.lastName.charAt(
       0
     )}`.toUpperCase();
+  }
+
+  showLogoutModal = false;
+
+  onSidebarAction(item: NavItem) {
+    if (item.action === 'logout') {
+      this.showLogoutModal = true;
+    }
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login']),
+    });
+  }
+
+  cancelLogout() {
+    this.showLogoutModal = false;
   }
 }

@@ -1,0 +1,11 @@
+<div class="modal-backdrop">
+  <div class="modal">
+    <h3>{{ title }}</h3>
+    <p>{{ message }}</p>
+
+    <div class="actions">
+      <button class="btn cancel" (click)="cancel.emit()">Cancel</button>
+      <button class="btn confirm" (click)="confirm.emit()">Logout</button>
+    </div>
+  </div>
+</div>

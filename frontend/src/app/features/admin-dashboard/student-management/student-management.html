@@ -1,4 +1,4 @@
-<app-dashboard-layout [title]="'Student Management'" [menu]="menu" logoUrl="logo.png">
+<app-dashboard-layout [title]="'Student Management'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
   <section>
     <div class="student-management">
       <!-- Header -->
@@ -218,6 +218,18 @@
     </div>
   </section>
 </app-dashboard-layout>
+
+
+<!-- logout confirm modal -->
+<app-confirm-modal
+  *ngIf="showLogoutModal"
+  title="Log out"
+  message="Are you sure you want to log out of SmartScholar?"
+  (confirm)="confirmLogout()"
+  (cancel)="cancelLogout()"
+></app-confirm-modal>
+
+
 <!-- Student Details Modal -->
 <div class="modal-overlay" *ngIf="showDetailsModal" (click)="closeDetailsModal()">
   <div class="modal-content details-modal" (click)="$event.stopPropagation()">
