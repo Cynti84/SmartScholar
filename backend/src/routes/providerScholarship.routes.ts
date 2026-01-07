@@ -14,7 +14,6 @@ router.post(
   "/scholarships",
   AuthMiddleware.authenticate,
   AuthMiddleware.isProvider,
-  AuthMiddleware.requireActiveProvider,
   createScholarship
 );
 router.get(

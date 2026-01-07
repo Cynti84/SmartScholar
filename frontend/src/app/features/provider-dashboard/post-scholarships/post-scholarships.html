@@ -1,4 +1,4 @@
-<app-dashboard-layout [title]="'Post New Scholarship'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
+<app-dashboard-layout [title]="'Post New Scholarship'" [menu]="menu" logoUrl="logo.png" >
   <section class="post-scholarship-container">
     <div class="form-wrapper">
       <!-- Progress Indicator -->
@@ -409,11 +409,3 @@
     </div>
   </section>
 </app-dashboard-layout>
-
-<app-confirm-modal
-  *ngIf="showLogoutModal"
-  title="Log out"
-  message="Are you sure you want to log out of SmartScholar?"
-  (confirm)="confirmLogout()"
-  (cancel)="cancelLogout()"
-></app-confirm-modal>

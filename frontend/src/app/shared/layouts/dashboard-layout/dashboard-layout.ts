@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, HostListener, ViewChild, Output, EventEmitter } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, HostListener, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Sidebar, NavItem } from '../../components/sidebar/sidebar';
 
@@ -18,40 +18,42 @@ export class DashboardLayout implements OnInit, OnDestroy {
   @Input() logoIconUrl = '';
   @Input() logoText = '';
   @Input() logoAlt = '';
-  @Output() action = new EventEmitter<any>();
 
   // State management
   public collapsed = false;
   public mobileMenuOpen = false;
   public isMobile = false;
   private resizeTimeout?: number;
-  public isDarkMode = false;
+  public isDarkMode = false
+  
 
   ngOnInit(): void {
     this.checkMobileState();
     this.loadSidebarPreferences();
-    this.loadThemePreference();
+    this.loadThemePreference()
+
   }
 
-  toggleTheme(): void {
-    this.isDarkMode = !this.isDarkMode;
-    localStorage.setItem('dashboard-theme', this.isDarkMode ? 'dark' : 'light');
-
-    const host = document.querySelector('body');
+  toggleTheme(): void{
+    this.isDarkMode = !this.isDarkMode
+    localStorage.setItem('dashboard-theme', this.isDarkMode ? 'dark' : 'light')
+    
+    const host = document.querySelector('body')
     if (host) {
       if (this.isDarkMode) {
-        host.classList.add('dark-mode');
+        host.classList.add('dark-mode')
+
       } else {
-        host.classList.remove('dark-mode');
+        host.classList.remove('dark-mode')
       }
     }
   }
 
-  private loadThemePreference(): void {
-    const savedTheme = localStorage.getItem('dashboard-theme');
+  private loadThemePreference(): void{
+    const savedTheme = localStorage.getItem('dashboard-theme')
     if (savedTheme === 'dark') {
-      this.isDarkMode = true;
-      document.body.classList.add('dark-mode');
+      this.isDarkMode = true
+      document.body.classList.add('dark-mode')
     }
   }
 
@@ -225,10 +227,5 @@ export class DashboardLayout implements OnInit, OnDestroy {
    */
   shouldShowMobileMenuTrigger(): boolean {
     return this.isMobile;
-  }
-
-  onSidebarAction(item: any) {
-     console.log('Layout received action:', item)
-    this.action.emit(item);
   }
 }

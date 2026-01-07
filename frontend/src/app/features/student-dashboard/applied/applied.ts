@@ -2,10 +2,6 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { MatIconModule } from '@angular/material/icon';
-import { AuthService } from '../../../core/services/auth.service';
-import { Router } from '@angular/router';
-import { NavItem } from '../../../shared/components/sidebar/sidebar';
-import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 
 interface Scholarship {
   id: number;
@@ -22,7 +18,7 @@ interface Scholarship {
 
 @Component({
   selector: 'app-applied',
-  imports: [CommonModule, DashboardLayout, MatIconModule, ConfirmModal],
+  imports: [CommonModule, DashboardLayout, MatIconModule],
   templateUrl: './applied.html',
   styleUrl: './applied.scss',
 })
@@ -118,8 +114,6 @@ export class Applied {
     ];
   }
 
-  constructor(private authService: AuthService, private router: Router) {}
-
   calculateStats(): void {
     this.totalApplied = this.scholarships.length;
     this.activeCount = this.scholarships.filter((s) => s.status === 'active').length;
@@ -167,26 +161,5 @@ export class Applied {
     // Implement tracking logic here
     console.log('Tracking status for:', scholarship.name);
     alert(`Tracking status for ${scholarship.name}`);
-  }
-
-  showLogoutModal = false;
-
-  onSidebarAction(item: NavItem) {
-    if (item.action === 'logout') {
-      this.showLogoutModal = true;
-    }
-  }
-
-  confirmLogout() {
-    this.showLogoutModal = false;
-
-    this.authService.logout().subscribe({
-      next: () => this.router.navigate(['/auth/login']),
-      error: () => this.router.navigate(['/auth/login']),
-    });
-  }
-
-  cancelLogout() {
-    this.showLogoutModal = false;
   }
 }

@@ -46,6 +46,43 @@ export const createStudentProfile = async (req: Request, res: Response) => {
   }
 };
 
+// GetProfile test first
+export const getStudentProfile = async (req: Request, res: Response) => {
+  try {
+    const authReq = req as unknown as AuthRequest;
+
+    if (!authReq.user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const userId = authReq.user.id;
+
+    const profileRepo = AppDataSource.getRepository(StudentProfile);
+
+    const profile = await profileRepo.findOne({
+      where: { student_id: userId },
+    });
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: "Profile not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: profile,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching profile",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
 //UpdateProfile
 export const updateStudentProfile = async (req: Request, res: Response) => {
   try {
@@ -763,7 +800,8 @@ export const removeBookmark = async (req: Request, res: Response) => {
   }
 };
 
-//Downloading user data
+//Downloading user data#
+
 export const downloadStudentProfile = async (req: Request, res: Response) => {
   try {
     const user: any = (req as any).user;
@@ -798,36 +836,6 @@ export const downloadStudentProfile = async (req: Request, res: Response) => {
       success: false,
       message: "Error downloading student profile",
       error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
-};
-
-export const getStudentProfile = async (req: Request, res: Response) => {
-  try {
-    const studentId = req.user!.id;
-
-    const studentRepo = AppDataSource.getRepository(StudentProfile);
-
-    const profile = await studentRepo.findOne({
-      where: { student_id: studentId },
-    });
-
-    if (!profile) {
-      return res.status(404).json({
-        success: false,
-        message: "Student profile not found",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      data: profile,
-    });
-  } catch (error) {
-    console.error("Get student profile error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch student profile",
     });
   }
 };
