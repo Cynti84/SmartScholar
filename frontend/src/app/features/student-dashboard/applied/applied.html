@@ -1,4 +1,4 @@
-<app-dashboard-layout [title]="'Applied Scholarships'" [menu]="menu" logoUrl="logo.png">
+<app-dashboard-layout [title]="'Applied Scholarships'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
   <section>
     <!-- applied-scholarships.component.html -->
     <div class="scholarship-container">
@@ -257,3 +257,11 @@
     </div>
   </section>
 </app-dashboard-layout>
+
+<app-confirm-modal
+  *ngIf="showLogoutModal"
+  title="Log out"
+  message="Are you sure you want to log out of SmartScholar?"
+  (confirm)="confirmLogout()"
+  (cancel)="cancelLogout()"
+></app-confirm-modal>

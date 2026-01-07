@@ -1,4 +1,4 @@
-<app-dashboard-layout [title]="'Dashboard Overview'" [menu]="menu" logoUrl="logo.png">
+<app-dashboard-layout [title]="'Dashboard Overview'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
   <section>
     <div class="dashboard-container">
       <!-- Welcome Section -->
@@ -9,7 +9,6 @@
 
       <!-- Overview Cards -->
       <div class="overview-grid">
-        <!-- TOTAL SCHOLARSHIPS -->
         <div class="stat-card primary">
           <div class="stat-icon">
             <svg
@@ -25,11 +24,10 @@
           </div>
           <div class="stat-content">
             <h3 class="stat-value">{{ stats.totalScholarships }}</h3>
-            <p class="stat-label">Total Scholarships</p>
+            <p class="stat-label">Total Scholarships Available</p>
           </div>
         </div>
 
-        <!-- APPLIED SCHOLARSHIPS -->
         <div class="stat-card success">
           <div class="stat-icon">
             <svg
@@ -43,15 +41,15 @@
               <polyline points="14 2 14 8 20 8" />
               <line x1="16" y1="13" x2="8" y2="13" />
               <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
             </svg>
           </div>
           <div class="stat-content">
             <h3 class="stat-value">{{ stats.applied }}</h3>
-            <p class="stat-label">Applied Scholarships</p>
+            <p class="stat-label">Scholarships Applied</p>
           </div>
         </div>
 
-        <!-- BOOKMARKED SCHOLARSHIPS -->
         <div class="stat-card warning">
           <div class="stat-icon">
             <svg
@@ -61,16 +59,16 @@
               stroke="currentColor"
               stroke-width="2"
             >
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
             </svg>
           </div>
           <div class="stat-content">
-            <h3 class="stat-value">{{ stats.bookmarked }}</h3>
-            <p class="stat-label">Bookmarked Scholarships</p>
+            <h3 class="stat-value">{{ stats.pending }}</h3>
+            <p class="stat-label">Applications Pending</p>
           </div>
         </div>
 
-        <!-- RECOMMENDED SCHOLARSHIPS -->
         <div class="stat-card approved">
           <div class="stat-icon">
             <svg
@@ -80,14 +78,32 @@
               stroke="currentColor"
               stroke-width="2"
             >
-              <polygon
-                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
-              />
+              <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
           <div class="stat-content">
-            <h3 class="stat-value">{{ stats.recommended }}</h3>
-            <p class="stat-label">Recommended Scholarships</p>
+            <h3 class="stat-value">{{ stats.approved }}</h3>
+            <p class="stat-label">Applications Approved</p>
+          </div>
+        </div>
+
+        <div class="stat-card rejected">
+          <div class="stat-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="15" y1="9" x2="9" y2="15" />
+              <line x1="9" y1="9" x2="15" y2="15" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-value">{{ stats.rejected }}</h3>
+            <p class="stat-label">Applications Rejected</p>
           </div>
         </div>
       </div>
@@ -159,14 +175,10 @@
         <div class="scholarships-grid">
           <div class="scholarship-card" *ngFor="let scholarship of recommendedScholarships">
             <div class="card-header">
-              <div
-                *ngIf="scholarship.matchScore !== undefined"
-                class="match-badge"
-                [class.high-match]="scholarship.matchScore >= 85"
-              >
-                {{ scholarship.matchScore | number : '1.0-0' }}% Match
+              <div class="match-badge" [class.high-match]="scholarship.matchScore >= 85">
+                {{ scholarship.matchScore }}% Match
               </div>
-              <!-- <span class="category-tag">{{ scholarship.category }}</span> -->
+              <span class="category-tag">{{ scholarship.category }}</span>
             </div>
 
             <h3 class="scholarship-title">{{ scholarship.title }}</h3>
@@ -203,7 +215,7 @@
               </div>
             </div>
 
-            <button class="view-btn" (click)="onViewScholarship(scholarship._id)">
+            <button class="view-btn" (click)="onViewScholarship(scholarship.id)">
               View Details
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -222,3 +234,12 @@
     </div>
   </section>
 </app-dashboard-layout>
+
+
+<app-confirm-modal
+  *ngIf="showLogoutModal"
+  title="Log out"
+  message="Are you sure you want to log out of SmartScholar?"
+  (confirm)="confirmLogout()"
+  (cancel)="cancelLogout()"
+></app-confirm-modal>

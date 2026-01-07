@@ -1,4 +1,4 @@
-<app-dashboard-layout [title]="'Providers Management'" [menu]="menu" logoUrl="logo.png">
+<app-dashboard-layout [title]="'Providers Management'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
   <section>
     <div class="provider-management">
       <!-- Header -->
@@ -219,6 +219,15 @@
     </div>
   </section>
 </app-dashboard-layout>
+
+<!-- Logout confirm modal -->
+<app-confirm-modal
+  *ngIf="showLogoutModal"
+  title="Log out"
+  message="Are you sure you want to log out of SmartScholar?"
+  (confirm)="confirmLogout()"
+  (cancel)="cancelLogout()"
+></app-confirm-modal>
 
 <!-- Provider Details Modal -->
 <div class="modal-overlay" *ngIf="showDetailsModal" (click)="closeDetailsModal()">

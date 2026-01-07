@@ -147,63 +147,15 @@ export class Signup {
    */
   private handleSuccessfulSignup(): void {
     // Show success message
-    this.showSuccess('Account created successfully! Please complete your profile setup.');
+    this.showSuccess('Account created successfully! Please verify your email to login.');
 
-    const tempUserData = {
-      firstname: this.formData.firstname,
-      lastname: this.formData.lastname,
-      fullname: `${this.formData.firstname} ${this.formData.lastname}`,
-      email: this.formData.email,
-      role: this.formData.role,
-    };
-    localStorage.setItem('tempUserData', JSON.stringify(tempUserData));
-
-    // Clear form
     // this.resetForm();
 
-    // Continue to role-specific signup page
     setTimeout(() => {
-      this.continueToProfileSetup();
+      this.router.navigate(['/auth/login']);
     }, 2000);
   }
 
-  /**
-   * Continue to role-specific profile setup page
-   */
-  private continueToProfileSetup(): void {
-    if (!this.formData.role) {
-      this.showError('No role selected. Please try again.');
-      return;
-    }
-
-    const fullname = `${this.formData.firstname} ${this.formData.lastname}`;
-
-    if (this.formData.role === 'student') {
-      this.router.navigate(['/auth/signup/student'], {
-        queryParams: {
-          email: this.formData.email,
-          firstname: this.formData.firstname,
-          lastname: this.formData.lastname,
-          fullname: fullname,
-          step: 'profile-setup',
-        },
-      });
-    } else if (this.formData.role === 'provider') {
-      this.router.navigate(['/auth/signup/provider'], {
-        queryParams: {
-          email: this.formData.email,
-          firstname: this.formData.firstname,
-          lastname: this.formData.lastname,
-          fullname: fullname,
-          step: 'profile-setup',
-        },
-      });
-    } else {
-      //handle any other roles or fallback
-      console.error('Invalid role selected:', this.formData.role);
-      this.showError('Invalid role selected. Please try again');
-    }
-  }
 
   /**
    * Handle signup errors
@@ -226,20 +178,6 @@ export class Signup {
     this.showError(errorMessage);
   }
 
-  /**
-   * Reset form to initial state
-   */
-  private resetForm(): void {
-    this.formData = {
-      firstname: '',
-      lastname: '',
-      email: '',
-      password: '',
-      role: '',
-      agreeToTerms: false,
-    };
-    this.showPassword = false;
-  }
 
   /**
    * Show error message (you can integrate with a toast service)
@@ -270,12 +208,6 @@ export class Signup {
     alert(message); // Temporary solution
   }
 
-  /**
-   * Utility function to create delays
-   */
-  private delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
 
   /**
    * Handle social login (if needed in the future)
