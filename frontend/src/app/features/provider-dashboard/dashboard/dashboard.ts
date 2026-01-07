@@ -2,24 +2,26 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angula
 import { CommonModule } from '@angular/common';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { Card } from '../../../shared/components/card/card';
-
-interface StatCard{
+import { AuthService } from '../../../core/services/auth.service';
+import { Router } from '@angular/router';
+import { NavItem } from '../../../shared/components/sidebar/sidebar';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+interface StatCard {
   count: number;
   percentage: string;
   trend: 'up' | 'down';
-
 }
 
-interface Scholarship{
-  name: string
-  datePosted: Date
-  applicationCount: number
-  status: 'Active' | 'Inactive'
+interface Scholarship {
+  name: string;
+  datePosted: Date;
+  applicationCount: number;
+  status: 'Active' | 'Inactive';
 }
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, DashboardLayout, Card],
+  imports: [CommonModule, DashboardLayout, Card, ConfirmModal],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -35,6 +37,7 @@ export class Dashboard implements OnInit, AfterViewInit {
     { label: 'Manage Scholarships', route: '/provider/manage' },
     { label: 'Applicants', route: '/provider/applicants' },
     { label: 'Profile', route: '/provider/profile' },
+    { label: 'Logout', action: 'logout' },
   ];
 
   // Stats Data
@@ -106,7 +109,7 @@ export class Dashboard implements OnInit, AfterViewInit {
     approved: { value: 150, percentage: -0.5 },
   };
 
-  constructor() {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     this.filterScholarships();
@@ -249,5 +252,26 @@ export class Dashboard implements OnInit, AfterViewInit {
     return trend === 'up' ? 'trend-up' : 'trend-down';
   }
 
-  today: Date=new Date()
+  today: Date = new Date();
+
+  showLogoutModal = false;
+
+  onSidebarAction(item: NavItem) {
+    if (item.action === 'logout') {
+      this.showLogoutModal = true;
+    }
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login']),
+    });
+  }
+
+  cancelLogout() {
+    this.showLogoutModal = false;
+  }
 }

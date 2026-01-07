@@ -2,6 +2,9 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
+import { AuthService } from '../../../core/services/auth.service';
+import { NavItem } from '../../../shared/components/sidebar/sidebar';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 interface Scholarship {
   id: number;
   title: string;
@@ -22,7 +25,7 @@ interface OverviewStats {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, DashboardLayout],
+  imports: [CommonModule, DashboardLayout, ConfirmModal],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -30,10 +33,10 @@ export class Dashboard {
   menu = [
     { label: 'Overview', route: '/student' },
     { label: 'Scholarships', route: '/student/scholarships' },
-    { label: 'Recommendations', route: '/student/recommendations' },
     { label: 'Applied', route: '/student/applied' },
     { label: 'Bookmarked', route: '/student/bookmarked' },
     { label: 'Profile', route: '/student/profile' },
+    { label: 'Logout', action: 'logout' },
   ];
   studentName: string = 'John Doe';
 
@@ -87,6 +90,7 @@ export class Dashboard {
   ngOnInit(): void {
     // Initialize component
   }
+  constructor(private authService: AuthService, private router: Router) {}
 
   getDaysRemaining(deadline: string): number {
     const today = new Date();
@@ -110,5 +114,26 @@ export class Dashboard {
 
   onViewScholarship(id: number): void {
     console.log('View scholarship details:', id);
+  }
+
+  showLogoutModal = false;
+
+  onSidebarAction(item: NavItem) {
+    if (item.action === 'logout') {
+      this.showLogoutModal = true;
+    }
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login']),
+    });
+  }
+
+  cancelLogout() {
+    this.showLogoutModal = false;
   }
 }

@@ -3,6 +3,10 @@ import { Component } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
+import { AuthService } from '../../../core/services/auth.service';
+import { Router } from '@angular/router';
+import { NavItem } from '../../../shared/components/sidebar/sidebar';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 
 interface Scholarship {
   id: number;
@@ -32,7 +36,7 @@ interface Filters {
 
 @Component({
   selector: 'app-scholarships',
-  imports: [CommonModule, DashboardLayout, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, DashboardLayout, FormsModule, ReactiveFormsModule, ConfirmModal],
   templateUrl: './scholarships.html',
   styleUrl: './scholarships.scss',
 })
@@ -40,10 +44,10 @@ export class Scholarships {
   menu = [
     { label: 'Overview', route: '/student' },
     { label: 'Scholarships', route: '/student/scholarships' },
-    { label: 'Recommendations', route: '/student/recommendations' },
     { label: 'Applied', route: '/student/applied' },
     { label: 'Bookmarked', route: '/student/bookmarked' },
     { label: 'Profile', route: '/student/profile' },
+    { label: 'Logout', action: 'logout' },
   ];
 
   scholarships: Scholarship[] = [];
@@ -361,6 +365,8 @@ export class Scholarships {
     ];
   }
 
+  constructor(private authService: AuthService, private router: Router) {}
+
   applyFilters(): void {
     let filtered = [...this.scholarships];
 
@@ -526,5 +532,26 @@ export class Scholarships {
 
   toggleFilters(): void {
     this.showFilters = !this.showFilters;
+  }
+
+  showLogoutModal = false;
+
+  onSidebarAction(item: NavItem) {
+    if (item.action === 'logout') {
+      this.showLogoutModal = true;
+    }
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login']),
+    });
+  }
+
+  cancelLogout() {
+    this.showLogoutModal = false;
   }
 }

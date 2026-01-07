@@ -3,6 +3,10 @@ import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashbo
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { Router } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
+import { NavItem } from '../../../shared/components/sidebar/sidebar';
 interface Provider {
   id: number;
   name: string;
@@ -31,7 +35,7 @@ interface ActivityLog {
 @Component({
   selector: 'app-provider-management',
   standalone: true,
-  imports: [CommonModule, DashboardLayout, FormsModule, MatIconModule],
+  imports: [CommonModule, DashboardLayout, FormsModule, MatIconModule, ConfirmModal],
   templateUrl: './provider-management.html',
   styleUrl: './provider-management.scss',
 })
@@ -42,7 +46,10 @@ export class ProviderManagement {
     { label: 'Students', route: '/admin/students' },
     { label: 'Scholarships', route: '/admin/scholarships' },
     { label: 'Reports', route: '/admin/reports' },
+    { label: 'Logout', action: 'logout' },
   ];
+
+  constructor(private router: Router, private authService: AuthService) {}
   Math = Math;
   providers: Provider[] = [];
   filteredProviders: Provider[] = [];
@@ -404,5 +411,26 @@ export class ProviderManagement {
   exportProviders(): void {
     console.log('Exporting providers to CSV');
     // Implement export logic
+  }
+
+  showLogoutModal = false;
+
+  onSidebarAction(item: NavItem) {
+    if (item.action === 'logout') {
+      this.showLogoutModal = true;
+    }
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login']),
+    });
+  }
+
+  cancelLogout() {
+    this.showLogoutModal = false;
   }
 }
