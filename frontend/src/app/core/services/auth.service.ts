@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { tap, catchError, map } from 'rxjs/operators';
 import { parseJwt, isTokenExpired } from '../utils/token.util';
+import { User, ApiResponse } from '../models/user.model';
 
 const ACCESS_KEY = 'ss_access_token';
 const REFRESH_KEY = 'ss_refresh_token';
@@ -21,6 +22,13 @@ export interface SignupPayload {
 export interface LoginPayload {
   email: string;
   password: string;
+}
+export interface user {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
 }
 
 @Injectable({
@@ -115,11 +123,10 @@ export class AuthService {
       tap(() => this.clearTokens())
     );
   }
-
-  getMe(): Observable<any> {
-    return this.http.get(`${this.API_URL}/me`);
+  // get me added thursday
+  getMe(): Observable<ApiResponse<user>> {
+    return this.http.get<ApiResponse<user>>(`${this.API_URL}/me`);
   }
-
   // ===========================
   // TOKEN MANAGEMENT
   // ===========================
@@ -162,7 +169,7 @@ export class AuthService {
     return this.getUserFromToken();
   }
 
-   getUserFromToken() {
+  private getUserFromToken() {
     const token = this.getAccessToken();
     return token ? parseJwt(token) : null;
   }
@@ -179,5 +186,4 @@ export class AuthService {
     const raw = localStorage.getItem(TEMP_USER_KEY);
     return raw ? JSON.parse(raw) : null;
   }
- 
 }

@@ -3,9 +3,6 @@ import { CommonModule } from '@angular/common';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
-import { NavItem } from '../../../shared/components/sidebar/sidebar';
-import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 
 interface FileUpload {
   name: string;
@@ -15,12 +12,14 @@ interface FileUpload {
 }
 @Component({
   selector: 'app-post-scholarships',
-  imports: [CommonModule, DashboardLayout, ReactiveFormsModule, ConfirmModal],
+  imports: [CommonModule, DashboardLayout, ReactiveFormsModule],
   templateUrl: './post-scholarships.html',
   styleUrl: './post-scholarships.scss',
 })
 export class PostScholarships implements OnInit {
-  isDarkMode = false;
+
+  isDarkMode = false
+  
 
   scholarshipForm!: FormGroup;
   currentStep = 1;
@@ -35,7 +34,6 @@ export class PostScholarships implements OnInit {
     { label: 'Manage Scholarships', route: '/provider/manage' },
     { label: 'Applicants', route: '/provider/applicants' },
     { label: 'Profile', route: '/provider/profile' },
-    { label: 'Logout', action: 'logout' },
   ];
 
   // Form options data
@@ -183,12 +181,7 @@ export class PostScholarships implements OnInit {
   selectedBanner: FileUpload | null = null;
   selectedVerificationDocs: FileUpload[] = [];
 
-  constructor(
-    private fb: FormBuilder,
-    private router: Router,
-    private renderer: Renderer2,
-    private authService: AuthService
-  ) {
+  constructor(private fb: FormBuilder, private router: Router, private renderer: Renderer2) {
     //set minimum date to today
     const today = new Date();
     this.minDate = today.toISOString().split('T')[0];
@@ -475,24 +468,4 @@ export class PostScholarships implements OnInit {
     }
   }
 
-  showLogoutModal = false;
-
-  onSidebarAction(item: NavItem) {
-    if (item.action === 'logout') {
-      this.showLogoutModal = true;
-    }
-  }
-
-  confirmLogout() {
-    this.showLogoutModal = false;
-
-    this.authService.logout().subscribe({
-      next: () => this.router.navigate(['/auth/login']),
-      error: () => this.router.navigate(['/auth/login']),
-    });
-  }
-
-  cancelLogout() {
-    this.showLogoutModal = false;
-  }
 }

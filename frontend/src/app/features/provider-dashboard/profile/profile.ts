@@ -8,10 +8,6 @@ import {
   AbstractControl,
 } from '@angular/forms';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
-import { AuthService } from '../../../core/services/auth.service';
-import { Router } from '@angular/router';
-import { NavItem } from '../../../shared/components/sidebar/sidebar';
-import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 
 interface Country {
   name: string;
@@ -28,7 +24,7 @@ type VerificationStatus = 'pending' | 'verified' | 'rejected';
 
 @Component({
   selector: 'app-profile',
-  imports: [CommonModule, DashboardLayout, ReactiveFormsModule, ConfirmModal],
+  imports: [CommonModule, DashboardLayout, ReactiveFormsModule],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
@@ -39,7 +35,6 @@ export class Profile implements OnInit {
     { label: 'Manage Scholarships', route: '/provider/manage' },
     { label: 'Applicants', route: '/provider/applicants' },
     { label: 'Profile', route: '/provider/profile' },
-    { label: 'Logout', action: 'logout' },
   ];
 
   profileForm!: FormGroup;
@@ -115,7 +110,7 @@ export class Profile implements OnInit {
   private originalFormData: any;
   private originalEmail: string = '';
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
+  constructor(private fb: FormBuilder) {
     this.initializeForms();
   }
 
@@ -441,26 +436,5 @@ export class Profile implements OnInit {
   // Helper method to prevent event propagation (used in template)
   stopPropagation(event: Event) {
     event.stopPropagation();
-  }
-
-  showLogoutModal = false;
-
-  onSidebarAction(item: NavItem) {
-    if (item.action === 'logout') {
-      this.showLogoutModal = true;
-    }
-  }
-
-  confirmLogout() {
-    this.showLogoutModal = false;
-
-    this.authService.logout().subscribe({
-      next: () => this.router.navigate(['/auth/login']),
-      error: () => this.router.navigate(['/auth/login']),
-    });
-  }
-
-  cancelLogout() {
-    this.showLogoutModal = false;
   }
 }
