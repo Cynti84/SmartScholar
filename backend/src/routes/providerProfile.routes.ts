@@ -6,6 +6,7 @@ import {
   updateProviderProfile,
   deleteProviderProfile,
 } from "../controllers/providerProfile.controller";
+import { upload } from "../config/multer.config";
 
 const router = Router();
 
@@ -13,6 +14,10 @@ router.post(
   "/create",
   AuthMiddleware.authenticate,
   AuthMiddleware.isProvider,
+  upload.fields([
+    { name: "logoFile", maxCount: 1 },
+    { name: "verificationDocument", maxCount: 5 },
+  ]),
   createProviderProfile
 );
 router.get(

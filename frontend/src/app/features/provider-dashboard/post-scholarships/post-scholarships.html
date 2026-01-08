@@ -54,29 +54,29 @@
             </div>
 
             <div class="form-group full-width">
-              <label for="organizationName">Organization Name <span class="required">*</span></label>
+              <label for="organization_name">Organization Name <span class="required">*</span></label>
               <input 
                 type="text" 
-                id="organizationName" 
-                formControlName="organizationName"
+                id="organization_name" 
+                formControlName="organization_name"
                 placeholder="Your organization or company name"
                 class="form-control">
-              <div class="error-message" *ngIf="scholarshipForm.get('organizationName')?.invalid && scholarshipForm.get('organizationName')?.touched">
+              <div class="error-message" *ngIf="scholarshipForm.get('organization_name')?.invalid && scholarshipForm.get('organization_name')?.touched">
                 Organization name is required
               </div>
             </div>
 
             <div class="form-group full-width">
-              <label for="shortSummary">Short Summary <span class="required">*</span></label>
+              <label for="short_summary">Short Summary <span class="required">*</span></label>
               <textarea 
-                id="shortSummary" 
-                formControlName="shortSummary"
+                id="short_summary" 
+                formControlName="short_summary"
                 placeholder="Brief 1-2 sentence description that will appear in search results"
                 class="form-control"
                 rows="3"
                 maxlength="200"></textarea>
-              <div class="char-counter">{{ getCharacterCount('shortSummary') }}/200</div>
-              <div class="error-message" *ngIf="scholarshipForm.get('shortSummary')?.invalid && scholarshipForm.get('shortSummary')?.touched">
+              <div class="char-counter">{{ getCharacterCount('short_summary') }}/200</div>
+              <div class="error-message" *ngIf="scholarshipForm.get('short_summary')?.invalid && scholarshipForm.get('short_summary')?.touched">
                 Short summary is required
               </div>
             </div>
@@ -92,27 +92,27 @@
 
           <div class="form-grid">
             <div class="form-group full-width">
-              <label for="fullDescription">Full Description <span class="required">*</span></label>
+              <label for="description">Full Description <span class="required">*</span></label>
               <textarea 
-                id="fullDescription" 
-                formControlName="fullDescription"
+                id="description" 
+                formControlName="description"
                 placeholder="Detailed description of the scholarship, its purpose, and what makes it unique"
                 class="form-control large-textarea"
                 rows="6"></textarea>
-              <div class="error-message" *ngIf="scholarshipForm.get('fullDescription')?.invalid && scholarshipForm.get('fullDescription')?.touched">
+              <div class="error-message" *ngIf="scholarshipForm.get('description')?.invalid && scholarshipForm.get('description')?.touched">
                 Full description is required
               </div>
             </div>
 
             <div class="form-group full-width">
-              <label for="eligibilityCriteria">Eligibility Criteria <span class="required">*</span></label>
+              <label for="eligibility_criteria">Eligibility Criteria <span class="required">*</span></label>
               <textarea 
-                id="eligibilityCriteria" 
-                formControlName="eligibilityCriteria"
+                id="eligibility_criteria" 
+                formControlName="eligibility_criteria"
                 placeholder="Who can apply? Include academic requirements, age limits, nationality, etc."
                 class="form-control"
                 rows="4"></textarea>
-              <div class="error-message" *ngIf="scholarshipForm.get('eligibilityCriteria')?.invalid && scholarshipForm.get('eligibilityCriteria')?.touched">
+              <div class="error-message" *ngIf="scholarshipForm.get('eligibility_criteria')?.invalid && scholarshipForm.get('eligibility_criteria')?.touched">
                 Eligibility criteria is required
               </div>
             </div>
@@ -131,14 +131,14 @@
             </div>
 
             <div class="form-group">
-              <label for="applicationDeadline">Application Deadline <span class="required">*</span></label>
+              <label for="deadline">Application Deadline <span class="required">*</span></label>
               <input 
                 type="date" 
-                id="applicationDeadline" 
-                formControlName="applicationDeadline"
+                id="deadline" 
+                formControlName="deadline"
                 class="form-control"
                 [min]="minDate">
-              <div class="error-message" *ngIf="scholarshipForm.get('applicationDeadline')?.invalid && scholarshipForm.get('applicationDeadline')?.touched">
+              <div class="error-message" *ngIf="scholarshipForm.get('deadline')?.invalid && scholarshipForm.get('deadline')?.touched">
                 Please select a valid future date
               </div>
             </div>
@@ -165,23 +165,23 @@
             </div>
 
             <div class="form-group">
-              <label for="educationLevel">Education Level <span class="required">*</span></label>
-              <select id="educationLevel" formControlName="educationLevel" class="form-control">
+              <label for="education_level">Education Level <span class="required">*</span></label>
+              <select id="education_level" formControlName="education_level" class="form-control">
                 <option value="">Select Education Level</option>
                 <option *ngFor="let level of educationLevels" [value]="level">{{ level }}</option>
               </select>
-              <div class="error-message" *ngIf="scholarshipForm.get('educationLevel')?.invalid && scholarshipForm.get('educationLevel')?.touched">
+              <div class="error-message" *ngIf="scholarshipForm.get('education_level')?.invalid && scholarshipForm.get('education_level')?.touched">
                 Please select an education level
               </div>
             </div>
 
             <div class="form-group">
-              <label for="scholarshipType">Scholarship Type <span class="required">*</span></label>
-              <select id="scholarshipType" formControlName="scholarshipType" class="form-control">
+              <label for="scholarship_type">Scholarship Type <span class="required">*</span></label>
+              <select id="scholarship_type" formControlName="scholarship_type" class="form-control">
                 <option value="">Select Scholarship Type</option>
                 <option *ngFor="let type of scholarshipTypes" [value]="type">{{ type }}</option>
               </select>
-              <div class="error-message" *ngIf="scholarshipForm.get('scholarshipType')?.invalid && scholarshipForm.get('scholarshipType')?.touched">
+              <div class="error-message" *ngIf="scholarshipForm.get('scholarship_type')?.invalid && scholarshipForm.get('scholarship_type')?.touched">
                 Please select a scholarship type
               </div>
             </div>
@@ -206,7 +206,7 @@
                   </span>
                 </div>
               </div>
-              <div class="error-message" *ngIf="selectedFields.length === 0 && scholarshipForm.get('fieldsOfStudy')?.touched">
+              <div class="error-message" *ngIf="selectedFields.length === 0 && scholarshipForm.get('fields_of_study')?.touched">
                 Please select at least one field of study
               </div>
             </div>
@@ -225,44 +225,44 @@
               <label for="applicationLink">Application Link <span class="required">*</span></label>
               <input 
                 type="url" 
-                id="applicationLink" 
-                formControlName="applicationLink"
+                id="application_link" 
+                formControlName="application_link"
                 placeholder="https://example.com/apply"
                 class="form-control">
-              <div class="error-message" *ngIf="scholarshipForm.get('applicationLink')?.invalid && scholarshipForm.get('applicationLink')?.touched">
+              <div class="error-message" *ngIf="scholarshipForm.get('application_link')?.invalid && scholarshipForm.get('application_link')?.touched">
                 Please provide a valid application URL
               </div>
             </div>
 
             <div class="form-group full-width">
-              <label for="applicationInstructions">Application Instructions <span class="required">*</span></label>
+              <label for="application_instructions">Application Instructions <span class="required">*</span></label>
               <textarea 
-                id="applicationInstructions" 
-                formControlName="applicationInstructions"
+                id="application_instructions" 
+                formControlName="application_instructions"
                 placeholder="Step-by-step instructions and required documents for application"
                 class="form-control large-textarea"
                 rows="6"></textarea>
-              <div class="error-message" *ngIf="scholarshipForm.get('applicationInstructions')?.invalid && scholarshipForm.get('applicationInstructions')?.touched">
+              <div class="error-message" *ngIf="scholarshipForm.get('application_instructions')?.invalid && scholarshipForm.get('application_instructions')?.touched">
                 Application instructions are required
               </div>
             </div>
 
             <div class="form-group">
-              <label for="contactEmail">Contact Email</label>
+              <label for="contact_email">Contact Email</label>
               <input 
                 type="email" 
-                id="contactEmail" 
-                formControlName="contactEmail"
+                id="contact_email" 
+                formControlName="contact_email"
                 placeholder="contact@organization.com"
                 class="form-control">
             </div>
 
             <div class="form-group">
-              <label for="contactPhone">Contact Phone</label>
+              <label for="contact_phone">Contact Phone</label>
               <input 
                 type="tel" 
-                id="contactPhone" 
-                formControlName="contactPhone"
+                id="contact_phone" 
+                formControlName="contact_phone"
                 placeholder="+1 (555) 123-4567"
                 class="form-control">
             </div>
@@ -330,10 +330,10 @@
             </div>
 
             <div class="form-group full-width">
-              <label for="adminNotes">Notes for Admin</label>
+              <label for="admin_notes">Notes for Admin</label>
               <textarea 
                 id="adminNotes" 
-                formControlName="adminNotes"
+                formControlName="admin_notes"
                 placeholder="Any special instructions or notes for the admin during verification"
                 class="form-control"
                 rows="4"></textarea>
@@ -348,16 +348,16 @@
                 <strong>Title:</strong> {{ scholarshipForm.get('title')?.value || 'Not provided' }}
               </div>
               <div class="review-item">
-                <strong>Organization:</strong> {{ scholarshipForm.get('organizationName')?.value || 'Not provided' }}
+                <strong>Organization:</strong> {{ scholarshipForm.get('organization_name')?.value || 'Not provided' }}
               </div>
               <div class="review-item">
-                <strong>Deadline:</strong> {{ scholarshipForm.get('applicationDeadline')?.value || 'Not set' }}
+                <strong>Deadline:</strong> {{ scholarshipForm.get('deadline')?.value || 'Not set' }}
               </div>
               <div class="review-item">
                 <strong>Country:</strong> {{ scholarshipForm.get('country')?.value || 'Not selected' }}
               </div>
               <div class="review-item">
-                <strong>Education Level:</strong> {{ scholarshipForm.get('educationLevel')?.value || 'Not selected' }}
+                <strong>Education Level:</strong> {{ scholarshipForm.get('education_level')?.value || 'Not selected' }}
               </div>
               <div class="review-item">
                 <strong>Fields of Study:</strong> {{ selectedFields.join(', ') || 'None selected' }}

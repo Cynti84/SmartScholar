@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { ProviderService } from '../../../core/services/provider.service';
 
 interface FileUpload {
   name: string;
@@ -187,7 +188,8 @@ export class PostScholarships implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private renderer: Renderer2,
-    private authService: AuthService
+    private authService: AuthService,
+    private providerScholarshipService: ProviderService
   ) {
     //set minimum date to today
     const today = new Date();
@@ -196,40 +198,42 @@ export class PostScholarships implements OnInit {
 
   ngOnInit(): void {
     this.initializeForm();
+    this.loadDraft();
   }
 
   private initializeForm(): void {
     this.scholarshipForm = this.fb.group({
-      //step 1: Basic information
+      // Step 1
       title: ['', [Validators.required, Validators.minLength(10)]],
-      organizationName: ['', [Validators.required]],
-      shortSummary: ['', [Validators.required, Validators.maxLength(200)]],
+      organization_name: ['', [Validators.required]],
+      short_summary: ['', [Validators.required, Validators.maxLength(200)]],
 
-      //step 2: Description and Details
-      fullDescription: ['', [Validators.required, Validators.minLength(50)]],
-      eligibilityCriteria: ['', [Validators.required]],
+      // Step 2
+      description: ['', [Validators.required, Validators.minLength(50)]],
+      eligibility_criteria: ['', [Validators.required]],
       benefits: ['', [Validators.required]],
-      applicationDeadline: ['', [Validators.required, this.futureDateValidator]],
+      deadline: ['', [Validators.required, this.futureDateValidator]],
 
-      //Step 3: Categorization and scope
+      // Step 3
       country: ['', [Validators.required]],
-      educationLevel: ['', [Validators.required]],
-      scholarshipType: ['', [Validators.required]],
-      fieldsOfStudy: ['', [Validators.required]],
+      education_level: ['', [Validators.required]],
+      scholarship_type: ['', [Validators.required]],
+      fields_of_study: ['', [Validators.required]],
 
-      //Step 4: application  information
-      applicationLink: ['', [Validators.required, Validators.pattern(/^https?:\/\/.+/)]],
-      applicationInstructions: ['', [Validators.required]],
-      contactEmail: ['', [Validators.email]],
-      contactPhone: [''],
+      // Step 4
+      application_link: ['', [Validators.required, Validators.pattern(/^https?:\/\/.+/)]],
+      application_instructions: ['', [Validators.required]],
+      contact_email: ['', [Validators.email]],
+      contact_phone: [''],
 
-      //step 5: final
-      adminNotes: [''],
+      // Step 5
+      admin_notes: [''],
     });
+
 
     //Auto-fill organization name from user profile (if available)
     this.scholarshipForm.patchValue({
-      organizationName: 'Your Organization Name', //replace with actual user data
+      organization_name: 'Your Organization Name', //replace with actual user data
     });
   }
 
@@ -263,27 +267,27 @@ export class PostScholarships implements OnInit {
       case 1:
         return (
           (this.scholarshipForm.get('title')?.valid ?? false) &&
-          (this.scholarshipForm.get('organizationName')?.valid ?? false) &&
-          (this.scholarshipForm.get('shortSummary')?.valid ?? false)
+          (this.scholarshipForm.get('organization_name')?.valid ?? false) &&
+          (this.scholarshipForm.get('short_summary')?.valid ?? false)
         );
       case 2:
         return (
-          (this.scholarshipForm.get('fullDescription')?.valid ?? false) &&
-          (this.scholarshipForm.get('eligibilityCriteria')?.valid ?? false) &&
+          (this.scholarshipForm.get('description')?.valid ?? false) &&
+          (this.scholarshipForm.get('eligibility_criteria')?.valid ?? false) &&
           (this.scholarshipForm.get('benefits')?.valid ?? false) &&
-          (this.scholarshipForm.get('applicationDeadline')?.valid ?? false)
+          (this.scholarshipForm.get('deadline')?.valid ?? false)
         );
       case 3:
         return (
           (this.scholarshipForm.get('country')?.valid ?? false) &&
-          (this.scholarshipForm.get('educationLevel')?.valid ?? false) &&
-          (this.scholarshipForm.get('scholarshipType')?.valid ?? false) &&
+          (this.scholarshipForm.get('education_level')?.valid ?? false) &&
+          (this.scholarshipForm.get('scholarship_type')?.valid ?? false) &&
           this.selectedFields.length > 0
         );
       case 4:
         return (
-          (this.scholarshipForm.get('applicationLink')?.valid ?? false) &&
-          (this.scholarshipForm.get('applicationInstructions')?.valid ?? false)
+          (this.scholarshipForm.get('application_link')?.valid ?? false) &&
+          (this.scholarshipForm.get('application_instructions')?.valid ?? false)
         );
       case 5:
         return true; // Step 5 has no required fields
@@ -297,7 +301,7 @@ export class PostScholarships implements OnInit {
     if (!this.selectedFields.includes(field)) {
       this.selectedFields.push(field);
       this.scholarshipForm.patchValue({
-        fieldsOfStudy: this.selectedFields.join(','),
+        fields_of_study: this.selectedFields.join(','),
       });
     }
   }
@@ -305,7 +309,7 @@ export class PostScholarships implements OnInit {
   removeField(field: string): void {
     this.selectedFields = this.selectedFields.filter((f) => f !== field);
     this.scholarshipForm.patchValue({
-      fieldsOfStudy: this.selectedFields.join(','),
+      fields_of_study: this.selectedFields.join(','),
     });
   }
 
@@ -392,11 +396,11 @@ export class PostScholarships implements OnInit {
   saveDraft(): void {
     const draftData = {
       ...this.scholarshipForm.value,
-      fieldsOfStudy: this.selectedFields,
+      fields_of_study: this.selectedFields,
       attachments: {
         flyer: this.selectedFlyer,
         banner: this.selectedBanner,
-        verificationDocs: this.selectedVerificationDocs,
+        verificationDocument: this.selectedVerificationDocs,
       },
       currentStep: this.currentStep,
       isDraft: true,
@@ -409,48 +413,56 @@ export class PostScholarships implements OnInit {
   }
 
   onSubmit(): void {
-    if (!this.scholarshipForm.valid) {
+    if (this.scholarshipForm.invalid) {
       alert('Please fill in all required fields');
       return;
     }
 
     this.isSubmitting = true;
 
-    //prepare form data
     const formData = new FormData();
 
-    // Add form fields
-    Object.keys(this.scholarshipForm.value).forEach((key) => {
-      if (this.scholarshipForm.value[key]) {
-        formData.append(key, this.scholarshipForm.value[key]);
+    // Append form fields safely
+    Object.entries(this.scholarshipForm.value).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== '') {
+        if (typeof value === 'object' && !(value instanceof File)) {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, value as string | Blob);
+        }
       }
     });
 
-    //add selected fields
-    formData.append('fieldsOfStudy', JSON.stringify(this.selectedFields));
+    // Fields of study
+    formData.append('fields_of_study', this.selectedFields.join(','));
 
-    //Add files
+    // Files
     if (this.selectedFlyer) {
       formData.append('flyer', this.selectedFlyer.file);
     }
+
     if (this.selectedBanner) {
       formData.append('banner', this.selectedBanner.file);
     }
-    this.selectedVerificationDocs.forEach((doc, index) => {
-      formData.append(`verificationDoc_${index}`, doc.file);
+
+    this.selectedVerificationDocs.forEach((doc) => {
+      formData.append('verificationDocument', doc.file);
     });
 
-    //simulate api call
-    setTimeout(() => {
-      this.isSubmitting = false;
-      alert('Scholarship posted successfully! It will be reviewed by our admin team.');
+    this.providerScholarshipService.createScholarship(formData).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        alert('Scholarship posted successfully! Pending admin review.');
 
-      //clear draft
-      localStorage.removeItem('scholarshipDraft');
-
-      //navigate to dashboard or manage scholarship
-      this.router.navigate(['/provider/manage']);
-    }, 2000);
+        localStorage.removeItem('scholarshipDraft');
+        this.router.navigate(['/provider/manage']);
+      },
+      error: (err) => {
+        this.isSubmitting = false;
+        console.error(err);
+        alert('Failed to post scholarship. Please try again.');
+      },
+    });
   }
 
   //load draft on component init (if exists)
@@ -463,7 +475,7 @@ export class PostScholarships implements OnInit {
           confirm('You have a saved draft. Would you like to continue from where you left off?')
         ) {
           this.scholarshipForm.patchValue(draft);
-          this.selectedFields = draft.fieldsOfStudy || [];
+          this.selectedFields = draft.fields_of_study || [];
           this.currentStep = draft.currentStep || 1;
 
           //note: file attachements cannot be restored from local storage
