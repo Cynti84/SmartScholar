@@ -6,68 +6,25 @@ import { AuthService } from './auth.service';
 import { ApiResponse } from '../models/api-response.model';
 import { map } from 'rxjs/operators';
 
-export interface UserProfile {
-  firstName: string;
-  lastName: string;
-  email?: string;
-  dateOfBirth?: Date;
-  gender?: string;
-  phoneNumber?: string;
+export interface StudentProfile {
+  country: string;
+  academic_level: string;
+  field_of_study: string;
 
-  address: {
-    street?: string;
-    city?: string;
-    state?: string;
-    country?: string;
-    zipCode?: string;
-  };
+  interest?: string;
+  profile_image_url?: string;
+  cv_url?: string;
 
-  education: {
-    level?: string;
-    institution?: string;
-    fieldOfStudy?: string;
-    gpa?: number;
-    graduationYear?: number;
-  };
-
-  avatar?: string;
+  date_of_birth?: Date;
+  gender?: 'male' | 'female' | 'other';
+  financial_need?: boolean;
 }
 
 @Injectable({
   providedIn: 'root',
 })
-export class UserService {
+export class StudentProfileService {
   private apiUrl = `${environment.apiUrl}/student`;
-
-  private mapBackendToFrontend(data: any): UserProfile {
-    return {
-      firstName: data.first_name ?? '',
-      lastName: data.last_name ?? '',
-      email: data.email,
-
-      dateOfBirth: data.date_of_birth ? new Date(data.date_of_birth) : undefined,
-      gender: data.gender,
-      phoneNumber: data.phone_number,
-
-      address: {
-        street: data.street,
-        city: data.city,
-        state: data.state,
-        country: data.country,
-        zipCode: data.zip_code,
-      },
-
-      education: {
-        level: data.academic_level,
-        institution: data.institution,
-        fieldOfStudy: data.field_of_study,
-        gpa: data.gpa,
-        graduationYear: data.graduation_year,
-      },
-
-      avatar: data.profile_image_url,
-    };
-  }
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
@@ -79,22 +36,19 @@ export class UserService {
     });
   }
 
-  // Create/Update Profile
-  createProfile(profile: UserProfile): Observable<ApiResponse> {
+  createProfile(profile: StudentProfile): Observable<ApiResponse> {
     return this.http.post<ApiResponse>(`${this.apiUrl}/profile`, profile, {
       headers: this.getHeaders(),
     });
   }
 
-  getProfile(): Observable<UserProfile> {
+  getProfile(): Observable<StudentProfile> {
     return this.http
-      .get<ApiResponse>(`${this.apiUrl}/profile`, {
-        headers: this.getHeaders(),
-      })
-      .pipe(map((res) => this.mapBackendToFrontend(res.data)));
+      .get<ApiResponse>(`${this.apiUrl}/profile`, { headers: this.getHeaders() })
+      .pipe(map((res) => res.data));
   }
 
-  updateProfile(profile: Partial<UserProfile>): Observable<ApiResponse> {
+  updateProfile(profile: Partial<StudentProfile>): Observable<ApiResponse> {
     return this.http.put<ApiResponse>(`${this.apiUrl}/update-profile`, profile, {
       headers: this.getHeaders(),
     });
@@ -106,8 +60,8 @@ export class UserService {
     });
   }
 
-  downloadProfile(): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/profile/download`, {
+  downloadProfile() {
+    return this.http.get(`${environment.apiUrl}/profile/download`, {
       headers: this.getHeaders(),
       responseType: 'blob',
     });

@@ -4,10 +4,13 @@ import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashbo
 import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { UserService, UserProfile } from '../../../../app/core/services/user.service';
+import { StudentProfileService, StudentProfile } from '../../../core/services/studentProfile';
+import { AuthService, user } from '../../../core/services/auth.service';
 
+export type ProfileTab = 'profile' | 'security' | 'preferences' | 'account';
 @Component({
   selector: 'app-profile',
+  standalone: true,
   imports: [CommonModule, DashboardLayout, FormsModule, ReactiveFormsModule, MatIconModule],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
@@ -28,50 +31,37 @@ export class Profile implements OnInit {
   profileErrors: string[] = [];
 
   profileCompletion = 60;
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+  } | null = null;
 
-  userProfile: UserProfile = {
-    firstName: '',
-    lastName: '',
-    email: '',
-
-    dateOfBirth: undefined,
-    gender: '',
-    phoneNumber: '',
-
-    address: {
-      street: '',
-      city: '',
-      state: '',
-      country: '',
-      zipCode: '',
-    },
-
-    education: {
-      level: '',
-      institution: '',
-      fieldOfStudy: '',
-      gpa: undefined,
-      graduationYear: undefined,
-    },
-
-    avatar: '',
+  studentProfile: StudentProfile = {
+    country: '',
+    academic_level: '',
+    field_of_study: '',
+    interest: '',
+    gender: undefined,
+    date_of_birth: undefined,
+    financial_need: undefined,
+    profile_image_url: '',
+    cv_url: '',
   };
-
-  get address() {
-    return this.userProfile.address;
+  activeTab: ProfileTab;
+  constructor(
+    private studentProfileService: StudentProfileService,
+    private authService: AuthService,
+    private router: Router
+  ) {
+    this.activeTab = 'profile';
   }
-
-  get education() {
-    return this.userProfile.education;
-  }
-
-  constructor(private userService: UserService, private router: Router) {}
   // =========================
   // TAB NAVIGATION
   // =========================
-  activeTab: 'profile' | 'security' | 'preferences' | 'account' = 'profile';
 
-  switchTab(tab: 'profile' | 'security' | 'preferences' | 'account'): void {
+  switchTab(tab: ProfileTab): void {
     this.activeTab = tab;
   }
 
@@ -79,17 +69,27 @@ export class Profile implements OnInit {
   // LOAD PROFILE
   // =========================
   ngOnInit(): void {
-    this.loadProfile();
+    this.loadUser();
+    this.loadStudentProfile();
   }
 
-  loadProfile(): void {
-    this.userService.getProfile().subscribe({
+  loadUser(): void {
+    this.authService.getMe().subscribe({
+      next: (res) => {
+        this.user = res.user ?? null;
+      },
+      error: () => alert('Failed to load user'),
+    });
+  }
+
+  loadStudentProfile(): void {
+    this.studentProfileService.getProfile().subscribe({
       next: (profile) => {
-        this.userProfile = profile;
+        this.studentProfile = profile;
       },
       error: (err) => {
         if (err.status !== 404) {
-          alert('Failed to load profile');
+          alert('Failed to load student profile');
         }
       },
     });
@@ -100,17 +100,9 @@ export class Profile implements OnInit {
   // =========================
   saveProfile(): void {
     this.profileErrors = [];
-
-    if (!this.userProfile.firstName || !this.userProfile.lastName) {
-      this.profileErrors.push('First and last name are required');
-      return;
-    }
-
     this.isSaving = true;
 
-    const payload = this.mapFrontendToBackend(this.userProfile);
-
-    this.userService.updateProfile(payload).subscribe({
+    this.studentProfileService.updateProfile(this.studentProfile).subscribe({
       next: () => {
         alert('Profile updated successfully');
         this.isEditingProfile = false;
@@ -130,33 +122,29 @@ export class Profile implements OnInit {
   createProfile(): void {
     this.isSaving = true;
 
-    const payload = this.mapFrontendToBackend(this.userProfile);
-
-    this.userService.createProfile(payload).subscribe({
-      next: () => {
-        alert('Profile created successfully');
-      },
-      error: (err) => {
-        this.profileErrors.push(err.error?.message || 'Failed to create profile');
-      },
-      complete: () => {
-        this.isSaving = false;
-      },
+    this.studentProfileService.createProfile(this.studentProfile).subscribe({
+      next: () => alert('Profile created successfully'),
+      error: (err) => this.profileErrors.push(err.error?.message || 'Failed to create profile'),
+      complete: () => (this.isSaving = false),
     });
   }
 
   // =========================
   // DELETE PROFILE
   // =========================
-  deleteAccount(): void {
-    if (!confirm('Delete your profile permanently?')) return;
+  deleteProfile(): void {
+    if (!confirm('Delete your student profile?')) return;
 
     this.isDeleting = true;
 
-    this.userService.deleteProfile().subscribe({
+    this.studentProfileService.deleteProfile().subscribe({
       next: () => {
-        localStorage.removeItem('token');
-        this.router.navigate(['/login']);
+        alert('Profile deleted');
+        this.studentProfile = {
+          country: '',
+          academic_level: '',
+          field_of_study: '',
+        } as StudentProfile;
       },
       error: () => alert('Failed to delete profile'),
       complete: () => (this.isDeleting = false),
@@ -167,7 +155,7 @@ export class Profile implements OnInit {
   // DOWNLOAD PROFILE
   // =========================
   downloadProfile(): void {
-    this.userService.downloadProfile().subscribe({
+    this.studentProfileService.downloadProfile().subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -181,28 +169,11 @@ export class Profile implements OnInit {
   }
 
   // =========================
-  // FRONTEND → BACKEND MAPPING
-  // =========================
-  private mapFrontendToBackend(profile: UserProfile): any {
-    return {
-      date_of_birth: profile.dateOfBirth,
-      gender: profile.gender,
-      country: profile.address?.country,
-      academic_level: profile.education?.level,
-      field_of_study: profile.education?.fieldOfStudy,
-      financial_need: profile.education?.gpa,
-      profile_image_url: profile.avatar,
-    };
-  }
-
-  // =========================
   // HELPERS (USED BY HTML)
   // =========================
   getInitials(): string {
-    if (!this.userProfile?.firstName || !this.userProfile?.lastName) return '';
-    return (
-      this.userProfile.firstName.charAt(0) + this.userProfile.lastName.charAt(0)
-    ).toUpperCase();
+    if (!this.user) return '';
+    return (this.user.firstName.charAt(0) + this.user.lastName.charAt(0)).toUpperCase();
   }
 
   // =========================
@@ -214,9 +185,12 @@ export class Profile implements OnInit {
 
   cancelEdit(): void {
     this.isEditingProfile = false;
-    this.loadProfile(); // reset changes
+    this.loadStudentProfile(); // reset changes
   }
 
+  // =========================
+  // PROFILE IMAGE
+  // =======================
   // =========================
   // PROFILE IMAGE
   // =========================
@@ -229,14 +203,14 @@ export class Profile implements OnInit {
     const reader = new FileReader();
     reader.onload = () => {
       this.imagePreview = reader.result as string;
-      this.userProfile.avatar = this.imagePreview;
+      this.studentProfile.profile_image_url = this.imagePreview!;
     };
     reader.readAsDataURL(file);
   }
 
   removeProfileImage(): void {
     this.imagePreview = null;
-    this.userProfile.avatar = '';
+    this.studentProfile.profile_image_url = '';
   }
 
   // =========================
@@ -305,5 +279,9 @@ export class Profile implements OnInit {
 
   saveEmailPreferences(): void {
     alert('Email preferences saved (API not connected yet)');
+  }
+  deleteAccount(): void {
+    if (!confirm('Are you sure you want to delete your account?')) return;
+    alert('Delete account API not implemented yet');
   }
 }
