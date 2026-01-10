@@ -2,15 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { StudentService } from '../../../core/services/student.service';
 import { AuthService } from '../../../core/services/auth.service';
-
-interface StudentProfileData {
+import { StudentProfileService, StudentProfile } from '../../../core/services/studentProfile';
+interface StudentSignupForm {
   country: string;
-  educationLevel: string;
-  fieldOfStudy: string;
+  academic_level: string;
+  field_of_study: string;
   interest: string;
-  profileImage: File | null;
+
+  date_of_birth: string; // HTML date input = string
+  gender: 'male' | 'female' | 'other';
+  financial_need: boolean;
+
+  profileImageFile: File | null;
   cvFile: File | null;
 }
 
@@ -24,12 +28,17 @@ export class StudentSignup {
   isLoading: boolean = false;
   tempUserData: any = {};
 
-  profileData: StudentProfileData = {
+  profileData: StudentSignupForm = {
     country: '',
-    educationLevel: '',
-    fieldOfStudy: '',
+    academic_level: '',
+    field_of_study: '',
     interest: '',
-    profileImage: null,
+
+    date_of_birth: '',
+    gender: 'male',
+    financial_need: false,
+
+    profileImageFile: null,
     cvFile: null,
   };
 
@@ -88,7 +97,7 @@ export class StudentSignup {
 
   constructor(
     private router: Router,
-    private studentService: StudentService,
+    private studentProfileService: StudentProfileService,
     private authService: AuthService
   ) {}
 
@@ -131,7 +140,7 @@ export class StudentSignup {
         return;
       }
 
-      this.profileData.profileImage = file;
+      this.profileData.profileImageFile = file;
     }
   }
 
@@ -180,18 +189,28 @@ export class StudentSignup {
       return false;
     }
 
-    if (!this.profileData.educationLevel) {
+    if (!this.profileData.academic_level) {
       this.showError('Please select your education level');
       return false;
     }
 
-    if (!this.profileData.fieldOfStudy) {
+    if (!this.profileData.field_of_study) {
       this.showError('Please select your field of study');
       return false;
     }
 
     if (!this.profileData.interest) {
       this.showError('Please select your interest');
+      return false;
+    }
+
+    if (!this.profileData.date_of_birth) {
+      this.showError('Please enter your date of birth');
+      return false;
+    }
+
+    if (!this.profileData.gender) {
+      this.showError('Please select your gender');
       return false;
     }
 
@@ -207,32 +226,61 @@ export class StudentSignup {
 
     this.isLoading = true;
 
-    const payload = {
-      country: this.profileData.country,
-      academic_level: this.profileData.educationLevel,
-      field_of_study: this.profileData.fieldOfStudy,
-      interest: this.profileData.interest,
-      profile_image_url: null, // later when you add uploads
-      cv_url: null,
-    };
+    try {
+      const formData = new FormData();
 
-    this.studentService.createProfile(payload).subscribe({
-      next: () => {
-        this.showSuccess('Profile completed successfully! Welcome to SmartScholar 🎉');
+      // --- Text fields ---
+      formData.append('country', this.profileData.country);
+      formData.append('academic_level', this.profileData.academic_level);
+      formData.append('field_of_study', this.profileData.field_of_study);
+      if (this.profileData.interest) formData.append('interest', this.profileData.interest);
 
-        localStorage.removeItem('tempUserData');
+      if (this.profileData.date_of_birth) {
+        // Convert Date object to string yyyy-mm-dd for backend
+        const dobStr = this.profileData.date_of_birth.toString().split('T')[0];
+        formData.append('date_of_birth', dobStr);
+      }
 
-        setTimeout(() => {
-          this.router.navigate(['/student']);
-        }, 1000);
-      },
-      error: (err) => {
-        this.handleSignupError(err);
-      },
-      complete: () => {
-        this.isLoading = false;
-      },
-    });
+      if (this.profileData.gender) formData.append('gender', this.profileData.gender);
+      if (
+        this.profileData.financial_need !== null &&
+        this.profileData.financial_need !== undefined
+      ) {
+        formData.append('financial_need', String(this.profileData.financial_need));
+      }
+
+      // --- Files ---
+      if (this.profileData.profileImageFile instanceof File) {
+        formData.append('profileImage', this.profileData.profileImageFile);
+      }
+
+      if (this.profileData.cvFile instanceof File) {
+        formData.append('cvFile', this.profileData.cvFile);
+      }
+
+      // --- Send to backend ---
+      this.studentProfileService.createProfile(formData).subscribe({
+        next: () => {
+          this.showSuccess('Profile completed successfully! Welcome to SmartScholar 🎉');
+
+          localStorage.removeItem('tempUserData');
+
+          setTimeout(() => {
+            this.router.navigate(['/student']);
+          }, 1000);
+        },
+        error: (err) => {
+          this.handleSignupError(err);
+        },
+        complete: () => {
+          this.isLoading = false;
+        },
+      });
+    } catch (error) {
+      this.isLoading = false;
+      this.showError('An unexpected error occurred while submitting your profile.');
+      console.error(error);
+    }
   }
 
   /**
@@ -300,7 +348,7 @@ export class StudentSignup {
    */
   removeFile(type: 'profile' | 'cv'): void {
     if (type === 'profile') {
-      this.profileData.profileImage = null;
+      this.profileData.profileImageFile = null;
     } else {
       this.profileData.cvFile = null;
     }

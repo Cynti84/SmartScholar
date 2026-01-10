@@ -11,6 +11,7 @@ import { Scholarship } from "../models/scholarships";
 import { MoreThanOrEqual } from "typeorm";
 import { Bookmark } from "../models/Bookmark";
 import { Application } from "../models/applications";
+import { DeepPartial } from "typeorm";
 //CreateProfile
 export const createStudentProfile = async (req: Request, res: Response) => {
   try {
@@ -20,23 +21,35 @@ export const createStudentProfile = async (req: Request, res: Response) => {
 
     const profileRepo = AppDataSource.getRepository(StudentProfile);
 
+    const files = req.files as {
+      profileImage?: Express.Multer.File[];
+      cvFile?: Express.Multer.File[];
+    };
+    const profileData: DeepPartial<StudentProfile> = {
+      student_id: userId,
+      ...data,
+      profile_image_url: files?.profileImage?.[0]?.path ?? null,
+      cv_url: files?.cvFile?.[0]?.path ?? null,
+    };
+
     const existing = await profileRepo.findOne({
       where: { student_id: userId },
     });
+
     if (existing) {
       return res
         .status(400)
         .json({ success: false, message: "Profile already exists." });
     }
 
-    const profile = profileRepo.create({
-      student_id: userId,
-      ...data,
-    });
+    const profile = profileRepo.create(profileData);
 
     await profileRepo.save(profile);
 
-    return res.status(201).json({ success: true, data: profile });
+    return res.status(201).json({
+      success: true,
+      data: profile,
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -56,7 +69,6 @@ export const getStudentProfile = async (req: Request, res: Response) => {
     }
 
     const userId = authReq.user.id;
-
     const profileRepo = AppDataSource.getRepository(StudentProfile);
 
     const profile = await profileRepo.findOne({
@@ -66,7 +78,7 @@ export const getStudentProfile = async (req: Request, res: Response) => {
     if (!profile) {
       return res.status(404).json({
         success: false,
-        message: "Profile not found",
+        message: "Student profile not found",
       });
     }
 
@@ -75,10 +87,10 @@ export const getStudentProfile = async (req: Request, res: Response) => {
       data: profile,
     });
   } catch (error) {
+    console.error("Get student profile error:", error);
     return res.status(500).json({
       success: false,
-      message: "Error fetching profile",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Failed to fetch student profile",
     });
   }
 };
@@ -90,10 +102,8 @@ export const updateStudentProfile = async (req: Request, res: Response) => {
     if (!authReq.user) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
+
     const userId = authReq.user.id;
-
-    const data = req.body as Partial<StudentProfile>;
-
     const profileRepo = AppDataSource.getRepository(StudentProfile);
 
     const profile = await profileRepo.findOne({
@@ -106,31 +116,34 @@ export const updateStudentProfile = async (req: Request, res: Response) => {
         .json({ success: false, message: "Profile not found." });
     }
 
-    const allowedFields: (keyof StudentProfile)[] = [
-      "country",
-      "academic_level",
-      "field_of_study",
-      "interest",
-      "profile_image_url",
-      "cv_url",
-      "date_of_birth",
-      "gender",
-      "financial_need",
-    ];
+    const files = req.files as {
+      profileImage?: Express.Multer.File[];
+      cvFile?: Express.Multer.File[];
+    };
 
-    const updatedData: Partial<StudentProfile> = {};
+    const updatedData: Partial<StudentProfile> = {
+      ...req.body,
+    };
 
-    allowedFields.forEach((key) => {
-      const value = data[key];
-      if (value !== undefined && value !== null) {
-        (updatedData as any)[key] = value;
-      }
-    });
+    if (files?.profileImage?.[0]) {
+      updatedData.profile_image_url = files.profileImage[0].path;
+    }
+
+    if (files?.cvFile?.[0]) {
+      updatedData.cv_url = files.cvFile[0].path;
+    }
+
+    if (req.body.financial_need !== undefined) {
+      updatedData.financial_need = req.body.financial_need === "true";
+    }
 
     profileRepo.merge(profile, updatedData);
     const updated = await profileRepo.save(profile);
 
-    return res.status(200).json({ success: true, data: updated });
+    return res.status(200).json({
+      success: true,
+      data: updated,
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -840,32 +853,32 @@ export const downloadStudentProfile = async (req: Request, res: Response) => {
   }
 };
 
-export const getStudentProfile = async (req: Request, res: Response) => {
-  try {
-    const studentId = req.user!.id;
+// export const getStudentProfile = async (req: Request, res: Response) => {
+//   try {
+//     const studentId = req.user!.id;
 
-    const studentRepo = AppDataSource.getRepository(StudentProfile);
+//     const studentRepo = AppDataSource.getRepository(StudentProfile);
 
-    const profile = await studentRepo.findOne({
-      where: { student_id: studentId },
-    });
+//     const profile = await studentRepo.findOne({
+//       where: { student_id: studentId },
+//     });
 
-    if (!profile) {
-      return res.status(404).json({
-        success: false,
-        message: "Student profile not found",
-      });
-    }
+//     if (!profile) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Student profile not found",
+//       });
+//     }
 
-    return res.status(200).json({
-      success: true,
-      data: profile,
-    });
-  } catch (error) {
-    console.error("Get student profile error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch student profile",
-    });
-  }
-};
+//     return res.status(200).json({
+//       success: true,
+//       data: profile,
+//     });
+//   } catch (error) {
+//     console.error("Get student profile error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch student profile",
+//     });
+//   }
+// };
