@@ -12,8 +12,8 @@ export interface StudentProfile {
   field_of_study: string;
 
   interest?: string;
-  profile_image_url?: string;
-  cv_url?: string;
+  profile_image_url?: string | null;
+  cv_url?: string | null;
 
   date_of_birth?: Date;
   gender?: 'male' | 'female' | 'other';
@@ -28,38 +28,68 @@ export class StudentProfileService {
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  private getHeaders(): HttpHeaders {
+  /**
+   * Get authorization headers
+   */
+  private getHeaders(isFormData = false): HttpHeaders {
     const token = this.authService.getAccessToken();
+
+    if (isFormData) {
+      // For FormData, do NOT set Content-Type; browser will set it automatically
+      return new HttpHeaders({
+        Authorization: `Bearer ${token}`,
+      });
+    }
+
     return new HttpHeaders({
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     });
   }
 
-  createProfile(profile: StudentProfile): Observable<ApiResponse> {
+  /**
+   * Create student profile (supports FormData for file uploads)
+   */
+  createProfile(profile: StudentProfile | FormData): Observable<ApiResponse> {
+    const isFormData = profile instanceof FormData;
+
     return this.http.post<ApiResponse>(`${this.apiUrl}/profile`, profile, {
-      headers: this.getHeaders(),
+      headers: this.getHeaders(isFormData),
     });
   }
 
+  /**
+   * Get student profile
+   */
   getProfile(): Observable<StudentProfile> {
     return this.http
       .get<ApiResponse>(`${this.apiUrl}/profile`, { headers: this.getHeaders() })
       .pipe(map((res) => res.data));
   }
 
-  updateProfile(profile: Partial<StudentProfile>): Observable<ApiResponse> {
+  /**
+   * Update student profile (supports FormData)
+   */
+  updateProfile(profile: Partial<StudentProfile> | FormData): Observable<ApiResponse> {
+    const isFormData = profile instanceof FormData;
+
     return this.http.put<ApiResponse>(`${this.apiUrl}/update-profile`, profile, {
-      headers: this.getHeaders(),
+      headers: this.getHeaders(isFormData),
     });
   }
 
+  /**
+   * Delete student profile
+   */
   deleteProfile(): Observable<ApiResponse> {
     return this.http.delete<ApiResponse>(`${this.apiUrl}/delete-profile`, {
       headers: this.getHeaders(),
     });
   }
 
+  /**
+   * Download student profile as a file
+   */
   downloadProfile() {
     return this.http.get(`${environment.apiUrl}/profile/download`, {
       headers: this.getHeaders(),

@@ -1,5 +1,5 @@
 import { Router, RequestHandler } from "express";
-
+import { upload } from "../config/multer.config";
 import { authConfig } from "../config/auth.config";
 import { AuthMiddleware } from "../middleware/auth.middleware";
 import {
@@ -26,16 +26,26 @@ import {
 
 const router = Router();
 
-router.post("/profile", AuthMiddleware.authenticate, createStudentProfile);
-router.get("/profile", AuthMiddleware.authenticate, getStudentProfile);
-
-router.get('/get-profile', AuthMiddleware.authenticate, getStudentProfile)
+router.post(
+  "/profile",
+  AuthMiddleware.authenticate,
+  upload.fields([
+    { name: "profileImage", maxCount: 1 },
+    { name: "cvFile", maxCount: 1 },
+  ]),
+  createStudentProfile
+);
 
 router.put(
   "/update-profile",
   AuthMiddleware.authenticate,
+  upload.fields([
+    { name: "profileImage", maxCount: 1 },
+    { name: "cvFile", maxCount: 1 },
+  ]),
   updateStudentProfile
 );
+router.get("/profile", AuthMiddleware.authenticate, getStudentProfile);
 
 router.delete(
   "/delete-profile",

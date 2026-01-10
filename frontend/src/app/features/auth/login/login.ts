@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service'; // adjust path if needed
 import { ProviderService } from '../../../core/services/provider.service';
-import { StudentService } from '../../../core/services/student.service';
+import { StudentProfileService } from '../../../core/services/studentProfile';
 
 interface LoginFormData {
   email: string;
@@ -31,7 +31,7 @@ export class Login {
     private router: Router,
     private auth: AuthService,
     private providerAuth: ProviderService,
-    private studentAuth: StudentService
+    private studentAuth: StudentProfileService
   ) {}
 
   togglePassword(): void {
@@ -128,8 +128,8 @@ export class Login {
         },
         error: () => {
           // No student profile -> onboarding
-          this.router.navigate(['/auth/signup/student'])
-        }
+          this.router.navigate(['/auth/signup/student']);
+        },
       });
       return;
     }
