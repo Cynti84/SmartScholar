@@ -3,11 +3,22 @@ import { providerScholarshipSerivice } from "../services/providerScholarship.ser
 
 export const createScholarship = async (req: Request, res: Response) => {
   const providerId = req.user!.id;
-  const data = req.body;
+  const files = req.files as Record<string, Express.Multer.File[]>
+
+  const flyerUrl = files?.flyer?.[0]?.path ?? null
+  const bannerUrl = files?.banner?.[0]?.path ?? null
+  
+  const verificationDocs = files?.verificationDocuments? files.verificationDocuments.map((file)=> file.path) : []
 
   const result = await providerScholarshipSerivice.createScholarship(
     providerId,
-    data
+    {
+      ...req.body,
+      flyer_url: flyerUrl,
+      banner_url: bannerUrl,
+      verification_docs: verificationDocs,
+      status: "pending", // force review
+    }
   );
   return res.status(201).json(result);
 };

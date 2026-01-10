@@ -7,6 +7,7 @@ import {
   deleteScholarship,
 } from "../controllers/providerScholarship.controller";
 import { AuthMiddleware } from "../middleware/auth.middleware";
+import { upload } from "../config/multer.config";
 
 const router = Router();
 
@@ -15,6 +16,11 @@ router.post(
   AuthMiddleware.authenticate,
   AuthMiddleware.isProvider,
   AuthMiddleware.requireActiveProvider,
+  upload.fields([
+    { name: "flyer", maxCount: 1 },
+    { name: "banner", maxCount: 1 },
+    { name: "verificationDocument", maxCount: 5 },
+  ]),
   createScholarship
 );
 router.get(
@@ -33,6 +39,11 @@ router.put(
   "/scholarships/:id",
   AuthMiddleware.authenticate,
   AuthMiddleware.isProvider,
+  upload.fields([
+    { name: "flyer", maxCount: 1 },
+    { name: "banner", maxCount: 1 },
+    { name: "verificationDocuments", maxCount: 5 },
+  ]),
   updateScholarship
 );
 router.delete(

@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/services/auth.service';
+import { ProviderService } from '../../../core/services/provider.service';
 
 interface ProviderProfileData {
   organizationName: string;
@@ -70,11 +71,7 @@ export class ProviderSignup {
     'Healthcare Organization',
   ];
 
-  constructor(
-    private router: Router,
-    private http: HttpClient,
-    private authService: AuthService
-  ) {}
+  constructor(private router: Router, private http: HttpClient, private authService: AuthService, private providerService: ProviderService) {}
 
   ngOnInit(): void {
     this.loadTempUserData();
@@ -95,9 +92,9 @@ export class ProviderSignup {
       }
     } else {
       // fallback: use authenticated user info
-      const user = this.authService.getUserFromToken()
+      const user = this.authService.getUserFromToken();
       if (user?.email) {
-        this.profileData.contactEmail= user.email
+        this.profileData.contactEmail = user.email;
       }
     }
   }
@@ -233,22 +230,29 @@ export class ProviderSignup {
 
   async onSubmit(): Promise<void> {
     if (this.isLoading) return;
-
     if (!this.validateForm()) return;
 
     this.isLoading = true;
 
-    const payload = {
-      organization_name: this.profileData.organizationName,
-      organization_type: this.profileData.providerType,
-      country: this.profileData.country,
-      contact_email: this.profileData.contactEmail,
-      phone: this.profileData.phone,
-      logo_url: null,
-      verification_document_url: null,
-    };
+    const formData = new FormData();
 
-    this.http.post(`${environment.apiUrl}/provider/create`, payload).subscribe({
+    // Text fields
+    formData.append('organization_name', this.profileData.organizationName);
+    formData.append('organization_type', this.profileData.providerType);
+    formData.append('country', this.profileData.country);
+    formData.append('contact_email', this.profileData.contactEmail);
+    formData.append('phone', this.profileData.phone);
+
+    // Files
+    if (this.profileData.logoFile) {
+      formData.append('logoFile', this.profileData.logoFile);
+    }
+
+    if (this.profileData.verificationDocument) {
+      formData.append('verificationDocument', this.profileData.verificationDocument);
+    }
+
+    this.providerService.createProvider(formData).subscribe({
       next: () => {
         this.showSuccess('Provider profile submitted successfully. Your account is under review.');
 
@@ -265,10 +269,9 @@ export class ProviderSignup {
     });
   }
 
- 
   /**
    * Handle signup errors
-   */ 
+   */
 
   private handleSignupError(error: any): void {
     let errorMessage = 'Failed to complete profile setup. Please try again';

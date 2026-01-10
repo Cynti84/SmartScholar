@@ -3,9 +3,13 @@ import { Scholarship } from "../models/scholarships";
 
 export class ProviderScholarshipSerivice {
   async createScholarship(providerId: number, data: Partial<Scholarship>) {
+
+    const {status, admin_notes, provider_id, ...safeData}= data
+
     const scholarship = ScholarshipRepository.create({
-      ...data,
+      ...safeData,
       provider_id: providerId,
+      status: "pending"
     });
 
     return await ScholarshipRepository.save(scholarship);
