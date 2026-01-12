@@ -94,8 +94,9 @@ export class ScholarshipService {
       );
   }
   // Get active scholarships
-  getActiveScholarships(): Observable<{ success: boolean; data: Scholarship[]; count: number }> {
-    return this.http.get<{ success: boolean; data: Scholarship[]; count: number }>(
+  getActiveScholarships(): Observable<{ success: boolean; data: Scholarship[] }> {
+    console.log('Calling getActiveScholarships API', `${this.apiUrl}/active-scholarship`);
+    return this.http.get<{ success: boolean; data: Scholarship[] }>(
       `${this.apiUrl}/active-scholarship`,
       { headers: this.getHeaders() }
     );

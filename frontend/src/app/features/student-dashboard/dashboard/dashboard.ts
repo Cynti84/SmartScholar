@@ -11,9 +11,10 @@ import { UserScholarshipService } from '../../../core/services/user-scholarship.
 
 @Component({
   selector: 'app-dashboard',
+  standalone: true,
   imports: [CommonModule, DashboardLayout, ConfirmModal],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.scss',
+  styleUrls: ['./dashboard.scss'], // ✅ fixed typo
 })
 export class DashboardComponent implements OnInit {
   // =========================
@@ -21,7 +22,7 @@ export class DashboardComponent implements OnInit {
   // =========================
   studentName = 'Student';
 
-  menu = [
+  menu: NavItem[] = [
     { label: 'Overview', route: '/student' },
     { label: 'Scholarships', route: '/student/scholarships' },
     { label: 'Applied', route: '/student/applied' },
@@ -29,11 +30,12 @@ export class DashboardComponent implements OnInit {
     { label: 'Profile', route: '/student/profile' },
     { label: 'Logout', action: 'logout' },
   ];
+
   // =========================
-  // DASHBOARD STATS (ONLY WHAT YOU WANT)
+  // DASHBOARD STATS
   // =========================
   stats = {
-    totalScholarships: 0,
+    activeScholarships: 0,
     applied: 0,
     bookmarked: 0,
     recommended: 0,
@@ -46,6 +48,8 @@ export class DashboardComponent implements OnInit {
 
   loading = false;
   error = '';
+
+  showLogoutModal = false;
 
   constructor(
     private scholarshipService: ScholarshipService,
@@ -72,7 +76,7 @@ export class DashboardComponent implements OnInit {
       recommended: this.scholarshipService.getRecommendedScholarships(),
     }).subscribe({
       next: ({ activeScholarships, applied, bookmarked, recommended }) => {
-        this.stats.totalScholarships = activeScholarships.count;
+        this.stats.activeScholarships = activeScholarships.data.length;
         this.stats.applied = applied.data.length;
         this.stats.bookmarked = bookmarked.data.length;
         this.stats.recommended = recommended.data.length;
@@ -108,16 +112,6 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['/student/scholarships', id]);
   }
 
-  // =========================
-  // HELPERS
-  // =========================
-  getDaysRemaining(deadline: Date): number {
-    const diff = new Date(deadline).getTime() - Date.now();
-    return Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0);
-  }
-
-  showLogoutModal = false;
-
   onSidebarAction(item: NavItem) {
     if (item.action === 'logout') {
       this.showLogoutModal = true;
@@ -126,7 +120,6 @@ export class DashboardComponent implements OnInit {
 
   confirmLogout() {
     this.showLogoutModal = false;
-
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/auth/login']),
       error: () => this.router.navigate(['/auth/login']),
@@ -135,5 +128,13 @@ export class DashboardComponent implements OnInit {
 
   cancelLogout() {
     this.showLogoutModal = false;
+  }
+
+  // =========================
+  // HELPERS
+  // =========================
+  getDaysRemaining(deadline: Date): number {
+    const diff = new Date(deadline).getTime() - Date.now();
+    return Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0);
   }
 }

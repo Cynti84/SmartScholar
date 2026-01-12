@@ -460,7 +460,7 @@ export const getActiveScholarships = async (req: Request, res: Response) => {
     // Example 1: If you have an 'isActive' boolean column
     const activeScholarships = await scholarshipRepo.find({
       where: {
-        status: "open",
+        status: "approved",
         // deadline: MoreThanOrEqual(new Date()),
       },
       relations: ["provider", "applications"],

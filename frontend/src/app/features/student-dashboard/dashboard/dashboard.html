@@ -1,4 +1,9 @@
-<app-dashboard-layout [title]="'Dashboard Overview'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
+<app-dashboard-layout
+  [title]="'Dashboard Overview'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
   <section>
     <div class="dashboard-container">
       <!-- Welcome Section -->
@@ -24,7 +29,7 @@
             </svg>
           </div>
           <div class="stat-content">
-            <h3 class="stat-value">{{ stats.totalScholarships }}</h3>
+            <h3 class="stat-value">{{ stats.activeScholarships }}</h3>
             <p class="stat-label">Total Scholarships</p>
           </div>
         </div>
@@ -222,7 +227,6 @@
     </div>
   </section>
 </app-dashboard-layout>
-
 
 <app-confirm-modal
   *ngIf="showLogoutModal"
