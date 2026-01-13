@@ -24,6 +24,14 @@ router.post(
   resetPasswordValidation,
   AuthController.resetPassword
 );
+
+// auth.routes.ts
+router.post(
+  "/change-password",
+  AuthMiddleware.authenticate,
+  AuthController.changePassword
+);
+
 router.post("/resend-verification", AuthController.resendVerification);
 router.post("/refresh-token", AuthController.refreshToken);
 

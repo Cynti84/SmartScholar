@@ -22,7 +22,12 @@ import {
   removeBookmark,
   downloadStudentProfile,
   getStudentProfile,
+  get2FAStatus,
 } from "../controllers/student.user.controller";
+import {
+  getEmailPreferences,
+  updateEmailPreferences,
+} from "../controllers/email-preference.controller";
 
 const router = Router();
 
@@ -64,7 +69,20 @@ router.post("/logout", AuthMiddleware.authenticate, logout);
 //2FA
 router.post("/2fa/enable", AuthMiddleware.authenticate, enable2FA);
 router.post("/2fa/verify-2fa", AuthMiddleware.authenticate, verify2FA);
+router.get("/2fa/status", AuthMiddleware.authenticate, get2FAStatus);
+
 router.post("/2fa/disable-2fa", AuthMiddleware.authenticate, disable2FA);
+
+router.get(
+  "/email-preferences",
+  AuthMiddleware.authenticate,
+  getEmailPreferences
+);
+router.put(
+  "/email-preferences",
+  AuthMiddleware.authenticate,
+  updateEmailPreferences
+);
 
 //scholarshipfor students
 router.get(

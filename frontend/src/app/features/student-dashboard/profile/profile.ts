@@ -5,11 +5,18 @@ import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { StudentProfileService, StudentProfile } from '../../../core/services/studentProfile';
-import { AuthService, user } from '../../../core/services/auth.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 
 export type ProfileTab = 'profile' | 'security' | 'preferences' | 'account';
+interface ProfileUser {
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+}
+
 @Component({
   selector: 'app-profile',
   imports: [
@@ -35,17 +42,55 @@ export class Profile implements OnInit {
   isEditingProfile = false;
   isSaving = false;
   isDeleting = false;
+  profileLoaded = false;
+  emailPreferencesLoaded = false;
+  emailPreferencesTouched = false;
 
   profileErrors: string[] = [];
 
-  profileCompletion = 60;
-  user: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    role: string;
-  } | null = null;
+  profileCompletion = 0;
 
+  readonly DEFAULT_EMAIL_PREFS = {
+    scholarshipAlerts: true,
+    applicationUpdates: true,
+    weeklyDigest: false,
+    newScholarships: true,
+    deadlineReminders: true,
+    marketingEmails: false,
+  };
+
+  calculateProfileCompletion() {
+    let completion = 0;
+
+    // 1️⃣ Basic info (25%)
+    if (this.user?.firstName && this.user?.lastName && this.user?.email) {
+      completion += 25;
+    }
+
+    // 2️⃣ Student profile (35%)
+    if (
+      this.studentProfile?.country &&
+      this.studentProfile?.academic_level &&
+      this.studentProfile?.field_of_study
+    ) {
+      completion += 35;
+    }
+
+    // 3️⃣ Email preferences (20%)
+    // 3️⃣ Email preferences (20%)
+    if (this.emailPreferencesLoaded) {
+      completion += 20;
+    }
+
+    // 4️⃣ Extras (20%)
+    if (this.studentProfile?.profile_image_url || this.studentProfile?.cv_url) {
+      completion += 20;
+    }
+
+    this.profileCompletion = Math.min(completion, 100);
+  }
+
+  user?: ProfileUser;
   studentProfile: StudentProfile = {
     country: '',
     academic_level: '',
@@ -79,29 +124,46 @@ export class Profile implements OnInit {
   ngOnInit(): void {
     this.loadUser();
     this.loadStudentProfile();
+
+    this.load2FAStatus();
+    this.loadEmailPreferences();
   }
 
   loadUser(): void {
     this.authService.getMe().subscribe({
       next: (res) => {
-        this.user = res.user ?? null;
+        this.user = res.data.user;
+
+        // this.calculateProfileCompletion();
       },
-      error: () => alert('Failed to load user'),
+      error: () => {
+        console.error('Failed to load user');
+        this.user = undefined;
+      },
     });
   }
-
   loadStudentProfile(): void {
+    this.profileLoaded = false;
+
     this.studentProfileService.getProfile().subscribe({
       next: (profile) => {
-        this.studentProfile = profile;
+        this.studentProfile = { ...profile }; // force new reference
+        this.profileLoaded = true;
+
+        this.calculateProfileCompletion(); // 👈 recalc here
       },
       error: (err) => {
         if (err.status !== 404) {
           alert('Failed to load student profile');
         }
+
+        this.profileLoaded = true;
+        this.profileCompletion = 0;
       },
     });
   }
+
+  // load user
 
   // =========================
   // SAVE / UPDATE PROFILE
@@ -270,7 +332,119 @@ export class Profile implements OnInit {
       return;
     }
 
-    alert('Password change API not implemented yet');
+    this.isSaving = true;
+
+    this.authService
+      .changePassword(this.passwordData.currentPassword, this.passwordData.newPassword)
+      .subscribe({
+        next: () => {
+          alert('Password changed successfully');
+          this.cancelPasswordChange();
+        },
+        error: (err) => {
+          this.passwordErrors.push(err.error?.message || 'Failed to change password');
+        },
+        complete: () => (this.isSaving = false),
+      });
+  }
+
+  // =========================
+  // TWO-FACTOR AUTH (2FA)
+  // =========================
+
+  is2FAEnabled = false;
+  is2FALoading = false;
+  isEnabling2FA = false;
+  isVerifying2FA = false;
+
+  qrCodeImage: string | null = null;
+  twoFAToken = '';
+  twoFAErrors: string[] = [];
+
+  load2FAStatus(): void {
+    this.studentProfileService.get2FAStatus().subscribe({
+      next: (res) => {
+        this.is2FAEnabled = !!res.data.enabled;
+      },
+      error: () => {
+        this.is2FAEnabled = false;
+      },
+    });
+  }
+
+  //verify 2fa
+  enable2FA(): void {
+    this.twoFAErrors = [];
+    this.isEnabling2FA = true;
+
+    this.studentProfileService.enable2FA().subscribe({
+      next: (res) => {
+        if (!res.data) {
+          this.twoFAErrors.push('Invalid server response');
+          return;
+        }
+
+        this.qrCodeImage = res.data.qrCode;
+      },
+      error: (err) => {
+        this.twoFAErrors.push(err.error?.message || 'Failed to enable 2FA');
+      },
+      complete: () => {
+        this.isEnabling2FA = false;
+      },
+    });
+  }
+
+  verify2FA(): void {
+    this.twoFAErrors = [];
+
+    if (!this.twoFAToken || this.twoFAToken.length !== 6) {
+      this.twoFAErrors.push('Enter a valid 6-digit code');
+      return;
+    }
+
+    this.isVerifying2FA = true;
+
+    this.studentProfileService.verify2FA(this.twoFAToken).subscribe({
+      next: () => {
+        alert('Two-Factor Authentication enabled successfully');
+
+        this.qrCodeImage = null;
+        this.twoFAToken = '';
+
+        // 🔥 THIS IS THE FIX
+        this.load2FAStatus();
+      },
+      error: (err) => {
+        this.twoFAErrors.push(err.error?.message || 'Invalid authentication code');
+      },
+      complete: () => {
+        this.isVerifying2FA = false;
+      },
+    });
+  }
+
+  // Disable
+  disable2FA(): void {
+    this.twoFAErrors = [];
+
+    if (!this.twoFAToken || this.twoFAToken.length !== 6) {
+      this.twoFAErrors.push('Enter OTP to disable 2FA');
+      return;
+    }
+
+    this.studentProfileService.disable2FA(this.twoFAToken).subscribe({
+      next: () => {
+        alert('2FA disabled');
+        this.twoFAToken = '';
+
+        // 🔥 SAME FIX
+        this.load2FAStatus();
+      },
+      error: (err) => {
+        this.twoFAErrors.push(err.error?.message || 'Failed to disable 2FA');
+      },
+    });
   }
 
   // =========================
@@ -284,10 +458,33 @@ export class Profile implements OnInit {
     deadlineReminders: true,
     marketingEmails: false,
   };
+  loadEmailPreferences(): void {
+    this.studentProfileService.getEmailPreferences().subscribe({
+      next: (res) => {
+        this.emailPreferences = res.data;
+
+        this.emailPreferencesTouched =
+          JSON.stringify(res.data) !== JSON.stringify(this.DEFAULT_EMAIL_PREFS);
+
+        this.calculateProfileCompletion();
+      },
+      error: () => {
+        this.emailPreferencesTouched = false;
+        this.calculateProfileCompletion();
+      },
+    });
+  }
 
   saveEmailPreferences(): void {
-    alert('Email preferences saved (API not connected yet)');
+    this.isSaving = true;
+
+    this.studentProfileService.updateEmailPreferences(this.emailPreferences).subscribe({
+      next: () => alert('Preferences saved successfully'),
+      error: () => alert('Failed to save preferences'),
+      complete: () => (this.isSaving = false),
+    });
   }
+
   deleteAccount(): void {
     if (!confirm('Are you sure you want to delete your account?')) return;
     alert('Delete account API not implemented yet');

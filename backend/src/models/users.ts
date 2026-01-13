@@ -14,6 +14,7 @@ import { ProviderProfile } from "./provider_profiles";
 import { MatchResult } from "./match_result";
 import { Application } from "./applications";
 import { Bookmark } from "./Bookmark";
+import { EmailPreference } from "./email_preferences";
 
 // Enums
 export enum UserRole {
@@ -66,8 +67,11 @@ export class User {
   @Column({ type: "timestamp", nullable: true })
   resetPasswordExpires: Date;
 
-  @Column({ nullable: true })
-  twoFactorSecret?: string;
+  @Column({ type: "varchar", nullable: true })
+  twoFactorSecret: string | null;
+
+  @Column({ default: false })
+  twoFactorEnabled: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -89,6 +93,9 @@ export class User {
 
   @OneToMany(() => MatchResult, (matchResult) => matchResult.student)
   matchResults?: MatchResult[];
+
+  @OneToOne(() => EmailPreference, (pref) => pref.user)
+  emailPreferences?: EmailPreference;
 
   @OneToMany(() => Application, (application) => application.student, {
     cascade: true,

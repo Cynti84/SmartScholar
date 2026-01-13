@@ -1,4 +1,9 @@
-<app-dashboard-layout [title]="'Profile page'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
+<app-dashboard-layout
+  [title]="'Profile page'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
   <section>
     <!-- student content -->
 
@@ -42,11 +47,15 @@
               </div>
             </div>
           </div>
-        </div>
+          <div>
+            <h1>{{ user?.firstName }} {{ user?.lastName }}</h1>
+          </div>
+          <div>
+            <p>{{ user?.email }}</p>
+          </div>
 
-        <h1>{{ user?.firstName }} {{ user?.lastName }}</h1>
-        <p>{{ user?.email }}</p>
-        <p class="role-badge">{{ user?.role | uppercase }}</p>
+          <p class="role-badge">{{ user?.role | uppercase }}</p>
+        </div>
       </div>
 
       <!-- Navigation Tabs -->
@@ -99,7 +108,7 @@
       <!-- Tab Content -->
       <div class="tab-content">
         <!-- PROFILE TAB -->
-        <div *ngIf="$any(activeTab) === 'profile'" class="content-section">
+        <div *ngIf="$any(activeTab) === 'profile' && profileLoaded" class="content-section">
           <div class="section-header">
             <div>
               <h2>Personal Information</h2>
@@ -112,7 +121,7 @@
           </div>
 
           <!-- Profile Image Upload -->
-          <div class="profile-image-section" *ngIf="isEditingProfile">
+          <div class="profile-image-section">
             <div class="image-upload">
               <div class="current-image">
                 <img
@@ -152,7 +161,7 @@
               </div>
             </div>
 
-            <div class="form-grid">
+            <div class="form-grid" *ngIf="studentProfile">
               <div class="form-group">
                 <label>Country</label>
                 <input
@@ -236,320 +245,348 @@
               </button>
             </div>
           </div>
+        </div>
 
-          <!-- SECURITY TAB -->
-          <div *ngIf="$any(activeTab) === 'security'" class="content-section">
-            <div class="section-header">
+        <!-- SECURITY TAB -->
+        <div *ngIf="$any(activeTab) === 'security'" class="content-section">
+          <div class="section-header">
+            <div>
+              <h2>Security Settings</h2>
+              <p class="section-subtitle">Manage your password and security preferences</p>
+            </div>
+          </div>
+
+          <!-- Password Section -->
+          <div class="security-card">
+            <div class="card-header">
               <div>
-                <h2>Security Settings</h2>
-                <p class="section-subtitle">Manage your password and security preferences</p>
+                <h3>Password</h3>
+                <p>New Password</p>
               </div>
+              <button
+                *ngIf="!isChangingPassword"
+                class="btn btn-primary"
+                (click)="enablePasswordChange()"
+              >
+                Change Password
+              </button>
             </div>
 
-            <!-- Password Section -->
-            <div class="security-card">
-              <div class="card-header">
-                <div>
-                  <h3>Password</h3>
-                  <p>Last changed: Never</p>
+            <!-- Password Change Form -->
+            <div *ngIf="isChangingPassword" class="password-form">
+              <!-- Errors -->
+              <div class="error-messages" *ngIf="passwordErrors.length > 0">
+                <div *ngFor="let error of passwordErrors" class="error-message">
+                  <mat-icon style="color: #f59e0b">warning</mat-icon>
+                  {{ error }}
                 </div>
-                <button
-                  *ngIf="!isChangingPassword"
-                  class="btn btn-primary"
-                  (click)="enablePasswordChange()"
-                >
-                  Change Password
-                </button>
               </div>
 
-              <!-- Password Change Form -->
-              <div *ngIf="isChangingPassword" class="password-form">
-                <!-- Errors -->
-                <div class="error-messages" *ngIf="passwordErrors.length > 0">
-                  <div *ngFor="let error of passwordErrors" class="error-message">
-                    <mat-icon style="color: #f59e0b">warning</mat-icon>
-                    {{ error }}
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label>Current Password *</label>
-                  <div class="password-input">
-                    <input
-                      [type]="showCurrentPassword ? 'text' : 'password'"
-                      [(ngModel)]="passwordData.currentPassword"
-                      class="form-input"
-                      placeholder="Enter current password"
-                    />
-                    <button
-                      type="button"
-                      class="toggle-password"
+              <div class="form-group">
+                <label>Current Password *</label>
+                <div class="password-input">
+                  <input
+                    [type]="showCurrentPassword ? 'text' : 'password'"
+                    [(ngModel)]="passwordData.currentPassword"
+                    class="form-input"
+                    placeholder="Enter current password"
+                  />
+                  <button
+                    type="button"
+                    class="toggle-password"
+                    (click)="showCurrentPassword = !showCurrentPassword"
+                  >
+                    <mat-icon
                       (click)="showCurrentPassword = !showCurrentPassword"
+                      style="cursor: pointer"
                     >
-                      <mat-icon
-                        (click)="showCurrentPassword = !showCurrentPassword"
-                        style="cursor: pointer"
-                      >
-                        {{ showCurrentPassword ? 'visibility' : 'visibility_off' }}
-                      </mat-icon>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label>New Password *</label>
-                  <div class="password-input">
-                    <input
-                      [type]="showNewPassword ? 'text' : 'password'"
-                      [(ngModel)]="passwordData.newPassword"
-                      class="form-input"
-                      placeholder="Enter new password"
-                    />
-                    <button
-                      type="button"
-                      class="toggle-password"
-                      (click)="showNewPassword = !showNewPassword"
-                    >
-                      <mat-icon
-                        (click)="showCurrentPassword = !showCurrentPassword"
-                        style="cursor: pointer"
-                      >
-                        {{ showCurrentPassword ? 'visibility' : 'visibility_off' }}
-                      </mat-icon>
-                    </button>
-                  </div>
-                  <div class="password-strength" *ngIf="passwordData.newPassword">
-                    <div class="strength-bar" [class]="getPasswordStrength()">
-                      <div class="strength-fill"></div>
-                    </div>
-                    <span class="strength-label">{{ getPasswordStrength() | uppercase }}</span>
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label>Confirm New Password *</label>
-                  <div class="password-input">
-                    <input
-                      [type]="showConfirmPassword ? 'text' : 'password'"
-                      [(ngModel)]="passwordData.confirmPassword"
-                      class="form-input"
-                      placeholder="Confirm new password"
-                    />
-                    <button
-                      type="button"
-                      class="toggle-password"
-                      (click)="showConfirmPassword = !showConfirmPassword"
-                    >
-                      <mat-icon
-                        (click)="showCurrentPassword = !showCurrentPassword"
-                        style="cursor: pointer"
-                      >
-                        {{ showCurrentPassword ? 'visibility' : 'visibility_off' }}
-                      </mat-icon>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="password-requirements">
-                  <p>Password must contain:</p>
-                  <ul>
-                    <li>At least 8 characters</li>
-                    <li>One uppercase letter</li>
-                    <li>One lowercase letter</li>
-                    <li>One number</li>
-                    <li>One special character (@$!%*?&)</li>
-                  </ul>
-                </div>
-
-                <div class="form-actions">
-                  <button class="btn btn-outline" (click)="cancelPasswordChange()">Cancel</button>
-                  <button class="btn btn-success" (click)="changePassword()" [disabled]="isSaving">
-                    <span class="spinner" *ngIf="isSaving"></span>
-                    {{ isSaving ? 'Changing...' : 'Change Password' }}
+                      {{ showCurrentPassword ? 'visibility' : 'visibility_off' }}
+                    </mat-icon>
                   </button>
                 </div>
               </div>
-            </div>
 
-            <!-- Two-Factor Authentication -->
-            <div class="security-card">
-              <div class="card-header">
-                <div>
-                  <h3>Two-Factor Authentication</h3>
-                  <p>Add an extra layer of security to your account</p>
+              <div class="form-group">
+                <label>New Password *</label>
+                <div class="password-input">
+                  <input
+                    [type]="showNewPassword ? 'text' : 'password'"
+                    [(ngModel)]="passwordData.newPassword"
+                    class="form-input"
+                    placeholder="Enter new password"
+                  />
+                  <button
+                    type="button"
+                    class="toggle-password"
+                    (click)="showNewPassword = !showNewPassword"
+                  >
+                    <mat-icon
+                      (click)="showCurrentPassword = !showCurrentPassword"
+                      style="cursor: pointer"
+                    >
+                      {{ showCurrentPassword ? 'visibility' : 'visibility_off' }}
+                    </mat-icon>
+                  </button>
                 </div>
-                <button class="btn btn-outline">Enable 2FA</button>
+                <div class="password-strength" *ngIf="passwordData.newPassword">
+                  <div class="strength-bar" [class]="getPasswordStrength()">
+                    <div class="strength-fill"></div>
+                  </div>
+                  <span class="strength-label">{{ getPasswordStrength() | uppercase }}</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Confirm New Password *</label>
+                <div class="password-input">
+                  <input
+                    [type]="showConfirmPassword ? 'text' : 'password'"
+                    [(ngModel)]="passwordData.confirmPassword"
+                    class="form-input"
+                    placeholder="Confirm new password"
+                  />
+                  <button
+                    type="button"
+                    class="toggle-password"
+                    (click)="showConfirmPassword = !showConfirmPassword"
+                  >
+                    <mat-icon
+                      (click)="showCurrentPassword = !showCurrentPassword"
+                      style="cursor: pointer"
+                    >
+                      {{ showCurrentPassword ? 'visibility' : 'visibility_off' }}
+                    </mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <div class="password-requirements">
+                <p>Password must contain:</p>
+                <ul>
+                  <li>At least 8 characters</li>
+                  <li>One uppercase letter</li>
+                  <li>One lowercase letter</li>
+                  <li>One number</li>
+                  <li>One special character (@$!%*?&)</li>
+                </ul>
+              </div>
+
+              <div class="form-actions">
+                <button class="btn btn-outline" (click)="cancelPasswordChange()">Cancel</button>
+                <button class="btn btn-success" (click)="changePassword()" [disabled]="isSaving">
+                  <span class="spinner" *ngIf="isSaving"></span>
+                  {{ isSaving ? 'Changing...' : 'Change Password' }}
+                </button>
               </div>
             </div>
+          </div>
 
-            <!-- Active Sessions -->
-            <div class="security-card">
-              <div class="card-header">
-                <div>
-                  <h3>Active Sessions</h3>
-                  <p>Manage devices where you're logged in</p>
+          <!-- Two-Factor Authentication -->
+          <div class="security-card">
+            <div class="card-header">
+              <div>
+                <h3>Two-Factor Authentication</h3>
+                <p>Add an extra layer of security to your account</p>
+              </div>
+
+              <button *ngIf="!is2FAEnabled" (click)="enable2FA()">Enable 2FA</button>
+
+              <button *ngIf="is2FAEnabled" (click)="disable2FA()">2FA Enabled</button>
+            </div>
+
+            <!-- QR CODE -->
+            <div *ngIf="qrCodeImage" class="twofa-setup">
+              <p>Scan this QR code with Google Authenticator or Authy:</p>
+
+              <img [src]="qrCodeImage" alt="2FA QR Code" class="qr-image" />
+
+              <div class="form-group">
+                <label>Enter 6-digit code</label>
+                <input
+                  type="text"
+                  [(ngModel)]="twoFAToken"
+                  class="form-input"
+                  placeholder="123456"
+                />
+              </div>
+
+              <!-- Errors -->
+              <div class="error-messages" *ngIf="twoFAErrors.length">
+                <div *ngFor="let error of twoFAErrors" class="error-message">
+                  <mat-icon style="color: #f59e0b">warning</mat-icon>
+                  {{ error }}
                 </div>
               </div>
-              <div class="sessions-list">
-                <div class="session-item">
-                  <div class="session-info">
-                    <div class="session-device">
-                      <mat-icon style="color: #4299e1; font-size: 32px">desktop_windows</mat-icon>
-                      Chrome on MacOS
-                    </div>
-                    <div class="session-details">
-                      <span>Current Session</span>
-                      <span>•</span>
-                      <span>Last active: Just now</span>
-                    </div>
+
+              <button class="btn btn-success" (click)="verify2FA()" [disabled]="isVerifying2FA">
+                {{ isVerifying2FA ? 'Verifying...' : 'Verify & Enable' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Sessions -->
+          <div class="security-card">
+            <div class="card-header">
+              <div>
+                <h3>Active Sessions</h3>
+                <p>Manage devices where you're logged in</p>
+              </div>
+            </div>
+            <div class="sessions-list">
+              <div class="session-item">
+                <div class="session-info">
+                  <div class="session-device">
+                    <mat-icon style="color: #4299e1; font-size: 32px">desktop_windows</mat-icon>
+                    Chrome on MacOS
+                  </div>
+                  <div class="session-details">
+                    <span>Current Session</span>
+                    <span>•</span>
+                    <span>Last active: Just now</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- PREFERENCES TAB -->
-          <div *ngIf="$any(activeTab) === 'preferences'" class="content-section">
-            <div class="section-header">
-              <div>
-                <h2>Email Preferences</h2>
-                <p class="section-subtitle">Choose what emails you want to receive</p>
-              </div>
-            </div>
-
-            <div class="preferences-list">
-              <div class="preference-item">
-                <div class="preference-info">
-                  <h3>Scholarship Alerts</h3>
-                  <p>Get notified about new scholarships matching your profile</p>
-                </div>
-                <label class="toggle-switch">
-                  <input type="checkbox" [(ngModel)]="emailPreferences.scholarshipAlerts" />
-                  <span class="slider"></span>
-                </label>
-              </div>
-
-              <div class="preference-item">
-                <div class="preference-info">
-                  <h3>Application Updates</h3>
-                  <p>Receive updates on your scholarship applications</p>
-                </div>
-                <label class="toggle-switch">
-                  <input type="checkbox" [(ngModel)]="emailPreferences.applicationUpdates" />
-                  <span class="slider"></span>
-                </label>
-              </div>
-
-              <div class="preference-item">
-                <div class="preference-info">
-                  <h3>Weekly Digest</h3>
-                  <p>Get a weekly summary of new opportunities</p>
-                </div>
-                <label class="toggle-switch">
-                  <input type="checkbox" [(ngModel)]="emailPreferences.weeklyDigest" />
-                  <span class="slider"></span>
-                </label>
-              </div>
-
-              <div class="preference-item">
-                <div class="preference-info">
-                  <h3>New Scholarships</h3>
-                  <p>Be the first to know about newly posted scholarships</p>
-                </div>
-                <label class="toggle-switch">
-                  <input type="checkbox" [(ngModel)]="emailPreferences.newScholarships" />
-                  <span class="slider"></span>
-                </label>
-              </div>
-
-              <div class="preference-item">
-                <div class="preference-info">
-                  <h3>Deadline Reminders</h3>
-                  <p>Get reminders before scholarship deadlines</p>
-                </div>
-                <label class="toggle-switch">
-                  <input type="checkbox" [(ngModel)]="emailPreferences.deadlineReminders" />
-                  <span class="slider"></span>
-                </label>
-              </div>
-
-              <div class="preference-item">
-                <div class="preference-info">
-                  <h3>Marketing Emails</h3>
-                  <p>Receive promotional content and tips</p>
-                </div>
-                <label class="toggle-switch">
-                  <input type="checkbox" [(ngModel)]="emailPreferences.marketingEmails" />
-                  <span class="slider"></span>
-                </label>
-              </div>
-            </div>
-
-            <div class="form-actions">
-              <button
-                class="btn btn-success"
-                (click)="saveEmailPreferences()"
-                [disabled]="isSaving"
-              >
-                <span class="spinner" *ngIf="isSaving"></span>
-                {{ isSaving ? 'Saving...' : 'Save Preferences' }}
-              </button>
+        <!-- PREFERENCES TAB -->
+        <div *ngIf="$any(activeTab) === 'preferences'" class="content-section">
+          <div class="section-header">
+            <div>
+              <h2>Email Preferences</h2>
+              <p class="section-subtitle">Choose what emails you want to receive</p>
             </div>
           </div>
 
-          <!-- ACCOUNT TAB -->
-          <div *ngIf="$any(activeTab) === 'account'" class="content-section">
-            <div class="section-header">
-              <div>
-                <h2>Account Management</h2>
-                <p class="section-subtitle">Manage your account data and settings</p>
+          <div class="preferences-list">
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3>Scholarship Alerts</h3>
+                <p>Get notified about new scholarships matching your profile</p>
               </div>
+              <label class="toggle-switch">
+                <input type="checkbox" [(ngModel)]="emailPreferences.scholarshipAlerts" />
+                <span class="slider"></span>
+              </label>
             </div>
 
-            <!-- Download Data -->
-            <div class="danger-card">
-              <div class="card-content">
-                <div class="card-icon">
-                  <mat-icon style="color: #4299e1; font-size: 24px">download</mat-icon>
-                </div>
-                <div>
-                  <h3>Download Your Data</h3>
-                  <p>
-                    Get a copy of all your account data including profile, applications, and saved
-                    scholarships
-                  </p>
-                </div>
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3>Application Updates</h3>
+                <p>Receive updates on your scholarship applications</p>
               </div>
-              <button (click)="downloadProfile()">Download Profile</button>
+              <label class="toggle-switch">
+                <input type="checkbox" [(ngModel)]="emailPreferences.applicationUpdates" />
+                <span class="slider"></span>
+              </label>
             </div>
 
-            <!-- Delete Account -->
-            <div class="danger-card delete-warning">
-              <div class="card-content">
-                <div class="card-icon"><mat-icon style="color: #f59e0b">warning</mat-icon></div>
-                <div>
-                  <h3>Delete Account</h3>
-                  <p>
-                    Permanently delete your account and all associated data. This action cannot be
-                    undone.
-                  </p>
-                  <div class="warning-list">
-                    <p><strong>This will:</strong></p>
-                    <ul>
-                      <li>Delete all your personal information</li>
-                      <li>Remove all scholarship applications</li>
-                      <li>Cancel any pending applications</li>
-                      <li>Remove you from all saved lists</li>
-                    </ul>
-                  </div>
-                </div>
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3>Weekly Digest</h3>
+                <p>Get a weekly summary of new opportunities</p>
               </div>
-              <button class="btn btn-danger" (click)="deleteAccount()" [disabled]="isDeleting">
-                <span class="spinner" *ngIf="isDeleting"></span>
-                {{ isDeleting ? 'Deleting...' : 'Delete Account' }}
-              </button>
+              <label class="toggle-switch">
+                <input type="checkbox" [(ngModel)]="emailPreferences.weeklyDigest" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3>New Scholarships</h3>
+                <p>Be the first to know about newly posted scholarships</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" [(ngModel)]="emailPreferences.newScholarships" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3>Deadline Reminders</h3>
+                <p>Get reminders before scholarship deadlines</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" [(ngModel)]="emailPreferences.deadlineReminders" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3>Marketing Emails</h3>
+                <p>Receive promotional content and tips</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" [(ngModel)]="emailPreferences.marketingEmails" />
+                <span class="slider"></span>
+              </label>
             </div>
           </div>
+
+          <div class="form-actions">
+            <button class="btn btn-success" (click)="saveEmailPreferences()" [disabled]="isSaving">
+              <span class="spinner" *ngIf="isSaving"></span>
+              {{ isSaving ? 'Saving...' : 'Save Preferences' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- ACCOUNT TAB -->
+        <div *ngIf="$any(activeTab) === 'account'" class="content-section">
+          <div class="section-header">
+            <div>
+              <h2>Account Management</h2>
+              <p class="section-subtitle">Manage your account data and settings</p>
+            </div>
+          </div>
+
+          <!-- Download Data -->
+          <div class="danger-card">
+            <div class="card-content">
+              <div class="card-icon">
+                <mat-icon style="color: #4299e1; font-size: 24px">download</mat-icon>
+              </div>
+              <div>
+                <h3>Download Your Data</h3>
+                <p>
+                  Get a copy of all your account data including profile, applications, and saved
+                  scholarships
+                </p>
+              </div>
+            </div>
+            <button (click)="downloadProfile()">Download Profile</button>
+          </div>
+
+          <!-- Delete Account
+          <div class="danger-card delete-warning">
+            <div class="card-content">
+              <div class="card-icon"><mat-icon style="color: #f59e0b">warning</mat-icon></div>
+              <div>
+                <h3>Delete Account</h3>
+                <p>
+                  Permanently delete your account and all associated data. This action cannot be
+                  undone.
+                </p>
+                <div class="warning-list">
+                  <p><strong>This will:</strong></p>
+                  <ul>
+                    <li>Delete all your personal information</li>
+                    <li>Remove all scholarship applications</li>
+                    <li>Cancel any pending applications</li>
+                    <li>Remove you from all saved lists</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-danger" (click)="deleteAccount()" [disabled]="isDeleting">
+              <span class="spinner" *ngIf="isDeleting"></span>
+              {{ isDeleting ? 'Deleting...' : 'Delete Account' }}
+            </button>
+          </div> -->
         </div>
       </div>
     </div>

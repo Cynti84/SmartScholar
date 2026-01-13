@@ -12,6 +12,8 @@ import { MoreThanOrEqual } from "typeorm";
 import { Bookmark } from "../models/Bookmark";
 import { Application } from "../models/applications";
 import { DeepPartial } from "typeorm";
+
+import { profile } from "console";
 //CreateProfile
 export const createStudentProfile = async (req: Request, res: Response) => {
   try {
@@ -224,66 +226,87 @@ export const logout = async (req: Request, res: Response) => {
 // Enable 2FA
 export const enable2FA = async (req: Request, res: Response) => {
   try {
-    // Cast req to AuthRequest to access user
-    const authReq = req as unknown as AuthRequest;
-    const userId = authReq.user!.id;
-
-    const userRepo = AppDataSource.getRepository(User);
-    const user = await userRepo.findOne({ where: { id: userId } });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    // Generate 2FA secret
+    const userRepo = AppDataSource.getRepository(User);
+    const user = await userRepo.findOne({ where: { id: req.user.id } });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Generate secret
     const secret = speakeasy.generateSecret({
       name: `ScholarshipApp (${user.email})`,
     });
 
-    // Save secret in the user entity
     user.twoFactorSecret = secret.base32;
+    user.twoFactorEnabled = false; // IMPORTANT
     await userRepo.save(user);
 
-    // Generate QR code for scanning
     const qrCode = await QRCode.toDataURL(secret.otpauth_url!);
-    const token = speakeasy.totp({
-      secret: secret.base32,
-      encoding: "base32",
-    });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: "2FA secret generated",
       data: {
-        secret: secret.base32,
-        token,
         qrCode,
       },
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Error enabling 2FA",
-      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };
 
-//Verify2FA
+// GET /auth/2fa/status
+export const get2FAStatus = async (req: Request, res: Response) => {
+  const authReq = req as unknown as AuthRequest;
+  const userId = authReq.user!.id;
+
+  const userRepo = AppDataSource.getRepository(User);
+  const user = await userRepo.findOne({ where: { id: userId } });
+
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+
+  return res.status(200).json({
+    success: true,
+    data: {
+      enabled: user.twoFactorEnabled,
+    },
+  });
+};
+
+// Verify 2FA
 export const verify2FA = async (req: Request, res: Response) => {
   try {
-    const authReq = req as unknown as AuthRequest;
-    const userId = authReq.user!.id;
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
     const { token } = req.body;
 
-    const user = await UserRepository.findById(userId);
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "6-digit code is required",
+      });
+    }
+
+    const userRepo = AppDataSource.getRepository(User);
+    const user = await userRepo.findOne({ where: { id: req.user.id } });
+
     if (!user || !user.twoFactorSecret) {
       return res.status(404).json({
         success: false,
-        message: "User or 2FA secret not found",
+        message: "2FA not initialized",
       });
     }
 
@@ -297,19 +320,25 @@ export const verify2FA = async (req: Request, res: Response) => {
     if (!verified) {
       return res.status(400).json({
         success: false,
-        message: "Invalid 2FA token",
+        message: "Invalid 2FA code",
       });
     }
 
-    res.status(200).json({
+    // ✅ ENABLE HERE
+    user.twoFactorEnabled = true;
+    await userRepo.save(user);
+
+    return res.status(200).json({
       success: true,
       message: "2FA enabled successfully",
+      data: {
+        enabled: true,
+      },
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Error verifying 2FA",
-      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };
@@ -322,17 +351,16 @@ export const disable2FA = async (req: Request, res: Response) => {
     const { token } = req.body;
 
     const userRepo = AppDataSource.getRepository(User);
-
     const user = await userRepo.findOne({ where: { id: userId } });
 
-    if (!user || !user.twoFactorSecret) {
-      return res.status(404).json({
+    if (!user || !user.twoFactorSecret || !user.twoFactorEnabled) {
+      return res.status(400).json({
         success: false,
-        message: "User or 2FA secret not found",
+        message: "2FA is not enabled",
       });
     }
 
-    // Verify token
+    // Verify OTP before disabling
     const verified = speakeasy.totp.verify({
       secret: user.twoFactorSecret,
       encoding: "base32",
@@ -343,25 +371,25 @@ export const disable2FA = async (req: Request, res: Response) => {
     if (!verified) {
       return res.status(400).json({
         success: false,
-        message: "Invalid 2FA token",
+        message: "Invalid authentication code",
       });
     }
 
-    // Disable 2FA
-    const secret = speakeasy.generateSecret().base32;
-    user.twoFactorSecret = secret; // string
+    // ✅ CORRECT DISABLE LOGIC
+    user.twoFactorEnabled = false;
+    user.twoFactorSecret = null;
 
     await userRepo.save(user);
 
     return res.status(200).json({
       success: true,
       message: "2FA disabled successfully",
+      data: { enabled: false },
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: "Error disabling 2FA",
-      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };
@@ -457,34 +485,20 @@ export const getActiveScholarships = async (req: Request, res: Response) => {
   try {
     const scholarshipRepo = AppDataSource.getRepository(Scholarship);
 
-    // Example 1: If you have an 'isActive' boolean column
-    const activeScholarships = await scholarshipRepo.find({
+    const count = await scholarshipRepo.count({
       where: {
         status: "approved",
-        // deadline: MoreThanOrEqual(new Date()),
       },
-      relations: ["provider", "applications"],
     });
-
-    // Example 2: If active means current date is between startDate and endDate
-
-    // const now = new Date();
-    // const activeScholarships = await scholarshipRepo.find({
-    //   where: {
-    //     startDate: LessThanOrEqual(now),
-    //     endDate: MoreThanOrEqual(now)
-    //   },
-    //   relations: ["provider", "applications"],
-    // });
 
     res.status(200).json({
       success: true,
-      data: activeScholarships,
+      count,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching active scholarships",
+      message: "Error fetching active scholarships count",
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }
@@ -817,38 +831,60 @@ export const removeBookmark = async (req: Request, res: Response) => {
 
 export const downloadStudentProfile = async (req: Request, res: Response) => {
   try {
-    const user: any = (req as any).user;
-    const userId = user?.id;
+    const user = (req as any).user;
 
-    if (!userId) {
+    if (!user?.id) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
     const userRepo = AppDataSource.getRepository(User);
+
     const student = await userRepo.findOne({
-      where: { id: userId },
-      relations: ["scholarships", "applications"], // include relations if needed
+      where: { id: user.id },
+      relations: {
+        profile: true,
+        applications: true,
+      },
     });
 
     if (!student) {
       return res.status(404).json({
         success: false,
-        message: "Student profile not found",
+        message: "Student not found",
       });
     }
 
-    // Send as JSON file
+    // ---------- PDF GENERATION ----------
+    const PDFDocument = require("pdfkit");
+    const doc = new PDFDocument();
+
+    res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=student_profile_${userId}.json`
+      `attachment; filename=student_profile_${student.id}.pdf`
     );
-    res.setHeader("Content-Type", "application/json");
-    return res.status(200).send(JSON.stringify(student, null, 2));
+
+    doc.pipe(res);
+
+    doc.fontSize(18).text("Student Profile", { underline: true });
+    doc.moveDown();
+
+    doc.fontSize(12).text(`Name: ${student.firstName} ${student.lastName}`);
+    doc.text(`Email: ${student.email}`);
+
+    doc.moveDown();
+
+    doc.text(`Country: ${student.profile?.country ?? "N/A"}`);
+    doc.text(`Academic Level: ${student.profile?.academic_level ?? "N/A"}`);
+    doc.text(`Field of Study: ${student.profile?.field_of_study ?? "N/A"}`);
+    doc.text(`Interest: ${student.profile?.interest ?? "N/A"}`);
+
+    doc.end();
   } catch (error) {
+    console.error(error);
     return res.status(500).json({
       success: false,
       message: "Error downloading student profile",
-      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
+import { catchError, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
@@ -68,28 +69,21 @@ export class DashboardComponent implements OnInit {
   private loadDashboardData(): void {
     this.loading = true;
     this.error = '';
-
     forkJoin({
       activeScholarships: this.scholarshipService.getActiveScholarships(),
       applied: this.userScholarshipService.getAppliedScholarships(),
       bookmarked: this.userScholarshipService.getBookmarkedScholarships(),
-      recommended: this.scholarshipService.getRecommendedScholarships(),
+      recommended: this.scholarshipService
+        .getRecommendedScholarships()
+        .pipe(catchError(() => of({ success: true, data: [] }))),
     }).subscribe({
       next: ({ activeScholarships, applied, bookmarked, recommended }) => {
-        this.stats.activeScholarships = activeScholarships.data.length;
-        this.stats.applied = applied.data.length;
-        this.stats.bookmarked = bookmarked.data.length;
-        this.stats.recommended = recommended.data.length;
-
-        this.recommendedScholarships = recommended.data;
+        this.stats.activeScholarships = activeScholarships?.count ?? 0;
+        this.stats.applied = applied?.data?.length ?? 0;
+        this.stats.bookmarked = bookmarked?.data?.length ?? 0;
+        this.stats.recommended = recommended?.data?.length ?? 0;
       },
-      error: (err) => {
-        this.error = err?.message || 'Failed to load dashboard';
-        this.loading = false;
-      },
-      complete: () => {
-        this.loading = false;
-      },
+      error: (err) => console.error('Dashboard error:', err),
     });
   }
 
