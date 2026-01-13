@@ -6,6 +6,7 @@ import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { tap, catchError, map } from 'rxjs/operators';
 import { parseJwt, isTokenExpired } from '../utils/token.util';
 import { User, ApiResponse } from '../models/user.model';
+import { HttpHeaders } from '@angular/common/http';
 
 const ACCESS_KEY = 'ss_access_token';
 const REFRESH_KEY = 'ss_refresh_token';
@@ -41,6 +42,14 @@ export class AuthService {
   public user$ = this.userSubject.asObservable();
 
   constructor(private http: HttpClient) {}
+  private getHeaders(): HttpHeaders {
+    const token = this.getAccessToken();
+
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: token ? `Bearer ${token}` : '',
+    });
+  }
 
   // ===========================
   // AUTH API CALLS
@@ -81,6 +90,19 @@ export class AuthService {
       token,
       password,
     });
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<any> {
+    return this.http.post(
+      `${this.API_URL}/change-password`,
+      {
+        currentPassword,
+        newPassword,
+      },
+      {
+        headers: this.getHeaders(),
+      }
+    );
   }
 
   /**
@@ -124,9 +146,12 @@ export class AuthService {
     );
   }
   // get me added thursday
-  getMe(): Observable<ApiResponse<user>> {
-    return this.http.get<ApiResponse<user>>(`${this.API_URL}/me`);
+  getMe(): Observable<{ data: { user: user } }> {
+    return this.http.get<{ data: { user: user } }>(`${this.API_URL}/me`, {
+      headers: this.getHeaders(),
+    });
   }
+
   // ===========================
   // TOKEN MANAGEMENT
   // ===========================
@@ -169,7 +194,7 @@ export class AuthService {
     return this.getUserFromToken();
   }
 
-   getUserFromToken() {
+  getUserFromToken() {
     const token = this.getAccessToken();
     return token ? parseJwt(token) : null;
   }
@@ -186,5 +211,4 @@ export class AuthService {
     const raw = localStorage.getItem(TEMP_USER_KEY);
     return raw ? JSON.parse(raw) : null;
   }
- 
 }

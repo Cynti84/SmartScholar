@@ -91,7 +91,7 @@ export class StudentProfileService {
    * Download student profile as a file
    */
   downloadProfile() {
-    return this.http.get(`${environment.apiUrl}/profile/download`, {
+    return this.http.get(`${this.apiUrl}/profile/download`, {
       headers: this.getHeaders(),
       responseType: 'blob',
     });
@@ -120,5 +120,24 @@ export class StudentProfileService {
       { token },
       { headers: this.getHeaders() }
     );
+  }
+
+  get2FAStatus(): Observable<{ success: boolean; data: { enabled: boolean } }> {
+    return this.http.get<{ success: boolean; data: { enabled: boolean } }>(
+      `${this.apiUrl}/2fa/status`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getEmailPreferences() {
+    return this.http.get<ApiResponse>(`${this.apiUrl}/email-preferences`, {
+      headers: this.getHeaders(),
+    });
+  }
+
+  updateEmailPreferences(data: any) {
+    return this.http.put<ApiResponse>(`${this.apiUrl}/email-preferences`, data, {
+      headers: this.getHeaders(),
+    });
   }
 }

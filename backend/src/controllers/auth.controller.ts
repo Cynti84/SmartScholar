@@ -454,4 +454,87 @@ export class AuthController {
         .json({ success: false, message: "Invalid or expired refresh token" });
     }
   }
+  // Change password
+  static async changePassword(req: Request, res: Response): Promise<void> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: errors.array(),
+        });
+        return;
+      }
+
+      const userId = req.user?.id; // from auth middleware
+      const { currentPassword, newPassword } = req.body;
+
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
+
+      const user = await UserRepository.findById(userId);
+
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+        return;
+      }
+
+      // 1️⃣ Verify current password
+      const isPasswordValid = await PasswordUtil.comparePassword(
+        currentPassword,
+        user.password
+      );
+
+      if (!isPasswordValid) {
+        res.status(400).json({
+          success: false,
+          message: "Current password is incorrect",
+        });
+        return;
+      }
+
+      // 2️⃣ Prevent reusing same password
+      const isSamePassword = await PasswordUtil.comparePassword(
+        newPassword,
+        user.password
+      );
+
+      if (isSamePassword) {
+        res.status(400).json({
+          success: false,
+          message: "New password must be different from the current password",
+        });
+        return;
+      }
+
+      // 3️⃣ Hash & save new password
+      const hashedPassword = await PasswordUtil.hashPassword(newPassword);
+
+      await UserRepository.update(user.id, {
+        password: hashedPassword,
+        resetPasswordToken: undefined,
+        resetPasswordExpires: undefined,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Password changed successfully",
+      });
+    } catch (error) {
+      console.error("Change password error:", error);
+      res.status(500).json({
+        success: false,
+        message: "An error occurred. Please try again.",
+      });
+    }
+  }
 }
