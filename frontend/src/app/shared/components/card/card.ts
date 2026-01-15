@@ -5,13 +5,13 @@ import { Component, Input } from '@angular/core';
   selector: 'app-card',
   imports: [CommonModule],
   templateUrl: './card.html',
-  styleUrl: './card.scss'
+  styleUrl: './card.scss',
 })
 export class Card {
-  @Input() title = ''
-  @Input() value: string | number | null = null
-  @Input() subtitle = ''
+  @Input() icon = '';
+  @Input() title = '';
+  @Input() value: string | number | null = null;
+  @Input() subtitle = '';
   @Input() percentage?: string;
-  @Input() trend?: 'up'|'down'
-
+  @Input() trend?: 'up' | 'down';
 }

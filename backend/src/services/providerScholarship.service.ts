@@ -1,15 +1,16 @@
 import { ScholarshipRepository } from "../repositories/scholarship.repository";
 import { Scholarship } from "../models/scholarships";
+import { normalizeFieldOfStudy } from "../helpers/providerScholarship.helpers";
 
 export class ProviderScholarshipSerivice {
   async createScholarship(providerId: number, data: Partial<Scholarship>) {
-
-    const {status, admin_notes, provider_id, ...safeData}= data
+    const { status, provider_id, fields_of_study, ...safeData } = data;
 
     const scholarship = ScholarshipRepository.create({
       ...safeData,
       provider_id: providerId,
-      status: "pending"
+      status: "pending",
+      fields_of_study: normalizeFieldOfStudy(fields_of_study),
     });
 
     return await ScholarshipRepository.save(scholarship);
@@ -39,6 +40,11 @@ export class ProviderScholarshipSerivice {
     data: Partial<Scholarship>
   ) {
     const scholarship = await this.getScholarshipById(providerId, id);
+
+    if ("fields_of_study" in data) {
+      scholarship.fields_of_study = normalizeFieldOfStudy(data.fields_of_study);
+      delete data.fields_of_study;
+    }
 
     Object.assign(scholarship, data);
 

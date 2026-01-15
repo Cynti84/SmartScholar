@@ -6,6 +6,7 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  CreateDateColumn,
 } from "typeorm";
 import { User } from "./users";
 import { MatchResult } from "./match_result";
@@ -39,6 +40,9 @@ export class Scholarship {
   @Column({ type: "text" })
   benefits!: string;
 
+  @CreateDateColumn({ type: "timestamp" })
+  created_at!: Date;
+
   @Column({ type: "date" })
   deadline!: Date;
 
@@ -52,8 +56,8 @@ export class Scholarship {
   @Column()
   scholarship_type!: string;
 
-  @Column({ type: "text" })
-  fields_of_study!: string;
+  @Column({ type: "jsonb" })
+  fields_of_study!: string[];
 
   /* === APPLICATION === */
   @Column()

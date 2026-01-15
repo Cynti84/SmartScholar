@@ -1,7 +1,7 @@
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .manage-scholarships-container {
@@ -9,7 +9,6 @@
   max-width: 1400px;
   margin: 0 auto;
 }
-
 
 // Header Section
 .header-section {
@@ -648,8 +647,8 @@
   padding: 60px 20px;
 
   .empty-icon {
-    font-size: 64px;
-    margin-bottom: 16px;
+    font-size: 50px;
+    margin-bottom: 25px;
     opacity: 0.7;
   }
 
@@ -789,7 +788,8 @@
   }
 
   .summary-cards {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    // grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: 1fr;
     gap: 12px;
   }
 
@@ -837,7 +837,7 @@
     display: none;
   }
 
-  .view-controls .view-btn[data-view="table"] {
+  .view-controls .view-btn[data-view='table'] {
     display: none;
   }
 
@@ -863,6 +863,9 @@
 }
 
 @media (max-width: 480px) {
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
   .scholarship-card {
     .card-header {
       .card-actions {
@@ -968,7 +971,7 @@
 }
 
 // ============================================
-// MODAL STYLES 
+// MODAL STYLES
 // ============================================
 
 // Modal Overlay
@@ -998,12 +1001,12 @@
   display: flex;
   flex-direction: column;
   animation: slideUp 0.3s ease;
-  
+
   &.view-modal {
     max-width: 700px;
     width: 100%;
   }
-  
+
   &.edit-modal {
     max-width: 800px;
     width: 100%;
@@ -1019,7 +1022,7 @@
   align-items: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  
+
   h2 {
     margin: 0;
     font-size: 1.5rem;
@@ -1040,7 +1043,7 @@
   justify-content: center;
   color: white;
   transition: all 0.2s ease;
-  
+
   &:hover {
     background: rgba(255, 255, 255, 0.3);
     transform: rotate(90deg);
@@ -1052,20 +1055,20 @@
   padding: 30px;
   overflow-y: auto;
   flex: 1;
-  
+
   &::-webkit-scrollbar {
     width: 8px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 4px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: #888;
     border-radius: 4px;
-    
+
     &:hover {
       background: #555;
     }
@@ -1088,7 +1091,7 @@
 
 .detail-section {
   margin-bottom: 28px;
-  
+
   &:last-child {
     margin-bottom: 0;
   }
@@ -1102,7 +1105,7 @@
   margin-bottom: 20px;
   padding-bottom: 16px;
   border-bottom: 2px solid #e5e7eb;
-  
+
   h3 {
     margin: 0;
     font-size: 1.5rem;
@@ -1141,7 +1144,7 @@
     color: #6b7280;
     margin-bottom: 6px;
   }
-  
+
   .detail-value {
     margin: 0;
     font-size: 0.95rem;
@@ -1175,29 +1178,29 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  
+
   .date-label {
     font-weight: 600;
     color: #6b7280;
     font-size: 0.9rem;
   }
-  
+
   .date-value {
     color: #1f2937;
     font-weight: 500;
   }
-  
+
   .deadline-status {
     font-size: 0.85rem;
     padding: 2px 8px;
     border-radius: 12px;
     font-weight: 500;
-    
+
     &.expired {
       background-color: #fee;
       color: #dc2626;
     }
-    
+
     &.soon {
       background-color: #fef3c7;
       color: #d97706;
@@ -1219,22 +1222,22 @@
   align-items: center;
   gap: 12px;
   border: 1px solid #e5e7eb;
-  
+
   .analytics-icon {
     font-size: 2rem;
   }
-  
+
   .analytics-info {
     display: flex;
     flex-direction: column;
   }
-  
+
   .analytics-number {
     font-size: 1.5rem;
     font-weight: 700;
     color: #1f2937;
   }
-  
+
   .analytics-text {
     font-size: 0.8rem;
     color: #6b7280;
@@ -1268,7 +1271,7 @@
   font-size: 0.9rem;
   font-weight: 600;
   color: #374151;
-  
+
   .required {
     color: #dc2626;
     margin-left: 4px;
@@ -1285,13 +1288,13 @@
   color: #1f2937;
   transition: all 0.2s ease;
   font-family: inherit;
-  
+
   &:focus {
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
   }
-  
+
   &::placeholder {
     color: #9ca3af;
   }
@@ -1331,7 +1334,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  
+
   .remove-field {
     background: rgba(255, 255, 255, 0.3);
     border: none;
@@ -1345,7 +1348,7 @@
     cursor: pointer;
     font-size: 12px;
     transition: all 0.2s ease;
-    
+
     &:hover {
       background: rgba(255, 255, 255, 0.5);
       transform: scale(1.1);
@@ -1367,46 +1370,46 @@
   .modal-overlay {
     padding: 10px;
   }
-  
+
   .modal-container {
     max-height: 95vh;
   }
-  
+
   .modal-header {
     padding: 20px;
-    
+
     h2 {
       font-size: 1.25rem;
     }
   }
-  
+
   .modal-body {
     padding: 20px;
   }
-  
+
   .modal-footer {
     padding: 16px 20px;
     flex-wrap: wrap;
-    
+
     .btn {
       flex: 1;
       min-width: 120px;
     }
   }
-  
+
   .detail-grid {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
+
   .analytics-display {
     grid-template-columns: 1fr;
   }
-  
+
   .form-row {
     grid-template-columns: 1fr;
   }
-  
+
   .detail-header {
     flex-direction: column;
     align-items: flex-start;
@@ -1417,20 +1420,20 @@
   .modal-header h2 {
     font-size: 1.1rem;
   }
-  
+
   .modal-close {
     width: 32px;
     height: 32px;
     font-size: 20px;
   }
-  
+
   .analytics-card {
     padding: 16px;
-    
+
     .analytics-icon {
       font-size: 1.5rem;
     }
-    
+
     .analytics-number {
       font-size: 1.25rem;
     }

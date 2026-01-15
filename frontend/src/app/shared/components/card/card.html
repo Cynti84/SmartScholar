@@ -1,6 +1,10 @@
 <div class="card">
-    <h4 class="title">{{title}}</h4>
-    <div class="value">{{value}}</div>
-    <div class="subtitle" *ngIf="subtitle">{{subtitle}}</div>
-
+  <div class="card-content">
+    <div class="card-icon">{{ icon }}</div>
+    <div class="card-data">
+      <h4 class="title">{{ title }}</h4>
+      <div class="value">{{ value }}</div>
+      <div class="subtitle" *ngIf="subtitle">{{ subtitle }}</div>
+    </div>
+  </div>
 </div>
