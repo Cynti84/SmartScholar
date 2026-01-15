@@ -389,9 +389,13 @@
                 <p>Add an extra layer of security to your account</p>
               </div>
 
-              <button *ngIf="!is2FAEnabled" (click)="enable2FA()">Enable 2FA</button>
+              <button class="btn btn-success" *ngIf="!is2FAEnabled" (click)="enable2FA()">
+                Enable 2FA
+              </button>
 
-              <button *ngIf="is2FAEnabled" (click)="disable2FA()">2FA Enabled</button>
+              <button class="btn btn-success" *ngIf="is2FAEnabled" (click)="disable2FA()">
+                2FA Enabled
+              </button>
             </div>
 
             <!-- QR CODE -->

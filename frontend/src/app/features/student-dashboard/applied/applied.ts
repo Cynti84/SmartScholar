@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { Router } from '@angular/router';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { UserScholarshipService } from '../../../core/services/user-scholarship.service';
 
 interface Scholarship {
   id: number;
@@ -26,7 +27,7 @@ interface Scholarship {
   templateUrl: './applied.html',
   styleUrl: './applied.scss',
 })
-export class Applied {
+export class Applied implements OnInit {
   menu = [
     { label: 'Overview', route: '/student' },
     { label: 'Scholarships', route: '/student/scholarships' },
@@ -48,77 +49,56 @@ export class Applied {
 
   ngOnInit(): void {
     this.loadScholarships();
-    this.calculateStats();
-    this.filterScholarships('all');
   }
-
   loadScholarships(): void {
-    // Sample data - replace with actual API call
-    this.scholarships = [
-      {
-        id: 1,
-        name: 'Merit Excellence Scholarship',
-        provider: 'National Education Foundation',
-        amount: 5000,
-        appliedDate: new Date('2024-09-15'),
-        deadline: new Date('2025-12-31'),
-        status: 'active',
-        description: 'Scholarship for students with outstanding academic performance',
-        requirements: ['GPA above 3.5', 'Essay submission', 'Letter of recommendation'],
-        field: 'General Studies',
+    this.userScholarshipService.getAppliedScholarships().subscribe({
+      next: (res) => {
+        this.scholarships = res.data
+          .filter((app) => !!app.scholarship)
+          .map((app) => {
+            const scholarship = app.scholarship!; // safe after filter
+            const deadline = new Date(scholarship.deadline);
+
+            return {
+              id: app.application_id,
+              name: scholarship.title,
+              provider:
+                typeof scholarship.provider === 'string'
+                  ? scholarship.provider
+                  : scholarship.provider?.name || 'Unknown Provider',
+              amount: scholarship.amount,
+              appliedDate: app.appliedAt ? new Date(app.appliedAt) : new Date(),
+              deadline,
+              status: this.mapStatus(app.status as 'pending' | 'accepted' | 'rejected', deadline),
+              description: scholarship.description,
+              requirements: scholarship.requirements || [],
+              field: scholarship.field || 'General',
+            };
+          });
+
+        this.calculateStats();
+        this.filterScholarships(this.selectedFilter);
       },
-      {
-        id: 2,
-        name: 'STEM Innovation Award',
-        provider: 'Tech Foundation',
-        amount: 7500,
-        appliedDate: new Date('2024-08-20'),
-        deadline: new Date('2025-06-30'),
-        status: 'active',
-        description: 'Supporting students pursuing STEM careers',
-        requirements: ['STEM major', 'Project portfolio', 'Interview'],
-        field: 'Science & Technology',
+      error: (err) => {
+        console.error('Failed to load applied scholarships', err);
       },
-      {
-        id: 3,
-        name: 'Community Service Grant',
-        provider: 'Civic Organizations',
-        amount: 3000,
-        appliedDate: new Date('2024-06-10'),
-        deadline: new Date('2024-10-30'),
-        status: 'expired',
-        description: 'For students with exceptional community involvement',
-        requirements: ['100+ volunteer hours', 'Community project', 'References'],
-        field: 'Community Development',
-      },
-      {
-        id: 4,
-        name: 'Arts & Humanities Fellowship',
-        provider: 'Cultural Institute',
-        amount: 4500,
-        appliedDate: new Date('2024-10-05'),
-        deadline: new Date('2025-03-15'),
-        status: 'pending',
-        description: 'Supporting creative and humanities students',
-        requirements: ['Portfolio submission', 'Artist statement', 'Academic transcript'],
-        field: 'Arts & Humanities',
-      },
-      {
-        id: 5,
-        name: 'Business Leaders Scholarship',
-        provider: 'Chamber of Commerce',
-        amount: 6000,
-        appliedDate: new Date('2024-07-12'),
-        deadline: new Date('2024-11-01'),
-        status: 'expired',
-        description: 'For future business and entrepreneurship leaders',
-        requirements: ['Business plan', 'Leadership experience', 'Interview'],
-        field: 'Business',
-      },
-    ];
+    });
   }
 
-  constructor(private authService: AuthService, private router: Router) {}
+  mapStatus(
+    backendStatus: 'pending' | 'accepted' | 'rejected',
+    deadline: Date
+  ): 'active' | 'expired' | 'pending' {
+    if (backendStatus === 'pending') return 'pending';
+    if (deadline < new Date()) return 'expired';
+    return 'active';
+  }
+
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private userScholarshipService: UserScholarshipService
+  ) {}
 
   calculateStats(): void {
     this.totalApplied = this.scholarships.length;

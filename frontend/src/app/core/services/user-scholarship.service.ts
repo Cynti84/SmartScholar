@@ -9,10 +9,22 @@ export interface UserScholarship {
   _id: string;
   userId: string;
   scholarshipId: number;
-  status: 'bookmarked' | 'applied';
+  application_id: number;
   appliedAt?: Date;
   bookmarkedAt?: Date;
   notes?: string;
+  scholarship?: {
+    id: number;
+    title: string;
+    description: string;
+    deadline: string;
+    amount: number;
+    field?: string;
+    requirements?: string[];
+    provider?: string | { name: string };
+  };
+
+  status: 'pending' | 'accepted' | 'rejected' | 'applied' | 'bookmarked';
 }
 
 @Injectable({
