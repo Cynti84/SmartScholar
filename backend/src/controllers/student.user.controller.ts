@@ -694,7 +694,7 @@ export const getAppliedScholarships = async (req: Request, res: Response) => {
       where: { student: { id: userId } },
       relations: ["scholarship"], // populate scholarship details
       order: {
-        applied: "DESC", // or the correct timestamp field name
+        application_date: "DESC", // or the correct timestamp field name
       },
     });
 

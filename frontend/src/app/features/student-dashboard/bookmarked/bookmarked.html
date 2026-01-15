@@ -5,7 +5,6 @@
   (action)="onSidebarAction($event)"
 >
   <section>
-    <!-- <h2>Bookmarked Works!!</h2> -->
     <div class="saved-scholarships-page">
       <!-- Header -->
       <div class="page-header">
@@ -59,10 +58,10 @@
       </div>
 
       <!-- Loading State -->
-      <div *ngIf="isLoading" class="loading-container">
+      <!-- <div *ngIf="isLoading" class="loading-container">
         <div class="spinner"></div>
         <p>Loading your saved scholarships...</p>
-      </div>
+      </div> -->
 
       <!-- Main Content -->
       <div *ngIf="!isLoading" class="main-content">
@@ -130,11 +129,6 @@
             *ngFor="let scholarship of filteredScholarships"
             class="scholarship-card"
             [class.selected]="selectedScholarshipIds.has(scholarship.scholarshipId)"
-            (click)="
-              isSelectionMode
-                ? toggleScholarshipSelection(scholarship.scholarshipId)
-                : viewScholarship(scholarship)
-            "
           >
             <!-- Selection Checkbox -->
             <div
@@ -216,7 +210,10 @@
 
             <!-- Card Footer -->
             <div class="card-footer" *ngIf="!isSelectionMode">
-              <button class="btn btn-outline btn-sm" (click)="viewScholarship(scholarship)">
+              <button
+                class="btn btn-outline btn-sm"
+                (click)="openScholarshipDetails(scholarship, $event)"
+              >
                 View Details
               </button>
               <button
@@ -270,11 +267,149 @@
             Clear Filters
           </button>
         </div>
-        <!-- // added -->
       </div>
     </div>
   </section>
 </app-dashboard-layout>
+
+<!-- Scholarship Details Modal -->
+<div
+  class="scholarship-details-modal"
+  *ngIf="selectedScholarship"
+  (click)="closeScholarshipDetails()"
+>
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <!-- Close Button -->
+    <button class="close-btn" (click)="closeScholarshipDetails()">
+      <span>✕</span>
+    </button>
+
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <div class="provider-section">
+        <div class="provider-logo" *ngIf="selectedScholarship.providerLogo">
+          <img [src]="selectedScholarship.providerLogo" [alt]="selectedScholarship.provider" />
+        </div>
+        <div class="provider-logo placeholder" *ngIf="!selectedScholarship.providerLogo">
+          {{ selectedScholarship.provider.charAt(0) }}
+        </div>
+        <div class="provider-info">
+          <div class="provider-name">{{ selectedScholarship.provider }}</div>
+          <div class="status-badge" [class]="selectedScholarship.status">
+            {{ selectedScholarship.status | uppercase }}
+          </div>
+        </div>
+      </div>
+
+      <h2 class="scholarship-title">{{ selectedScholarship.title }}</h2>
+
+      <div class="scholarship-meta">
+        <span class="category-badge">{{ selectedScholarship.category }}</span>
+        <span class="amount">${{ selectedScholarship.amount.toLocaleString() }}</span>
+        <span class="match-score" *ngIf="selectedScholarship.matchScore">
+          {{ selectedScholarship.matchScore }}% Match
+        </span>
+      </div>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body">
+      <!-- Description -->
+      <div class="detail-section">
+        <h3 class="section-title">Description</h3>
+        <p class="section-content">{{ selectedScholarship.description }}</p>
+      </div>
+
+      <!-- Deadline -->
+      <div class="detail-section">
+        <h3 class="section-title">Deadline</h3>
+        <div class="deadline-info" [class]="getDeadlineClass(selectedScholarship.deadline)">
+          <span class="deadline-text">{{ formatDeadline(selectedScholarship.deadline) }}</span>
+          <span class="deadline-date">{{
+            selectedScholarship.deadline | date : 'MMMM d, yyyy'
+          }}</span>
+        </div>
+      </div>
+
+      <!-- Eligibility Requirements -->
+      <div class="detail-section" *ngIf="selectedScholarship.eligibility">
+        <h3 class="section-title">Eligibility Requirements</h3>
+        <ul class="requirements-list">
+          <li *ngFor="let requirement of selectedScholarship.eligibility">{{ requirement }}</li>
+        </ul>
+      </div>
+
+      <!-- Required Documents -->
+      <div class="detail-section" *ngIf="selectedScholarship.requiredDocuments">
+        <h3 class="section-title">Required Documents</h3>
+        <ul class="documents-list">
+          <li *ngFor="let doc of selectedScholarship.requiredDocuments">{{ doc }}</li>
+        </ul>
+      </div>
+
+      <!-- Tags -->
+      <div
+        class="detail-section"
+        *ngIf="selectedScholarship.tags && selectedScholarship.tags.length > 0"
+      >
+        <h3 class="section-title">Tags</h3>
+        <div class="tags">
+          <span *ngFor="let tag of selectedScholarship.tags" class="tag">{{ tag }}</span>
+        </div>
+      </div>
+
+      <!-- Your Notes -->
+      <div class="detail-section" *ngIf="selectedScholarship.notes">
+        <h3 class="section-title">Your Notes</h3>
+        <div class="notes-content">
+          <p>{{ selectedScholarship.notes }}</p>
+        </div>
+      </div>
+
+      <!-- Additional Info -->
+      <div class="detail-section">
+        <h3 class="section-title">Additional Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Saved Date:</span>
+            <span class="info-value">{{
+              selectedScholarship.savedDate | date : 'MMM d, yyyy'
+            }}</span>
+          </div>
+          <div class="info-item" *ngIf="selectedScholarship.applicationUrl">
+            <span class="info-label">Application URL:</span>
+            <a [href]="selectedScholarship.applicationUrl" target="_blank" class="info-link">
+              Visit Application Page →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="unsaveScholarship(selectedScholarship, $event)">
+        <span class="icon">★</span>
+        Remove from Saved
+      </button>
+      <button
+        class="btn btn-primary"
+        [disabled]="
+          selectedScholarship.status === 'applied' || selectedScholarship.status === 'expired'
+        "
+        (click)="applyToScholarship(selectedScholarship, $event)"
+      >
+        {{
+          selectedScholarship.status === 'applied'
+            ? 'Already Applied'
+            : selectedScholarship.status === 'expired'
+            ? 'Expired'
+            : 'Apply Now'
+        }}
+      </button>
+    </div>
+  </div>
+</div>
 
 <app-confirm-modal
   *ngIf="showLogoutModal"

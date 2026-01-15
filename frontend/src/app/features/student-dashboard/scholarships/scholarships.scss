@@ -6,7 +6,7 @@
 .list-view {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 2rem;
+  padding-left: 2rem;
 }
 
 .page-header {
@@ -63,7 +63,7 @@
 .filters-sidebar {
   background: white;
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 2rem;
   height: fit-content;
   position: sticky;
   top: 2rem;
@@ -115,13 +115,13 @@
         left: 12px;
         top: 50%;
         transform: translateY(-50%);
-        width: 18px;
+        width: 16px;
         height: 18px;
         color: #9ca3af;
       }
 
       input {
-        width: 100%;
+        width: 80%;
         padding: 0.75rem 0.75rem 0.75rem 2.5rem;
         border: 2px solid #e5e7eb;
         border-radius: 8px;

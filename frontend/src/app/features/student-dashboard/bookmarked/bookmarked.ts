@@ -77,6 +77,37 @@ export class Bookmarked {
     private userScholarshipService: UserScholarshipService
   ) {}
 
+  selectedScholarship: any = null;
+
+  // Add this method to open the scholarship details modal
+  openScholarshipDetails(scholarship: any, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.selectedScholarship = scholarship;
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+  }
+
+  // Add this method to close the scholarship details modal
+  closeScholarshipDetails(): void {
+    this.selectedScholarship = null;
+    // Re-enable body scroll
+    document.body.style.overflow = 'auto';
+  }
+
+  // Update your existing viewScholarship method to use the modal
+  viewScholarship(scholarship: any): void {
+    if (this.isSelectionMode) {
+      this.toggleScholarshipSelection(scholarship.scholarshipId);
+    } else {
+      this.openScholarshipDetails(scholarship);
+    }
+  }
+
+  // Optional: Add keyboard event listener to close modal on ESC key
+  // Add this in ngOnInit or constructor
+
   ngOnInit(): void {
     this.loadSavedScholarships();
   }
@@ -223,9 +254,9 @@ export class Bookmarked {
     });
   }
 
-  viewScholarship(scholarship: SavedScholarship): void {
-    this.router.navigate(['/student/scholarships', scholarship.scholarshipId]);
-  }
+  // viewScholarship(scholarship: SavedScholarship): void {
+  //   this.router.navigate(['/student/scholarships', scholarship.scholarshipId]);
+  // }
   applyToScholarship(scholarship: SavedScholarship, event?: Event): void {
     if (event) {
       event.stopPropagation();
