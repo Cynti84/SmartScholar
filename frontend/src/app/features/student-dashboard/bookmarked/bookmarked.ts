@@ -6,10 +6,12 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { UserScholarshipService } from '../../../core/services/user-scholarship.service';
 
 export interface SavedScholarship {
-  id: string;
-  scholarshipId: string;
+  id: number;
+  scholarshipId: number;
+
   title: string;
   provider: string;
   providerLogo?: string;
@@ -23,6 +25,7 @@ export interface SavedScholarship {
   notes?: string;
   status: 'active' | 'expired' | 'applied';
 }
+
 @Component({
   selector: 'app-bookmarked',
   imports: [CommonModule, DashboardLayout, FormsModule, ConfirmModal],
@@ -64,119 +67,69 @@ export class Bookmarked {
   };
 
   // Selected scholarships for bulk actions
-  selectedScholarshipIds: Set<string> = new Set();
+  selectedScholarshipIds: Set<number> = new Set();
+
   isSelectionMode = false;
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private userScholarshipService: UserScholarshipService
+  ) {}
 
   ngOnInit(): void {
     this.loadSavedScholarships();
   }
-
   loadSavedScholarships(): void {
     this.isLoading = true;
 
-    // Simulate API call with mock data
-    setTimeout(() => {
-      this.savedScholarships = [
-        {
-          id: '1',
-          scholarshipId: 'sch-001',
-          title: 'Tech Excellence Award 2025',
-          provider: 'TechCorp Foundation',
-          providerLogo: 'https://via.placeholder.com/50',
-          amount: 5000,
-          deadline: new Date('2025-12-31'),
-          category: 'Engineering',
-          description:
-            'Supporting outstanding students in technology fields pursuing innovative projects and research.',
-          matchScore: 92,
-          savedDate: new Date('2025-11-01'),
-          tags: ['Tech', 'High Match'],
-          notes: 'Great opportunity for my AI project. Need to prepare portfolio.',
-          status: 'active',
-        },
-        {
-          id: '2',
-          scholarshipId: 'sch-002',
-          title: 'Medical Students Excellence Grant',
-          provider: 'Health Foundation',
-          amount: 7500,
-          deadline: new Date('2025-11-20'),
-          category: 'Medicine',
-          description:
-            'Financial aid for medical students demonstrating academic excellence and community service.',
-          matchScore: 78,
-          savedDate: new Date('2025-10-28'),
-          tags: ['Healthcare'],
-          status: 'active',
-        },
-        {
-          id: '3',
-          scholarshipId: 'sch-003',
-          title: 'Engineering Innovation Prize',
-          provider: 'Innovation Hub',
-          amount: 4000,
-          deadline: new Date('2025-11-15'),
-          category: 'Engineering',
-          description:
-            'Awarded to students developing innovative solutions to real-world engineering challenges.',
-          matchScore: 88,
-          savedDate: new Date('2025-10-25'),
-          status: 'applied',
-        },
-        {
-          id: '4',
-          scholarshipId: 'sch-004',
-          title: 'Arts & Culture Scholarship',
-          provider: 'Cultural Society',
-          amount: 3000,
-          deadline: new Date('2025-10-10'),
-          category: 'Arts',
-          description: 'Promoting artistic excellence and cultural awareness among students.',
-          savedDate: new Date('2025-09-15'),
-          tags: ['Arts', 'Culture'],
-          status: 'expired',
-        },
-        {
-          id: '5',
-          scholarshipId: 'sch-005',
-          title: 'Business Leadership Award',
-          provider: 'Business School',
-          amount: 6000,
-          deadline: new Date('2025-12-20'),
-          category: 'Business',
-          description:
-            'Supporting future business leaders with entrepreneurial vision and leadership skills.',
-          matchScore: 85,
-          savedDate: new Date('2025-10-30'),
-          notes: 'Need to get recommendation letters from professors.',
-          status: 'active',
-        },
-        {
-          id: '6',
-          scholarshipId: 'sch-006',
-          title: 'STEM Diversity Scholarship',
-          provider: 'Global Education Fund',
-          amount: 8000,
-          deadline: new Date('2025-11-25'),
-          category: 'Science',
-          description:
-            'Promoting diversity in STEM fields through financial support for underrepresented students.',
-          matchScore: 90,
-          savedDate: new Date('2025-10-20'),
-          tags: ['STEM', 'Diversity', 'Must Apply'],
-          status: 'active',
-        },
-      ];
+    this.userScholarshipService.getBookmarkedScholarships().subscribe({
+      next: (res) => {
+        this.savedScholarships = res.data
+          .filter((b: any) => b.scholarship)
+          .map((b: any) => ({
+            id: b.id, // ✅ REQUIRED (bookmark id)
 
-      this.filteredScholarships = [...this.savedScholarships];
-      this.extractCategories();
-      this.calculateStats();
-      this.applyFilters();
-      this.isLoading = false;
-    }, 1000);
+            scholarshipId: b.scholarshipId, // ✅ from bookmark table
+
+            title: b.scholarship.title,
+            provider: b.scholarship.organization_name,
+            description: b.scholarship.short_summary,
+            deadline: new Date(b.scholarship.deadline),
+            category: b.scholarship.education_level,
+            amount: 0,
+
+            status: this.computeStatus(b.scholarship),
+            savedDate: new Date(b.bookmarkedAt),
+
+            providerLogo: b.scholarship.banner_url ?? null,
+            tags: b.scholarship.fields_of_study?.split(',') ?? [],
+          }));
+
+        this.filteredScholarships = [...this.savedScholarships];
+
+        // 🔴 MISSING CALLS
+        this.extractCategories();
+        this.calculateStats();
+
+        this.isLoading = false;
+      },
+    });
   }
+
+  computeStatus(scholarship: any): 'active' | 'expired' | 'applied' {
+    const deadline = new Date(scholarship.deadline);
+    const now = new Date();
+
+    if (deadline < now) {
+      return 'expired';
+    }
+
+    // later you can improve this if student has applied
+    return 'active';
+  }
+
+  // Simulate API call with mock data
 
   extractCategories(): void {
     const uniqueCategories = new Set(this.savedScholarships.map((s) => s.category));
@@ -254,23 +207,25 @@ export class Bookmarked {
   }
 
   unsaveScholarship(scholarship: SavedScholarship, event?: Event): void {
-    if (event) {
-      event.stopPropagation();
-    }
+    event?.stopPropagation();
 
-    if (confirm(`Remove "${scholarship.title}" from saved scholarships?`)) {
-      this.savedScholarships = this.savedScholarships.filter(
-        (s) => s.scholarshipId !== scholarship.scholarshipId
-      );
-      this.calculateStats();
-      this.applyFilters();
-    }
+    if (!confirm(`Remove "${scholarship.title}" from saved scholarships?`)) return;
+
+    this.userScholarshipService.removeBookmark(scholarship.scholarshipId).subscribe({
+      next: () => {
+        this.savedScholarships = this.savedScholarships.filter(
+          (s) => s.scholarshipId !== scholarship.scholarshipId
+        );
+        this.calculateStats();
+        this.applyFilters();
+      },
+      error: () => alert('Failed to remove bookmark'),
+    });
   }
 
   viewScholarship(scholarship: SavedScholarship): void {
-    this.router.navigate(['/scholarships', scholarship.scholarshipId]);
+    this.router.navigate(['/student/scholarships', scholarship.scholarshipId]);
   }
-
   applyToScholarship(scholarship: SavedScholarship, event?: Event): void {
     if (event) {
       event.stopPropagation();
@@ -309,7 +264,7 @@ export class Bookmarked {
     }
   }
 
-  toggleScholarshipSelection(scholarshipId: string, event?: Event): void {
+  toggleScholarshipSelection(scholarshipId: number, event?: Event): void {
     if (event) {
       event.stopPropagation();
     }
