@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from "typeorm";
 import { User } from "./users";
 import { Scholarship } from "./scholarships";
 
@@ -23,5 +29,9 @@ export class Bookmark {
   user: User;
 
   @ManyToOne(() => Scholarship, (scholarship) => scholarship.bookmarks)
+  @JoinColumn({
+    name: "scholarshipId",
+    referencedColumnName: "scholarship_id",
+  })
   scholarship: Scholarship;
 }
