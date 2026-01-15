@@ -8,7 +8,7 @@ import { ApiResponse } from '../models/api-response.model';
 export interface UserScholarship {
   _id: string;
   userId: string;
-  scholarshipId: any;
+  scholarshipId: number;
   status: 'bookmarked' | 'applied';
   appliedAt?: Date;
   bookmarkedAt?: Date;
@@ -32,7 +32,7 @@ export class UserScholarshipService {
   }
 
   // Bookmark scholarship
-  bookmarkScholarship(scholarshipId: string): Observable<ApiResponse<UserScholarship>> {
+  bookmarkScholarship(scholarshipId: number): Observable<ApiResponse<UserScholarship>> {
     return this.http.post<ApiResponse<UserScholarship>>(
       `${this.apiUrl}/${scholarshipId}/bookmark`,
       {},
@@ -41,14 +41,14 @@ export class UserScholarshipService {
   }
 
   // Remove bookmark
-  removeBookmark(scholarshipId: string): Observable<ApiResponse> {
+  removeBookmark(scholarshipId: number): Observable<ApiResponse> {
     return this.http.delete<ApiResponse>(`${this.apiUrl}/${scholarshipId}/bookmark`, {
       headers: this.getHeaders(),
     });
   }
 
   // Mark as applied
-  markAsApplied(scholarshipId: string, notes?: string): Observable<ApiResponse<UserScholarship>> {
+  markAsApplied(scholarshipId: number, notes?: number): Observable<ApiResponse<UserScholarship>> {
     return this.http.post<ApiResponse<UserScholarship>>(
       `${this.apiUrl}/${scholarshipId}/apply`,
       { notes },

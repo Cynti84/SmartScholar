@@ -1,4 +1,9 @@
-<app-dashboard-layout [title]="'Bookmarked Scholarships'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
+<app-dashboard-layout
+  [title]="'Bookmarked Scholarships'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
   <section>
     <!-- <h2>Bookmarked Works!!</h2> -->
     <div class="saved-scholarships-page">
@@ -265,6 +270,7 @@
             Clear Filters
           </button>
         </div>
+        <!-- // added -->
       </div>
     </div>
   </section>

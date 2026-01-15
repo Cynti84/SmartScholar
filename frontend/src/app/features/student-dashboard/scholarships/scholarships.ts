@@ -7,8 +7,11 @@ import { AuthService } from '../../../core/services/auth.service';
 import { Router } from '@angular/router';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { ScholarshipService } from '../../../core/services/scholarship.service';
+import { UserScholarshipService } from '../../../core/services/user-scholarship.service';
 
-interface Scholarship {
+// scholarship-ui.model.ts
+interface ScholarshipUI {
   id: number;
   title: string;
   provider: string;
@@ -17,7 +20,7 @@ interface Scholarship {
   fundingType: string;
   fieldOfStudy: string;
   amount: string;
-  deadline: string;
+  deadline: string; // ✅ CHANGE THIS
   description: string;
   eligibility: string[];
   fundingDetails: string;
@@ -49,10 +52,11 @@ export class Scholarships {
     { label: 'Profile', route: '/student/profile' },
     { label: 'Logout', action: 'logout' },
   ];
-  scholarships: Scholarship[] = [];
-  filteredScholarships: Scholarship[] = [];
-  selectedScholarship: Scholarship | null = null;
-  relatedScholarships: Scholarship[] = [];
+
+  scholarships: ScholarshipUI[] = [];
+  filteredScholarships: ScholarshipUI[] = [];
+  selectedScholarship: ScholarshipUI | null = null;
+  relatedScholarships: ScholarshipUI[] = [];
 
   filters: Filters = {
     keyword: '',
@@ -85,6 +89,38 @@ export class Scholarships {
     'Social Sciences',
     'Law',
   ];
+  normalizeToArray(value: any): string[] {
+    if (!value) return [];
+
+    // Already an array
+    if (Array.isArray(value)) return value;
+
+    // Try parsing repeatedly (handles double-encoded JSON)
+    try {
+      let parsed = value;
+
+      while (typeof parsed === 'string') {
+        parsed = JSON.parse(parsed);
+      }
+
+      if (Array.isArray(parsed)) {
+        return parsed.map((v) => String(v).trim());
+      }
+    } catch {
+      // ignore
+    }
+
+    // Fallback: comma-separated string
+    if (typeof value === 'string') {
+      return value
+        .replace(/[{}"]/g, '')
+        .split(',')
+        .map((v) => v.trim())
+        .filter(Boolean);
+    }
+
+    return [];
+  }
 
   sortBy: string = 'deadline';
   currentPage: number = 1;
@@ -92,279 +128,68 @@ export class Scholarships {
   totalPages: number = 1;
 
   showFilters: boolean = true;
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private scholarshipService: ScholarshipService,
+    private userScholarshipService: UserScholarshipService
+  ) {}
 
   ngOnInit(): void {
     this.loadScholarships();
-    this.applyFilters();
   }
 
   loadScholarships(): void {
-    // Mock data - replace with API call
-    this.scholarships = [
-      {
-        id: 1,
-        title: 'Global Excellence Scholarship',
-        provider: 'Stanford University',
-        country: 'USA',
-        level: 'Masters',
-        fundingType: 'Full Funding',
-        fieldOfStudy: 'Computer Science',
-        amount: '$50,000/year',
-        deadline: '2025-12-31',
-        description:
-          'The Global Excellence Scholarship is designed for outstanding international students who demonstrate exceptional academic achievement and leadership potential.',
-        eligibility: [
-          'International students only',
-          'Minimum GPA of 3.7/4.0',
-          'TOEFL score of 100+ or IELTS 7.0+',
-          'Proven leadership experience',
-        ],
-        fundingDetails:
-          'Full tuition coverage, monthly stipend of $2,500, health insurance, and research funding up to $5,000 annually.',
-        requirements: [
-          'Completed application form',
-          'Academic transcripts',
-          'Two letters of recommendation',
-          'Statement of purpose (1000 words)',
-          'CV/Resume',
-        ],
-        isSaved: false,
+    this.scholarshipService.getScholarships().subscribe({
+      next: (res) => {
+        this.scholarships = res.data.map((s) => this.mapToUI(s));
+        this.filteredScholarships = [...this.scholarships];
       },
-      {
-        id: 2,
-        title: 'Commonwealth Masters Scholarship',
-        provider: 'UK Government',
-        country: 'UK',
-        level: 'Masters',
-        fundingType: 'Full Funding',
-        fieldOfStudy: 'Engineering',
-        amount: '£30,000',
-        deadline: '2025-11-15',
-        description:
-          'Commonwealth Scholarships support students from developing Commonwealth countries to pursue Masters degrees in the UK.',
-        eligibility: [
-          'Citizens of eligible Commonwealth countries',
-          'First-class undergraduate degree',
-          'Unable to afford UK studies',
-          'Committed to development impact',
-        ],
-        fundingDetails:
-          'Full tuition fees, return airfare, living allowance of £1,347/month, thesis grant, and arrival allowance.',
-        requirements: [
-          'Online application',
-          'Development impact statement',
-          'Two references',
-          'Academic transcripts',
-          'Proof of citizenship',
-        ],
-        isSaved: true,
-      },
-      {
-        id: 3,
-        title: 'Vanier Canada Graduate Scholarship',
-        provider: 'Government of Canada',
-        country: 'Canada',
-        level: 'PhD',
-        fundingType: 'Full Funding',
-        fieldOfStudy: 'Sciences',
-        amount: '$50,000 CAD/year',
-        deadline: '2025-12-01',
-        description:
-          'The Vanier CGS program aims to attract and retain world-class doctoral students by supporting those who demonstrate leadership skills and a high standard of scholarly achievement.',
-        eligibility: [
-          'Nominated by Canadian institution',
-          'Excellent academic record',
-          'Leadership capabilities',
-          'Research potential',
-        ],
-        fundingDetails: '$50,000 per year for three years of doctoral studies. Non-renewable.',
-        requirements: [
-          'Nomination by university',
-          'Research proposal',
-          'Leadership statement',
-          'Three reference letters',
-          'Complete academic record',
-        ],
-        isSaved: false,
-      },
-      {
-        id: 4,
-        title: 'Australia Awards Scholarship',
-        provider: 'Australian Government',
-        country: 'Australia',
-        level: 'Masters',
-        fundingType: 'Full Funding',
-        fieldOfStudy: 'Business',
-        amount: 'Full Coverage',
-        deadline: '2026-01-30',
-        description:
-          'Australia Awards Scholarships provide opportunities for people from developing countries to undertake full-time undergraduate or postgraduate study at participating Australian universities.',
-        eligibility: [
-          'Citizens of eligible countries',
-          'Minimum two years work experience',
-          'Meet English language requirements',
-          'Not hold Australian citizenship',
-        ],
-        fundingDetails:
-          'Full tuition, return air travel, establishment allowance, contribution to living expenses, health cover.',
-        requirements: [
-          'Online application form',
-          'Academic transcripts',
-          'Employment references',
-          'English test scores',
-          'Statement of purpose',
-        ],
-        isSaved: false,
-      },
-      {
-        id: 5,
-        title: 'DAAD Scholarship',
-        provider: 'German Academic Exchange Service',
-        country: 'Germany',
-        level: 'Masters',
-        fundingType: 'Partial Funding',
-        fieldOfStudy: 'Engineering',
-        amount: '€934/month',
-        deadline: '2025-11-30',
-        description:
-          'DAAD scholarships support highly qualified international students to pursue Masters degrees at German universities.',
-        eligibility: [
-          'Undergraduate degree completed',
-          'At least two years work experience',
-          'German or English proficiency',
-          'Clear career development plan',
-        ],
-        fundingDetails:
-          'Monthly stipend of €934, health insurance, travel allowance. Tuition fees covered at public universities.',
-        requirements: [
-          'DAAD application portal',
-          'Letter of motivation',
-          'University transcripts',
-          'Two reference letters',
-          'Language certificate',
-        ],
-        isSaved: false,
-      },
-      {
-        id: 6,
-        title: 'Erasmus Mundus Joint Masters',
-        provider: 'European Union',
-        country: 'Netherlands',
-        level: 'Masters',
-        fundingType: 'Full Funding',
-        fieldOfStudy: 'Arts',
-        amount: '€25,000',
-        deadline: '2026-01-15',
-        description:
-          'Erasmus Mundus provides scholarships for students to study integrated Masters programmes offered by consortia of European universities.',
-        eligibility: [
-          'Any nationality eligible',
-          'Bachelors degree or equivalent',
-          'Meet consortium requirements',
-          'English proficiency',
-        ],
-        fundingDetails:
-          'Monthly allowance, participation costs, travel and installation costs, insurance coverage.',
-        requirements: [
-          'Programme-specific application',
-          'Academic records',
-          'Motivation letter',
-          'Two recommendations',
-          'Language certificates',
-        ],
-        isSaved: true,
-      },
-      {
-        id: 7,
-        title: 'Swedish Institute Scholarship',
-        provider: 'Swedish Institute',
-        country: 'Sweden',
-        level: 'Masters',
-        fundingType: 'Full Funding',
-        fieldOfStudy: 'Social Sciences',
-        amount: 'Full Coverage',
-        deadline: '2026-02-20',
-        description:
-          'SISGP offers scholarships for global professionals from eligible countries to pursue Masters programmes in Sweden.',
-        eligibility: [
-          'Citizens of eligible countries',
-          'Demonstrated leadership experience',
-          'Work experience required',
-          'Meet university admission requirements',
-        ],
-        fundingDetails:
-          'Full tuition, living expenses (15,000 SEK/month), travel grant, insurance.',
-        requirements: [
-          'Online application',
-          'CV and motivation letter',
-          'Two recommendation letters',
-          'University admission',
-          'Leadership essay',
-        ],
-        isSaved: false,
-      },
-      {
-        id: 8,
-        title: 'Singapore International Graduate Award',
-        provider: 'Agency for Science, Technology and Research',
-        country: 'Singapore',
-        level: 'PhD',
-        fundingType: 'Full Funding',
-        fieldOfStudy: 'Sciences',
-        amount: 'S$2,500/month',
-        deadline: '2025-12-01',
-        description:
-          'SINGA supports international students to pursue PhD studies in science and engineering at leading Singapore institutions.',
-        eligibility: [
-          'Excellent academic record',
-          'Passion for research',
-          'Good communication skills',
-          'International applicants',
-        ],
-        fundingDetails:
-          'Monthly stipend of S$2,500-3,200, tuition fees, one-time airfare grant, settling-in allowance.',
-        requirements: [
-          'Online application',
-          'Academic transcripts',
-          'Research proposal',
-          'Two reference letters',
-          'English proficiency proof',
-        ],
-        isSaved: false,
-      },
-      {
-        id: 9,
-        title: 'Rhodes Scholarship',
-        provider: 'Rhodes Trust',
-        country: 'UK',
-        level: 'Masters',
-        fundingType: 'Full Funding',
-        fieldOfStudy: 'Law',
-        amount: 'Full Coverage',
-        deadline: '2025-10-01',
-        description:
-          'The Rhodes Scholarship is one of the oldest and most prestigious international scholarship programmes, enabling outstanding young people to study at Oxford.',
-        eligibility: [
-          'Age 18-28',
-          'Exceptional academic achievement',
-          'Leadership and service',
-          'Citizens of eligible countries',
-        ],
-        fundingDetails:
-          'University and college fees, annual stipend, health insurance, settling-in allowance, return economy airfare.',
-        requirements: [
-          'Online application',
-          'Personal statement',
-          'Four to eight references',
-          'Academic transcripts',
-          'Interview (if shortlisted)',
-        ],
-        isSaved: false,
-      },
-    ];
+      error: (err) => console.error('Failed to load scholarships', err),
+    });
   }
 
-  constructor(private authService: AuthService, private router: Router) {}
+  mapToUI(s: any): ScholarshipUI {
+    const eligibility: string[] = [];
+
+    if (s.eligibility?.minGPA) {
+      eligibility.push(`Minimum GPA: ${s.eligibility.minGPA}`);
+    }
+    if (s.eligibility?.educationLevel?.length) {
+      eligibility.push(`Level: ${s.eligibility.educationLevel.join(', ')}`);
+    }
+    if (s.eligibility?.fieldOfStudy?.length) {
+      eligibility.push(`Field: ${s.eligibility.fieldOfStudy.join(', ')}`);
+    }
+    if (s.eligibility?.countries?.length) {
+      eligibility.push(`Countries: ${s.eligibility.countries.join(', ')}`);
+    }
+    const fields = this.normalizeToArray(s.fields_of_study);
+    return {
+      id: s.scholarship_id, // ✅ FIXED
+      title: s.title ?? 'Untitled Scholarship',
+      provider:
+        s.organization_name ??
+        (`${s.provider?.firstName ?? ''} ${s.provider?.lastName ?? ''}`.trim() ||
+          'Unknown Provider'),
+
+      country: s.country ?? 'Any',
+      level: s.education_level ?? 'Any',
+      fundingType: s.scholarship_type ?? 'Partial Funding',
+
+      fieldOfStudy: fields[0] ?? 'Any',
+
+      amount: s.scholarship_type ?? 'Varies',
+
+      deadline: s.deadline ? new Date(s.deadline).toISOString().split('T')[0] : '',
+
+      description: s.description ?? '',
+      eligibility: [s.eligibility_criteria].filter(Boolean),
+      fundingDetails: s.application_link ?? '',
+      requirements: [],
+      isSaved: false,
+    };
+  }
 
   applyFilters(): void {
     let filtered = [...this.scholarships];
@@ -410,13 +235,12 @@ export class Scholarships {
 
     // Sort
     this.sortScholarships(filtered);
-
     this.filteredScholarships = filtered;
     this.totalPages = Math.ceil(filtered.length / this.itemsPerPage);
     this.currentPage = 1;
   }
 
-  sortScholarships(scholarships: Scholarship[]): void {
+  sortScholarships(scholarships: ScholarshipUI[]): void {
     scholarships.sort((a, b) => {
       switch (this.sortBy) {
         case 'deadline':
@@ -452,7 +276,7 @@ export class Scholarships {
     this.applyFilters();
   }
 
-  getPaginatedScholarships(): Scholarship[] {
+  getPaginatedScholarships(): ScholarshipUI[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
     const end = start + this.itemsPerPage;
     return this.filteredScholarships.slice(start, end);
@@ -490,20 +314,17 @@ export class Scholarships {
     return pages;
   }
 
-  viewScholarship(scholarship: Scholarship): void {
-    this.selectedScholarship = scholarship;
-    this.loadRelatedScholarships(scholarship);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  viewScholarship(s: ScholarshipUI): void {
+    this.selectedScholarship = s;
+    this.loadRelatedScholarships(s);
   }
 
-  loadRelatedScholarships(scholarship: Scholarship): void {
+  loadRelatedScholarships(s: ScholarshipUI): void {
     this.relatedScholarships = this.scholarships
       .filter(
-        (s) =>
-          s.id !== scholarship.id &&
-          (s.level === scholarship.level ||
-            s.fieldOfStudy === scholarship.fieldOfStudy ||
-            s.country === scholarship.country)
+        (x) =>
+          x.id !== s.id &&
+          (x.level === s.level || x.fieldOfStudy === s.fieldOfStudy || x.country === s.country)
       )
       .slice(0, 3);
   }
@@ -511,22 +332,38 @@ export class Scholarships {
   backToList(): void {
     this.selectedScholarship = null;
   }
+  toggleSave(scholarship: ScholarshipUI): void {
+    if (!scholarship.id) {
+      console.error('Scholarship ID is missing', scholarship);
+      return;
+    }
 
-  toggleSave(scholarship: Scholarship): void {
-    scholarship.isSaved = !scholarship.isSaved;
+    if (scholarship.isSaved) {
+      this.userScholarshipService.removeBookmark(scholarship.id).subscribe({
+        next: () => (scholarship.isSaved = false),
+        error: (err) => console.error('Failed to remove bookmark', err),
+      });
+    } else {
+      this.userScholarshipService.bookmarkScholarship(scholarship.id).subscribe({
+        next: () => (scholarship.isSaved = true),
+        error: (err) => console.error('Failed to bookmark', err),
+      });
+    }
   }
 
-  applyScholarship(scholarship: Scholarship): void {
-    console.log('Applying for scholarship:', scholarship.title);
-    // Implement application logic
+  applyScholarship(scholarship: ScholarshipUI): void {
+    this.userScholarshipService.markAsApplied(scholarship.id).subscribe({
+      next: () => alert('Application submitted successfully'),
+      error: () => alert('Failed to apply'),
+    });
   }
 
-  getDaysRemaining(deadline: string): number {
+  getDaysRemaining(deadline: string | Date): number {
     const today = new Date();
-    const deadlineDate = new Date(deadline);
+    const deadlineDate = deadline instanceof Date ? deadline : new Date(deadline);
+
     const diffTime = deadlineDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
   toggleFilters(): void {
