@@ -1,6 +1,10 @@
-<app-dashboard-layout [title]="'Manage Scholarships'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
+<app-dashboard-layout
+  [title]="'Manage Scholarships'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
   <section class="manage-scholarships-container">
-    
     <!-- Header Section -->
     <div class="header-section">
       <div class="header-content">
@@ -24,27 +28,27 @@
           </div>
         </div>
       </div>
-      
+
       <div class="summary-card pending">
         <div class="card-content">
           <div class="card-icon">⏳</div>
           <div class="card-data">
-            <span class="card-value">{{ getScholarshipsByStatus('Pending').length }}</span>
+            <span class="card-value">{{ getScholarshipsByStatus('pending').length }}</span>
             <span class="card-label">Pending Review</span>
           </div>
         </div>
       </div>
-      
+
       <div class="summary-card approved">
         <div class="card-content">
           <div class="card-icon">✅</div>
           <div class="card-data">
-            <span class="card-value">{{ getScholarshipsByStatus('Approved').length }}</span>
+            <span class="card-value">{{ getScholarshipsByStatus('approved').length }}</span>
             <span class="card-label">Approved</span>
           </div>
         </div>
       </div>
-      
+
       <div class="summary-card applications">
         <div class="card-content">
           <div class="card-icon">👥</div>
@@ -61,31 +65,32 @@
       <div class="search-container">
         <div class="search-input-wrapper">
           <span class="search-icon">🔍</span>
-          <input 
-            type="text" 
-            placeholder="Search scholarships..." 
+          <input
+            type="text"
+            placeholder="Search scholarships..."
             [(ngModel)]="searchTerm"
             (input)="applyFilters()"
-            class="search-input">
+            class="search-input"
+          />
         </div>
       </div>
-      
+
       <div class="filter-controls">
         <select [(ngModel)]="statusFilter" (change)="applyFilters()" class="filter-select">
           <option value="">All Status</option>
-          <option value="Pending">Pending</option>
-          <option value="Approved">Approved</option>
-          <option value="Rejected">Rejected</option>
-          <option value="Expired">Expired</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+          <option value="expired">Expired</option>
         </select>
-        
+
         <select [(ngModel)]="sortBy" (change)="applyFilters()" class="filter-select">
           <option value="dateCreated">Sort by Date Created</option>
           <option value="title">Sort by Title</option>
           <option value="applications">Sort by Applications</option>
           <option value="views">Sort by Views</option>
         </select>
-        
+
         <button class="filter-btn" [class.active]="showExpiredOnly" (click)="toggleExpiredOnly()">
           <span class="icon">⏰</span>
           {{ showExpiredOnly ? 'Show All' : 'Expired Only' }}
@@ -96,19 +101,25 @@
     <!-- Scholarships Table -->
     <div class="table-container">
       <div class="table-header">
-        <h3>{{ filteredScholarships.length }} Scholarship{{ filteredScholarships.length !== 1 ? 's' : '' }}</h3>
+        <h3>
+          {{ filteredScholarships.length }} Scholarship{{
+            filteredScholarships.length !== 1 ? 's' : ''
+          }}
+        </h3>
         <div class="view-controls">
-          <button 
-            class="view-btn" 
+          <button
+            class="view-btn"
             [class.active]="viewMode === 'table'"
-            (click)="setViewMode('table')">
+            (click)="setViewMode('table')"
+          >
             <span class="icon">📋</span>
             Table
           </button>
-          <button 
-            class="view-btn" 
+          <button
+            class="view-btn"
             [class.active]="viewMode === 'cards'"
-            (click)="setViewMode('cards')">
+            (click)="setViewMode('cards')"
+          >
             <span class="icon">📱</span>
             Cards
           </button>
@@ -144,32 +155,33 @@
                     </span>
                     <span class="meta-item">
                       <span class="icon">📅</span>
-                      Created {{ scholarship.dateCreated | date:'MMM dd, yyyy' }}
+                      Created {{ scholarship.dateCreated | date : 'MMM dd, yyyy' }}
                     </span>
                   </div>
                 </div>
               </td>
-              
+
               <td class="status-cell">
-                <span 
-                  class="status-badge"
-                  [class]="getStatusClass(scholarship.status)">
+                <span class="status-badge" [class]="getStatusClass(scholarship.status)">
                   {{ scholarship.status }}
                 </span>
               </td>
-              
+
               <td class="deadline-cell">
                 <div class="deadline-info">
-                  <span class="deadline-date">{{ scholarship.applicationDeadline | date:'MMM dd, yyyy' }}</span>
-                  <span 
+                  <span class="deadline-date">{{
+                    scholarship.applicationDeadline | date : 'MMM dd, yyyy'
+                  }}</span>
+                  <span
                     class="deadline-status"
                     [class.expired]="isExpired(scholarship.applicationDeadline)"
-                    [class.soon]="isDeadlineSoon(scholarship.applicationDeadline)">
+                    [class.soon]="isDeadlineSoon(scholarship.applicationDeadline)"
+                  >
                     {{ getDeadlineText(scholarship.applicationDeadline) }}
                   </span>
                 </div>
               </td>
-              
+
               <td class="analytics-cell">
                 <div class="analytics-grid">
                   <div class="analytics-item">
@@ -189,26 +201,29 @@
                   </div>
                 </div>
               </td>
-              
+
               <td class="actions-cell">
                 <div class="action-buttons">
-                  <button 
-                    class="action-btn view" 
+                  <button
+                    class="action-btn view"
                     (click)="viewScholarship(scholarship)"
-                    title="View Details">
+                    title="View Details"
+                  >
                     📄
                   </button>
-                  <button 
-                    class="action-btn edit" 
+                  <button
+                    class="action-btn edit"
                     (click)="editScholarship(scholarship)"
                     title="Edit Scholarship"
-                    [disabled]="scholarship.status === 'Rejected'">
+                    [disabled]="scholarship.status === 'rejected'"
+                  >
                     ✏️
                   </button>
-                  <button 
-                    class="action-btn delete" 
+                  <button
+                    class="action-btn delete"
                     (click)="deleteScholarship(scholarship)"
-                    title="Delete Scholarship">
+                    title="Delete Scholarship"
+                  >
                     ❌
                   </button>
                 </div>
@@ -216,14 +231,18 @@
             </tr>
           </tbody>
         </table>
-        
+
         <!-- Empty State -->
         <div class="empty-state" *ngIf="filteredScholarships.length === 0">
           <div class="empty-icon">📚</div>
           <h3>No scholarships found</h3>
           <p *ngIf="searchTerm || statusFilter">Try adjusting your filters or search terms</p>
           <p *ngIf="!searchTerm && !statusFilter">You haven't posted any scholarships yet</p>
-          <button class="btn btn-primary" (click)="navigateToPost()" *ngIf="!searchTerm && !statusFilter">
+          <button
+            class="btn btn-primary"
+            (click)="navigateToPost()"
+            *ngIf="!searchTerm && !statusFilter"
+          >
             Post Your First Scholarship
           </button>
         </div>
@@ -231,79 +250,41 @@
 
       <!-- Card View -->
       <div class="cards-container" *ngIf="viewMode === 'cards'">
-        <div class="scholarship-card" *ngFor="let scholarship of filteredScholarships; trackBy: trackByScholarshipId">
-          <div class="card-header">
-            <div class="card-title-section">
-              <h4 class="card-title">{{ scholarship.title }}</h4>
-              <span 
-                class="status-badge small"
-                [class]="getStatusClass(scholarship.status)">
-                {{ scholarship.status }}
-              </span>
-            </div>
-            <div class="card-actions">
-              <button class="action-btn view" (click)="viewScholarship(scholarship)" title="View">📄</button>
-              <button class="action-btn edit" (click)="editScholarship(scholarship)" title="Edit" [disabled]="scholarship.status === 'Rejected'">✏️</button>
-              <button class="action-btn delete" (click)="deleteScholarship(scholarship)" title="Delete">❌</button>
-            </div>
-          </div>
-          
-          <div class="card-content">
-            <p class="card-summary">{{ scholarship.shortSummary }}</p>
-            
-            <div class="card-meta">
-              <span class="meta-item">🌍 {{ scholarship.country }}</span>
-              <span class="meta-item">🎓 {{ scholarship.educationLevel }}</span>
-            </div>
-            
-            <div class="card-deadline">
-              <span class="deadline-label">Deadline:</span>
-              <span class="deadline-date">{{ scholarship.applicationDeadline | date:'MMM dd, yyyy' }}</span>
-              <span 
-                class="deadline-status"
-                [class.expired]="isExpired(scholarship.applicationDeadline)"
-                [class.soon]="isDeadlineSoon(scholarship.applicationDeadline)">
-                ({{ getDeadlineText(scholarship.applicationDeadline) }})
-              </span>
-            </div>
-          </div>
-          
-          <div class="card-footer">
-            <div class="card-analytics">
-              <div class="analytics-item">
-                <span class="analytics-icon">👁️</span>
-                <span class="analytics-value">{{ scholarship.analytics.views }}</span>
-              </div>
-              <div class="analytics-item">
-                <span class="analytics-icon">🔖</span>
-                <span class="analytics-value">{{ scholarship.analytics.bookmarks }}</span>
-              </div>
-              <div class="analytics-item">
-                <span class="analytics-icon">📝</span>
-                <span class="analytics-value">{{ scholarship.analytics.applications }}</span>
-              </div>
-            </div>
-            <span class="created-date">{{ scholarship.dateCreated | date:'MMM dd' }}</span>
-          </div>
-        </div>
-        
+        <!-- card view unchanged, same class names and structure -->
+        <ng-container
+          *ngFor="let scholarship of filteredScholarships; trackBy: trackByScholarshipId"
+        >
+          <ng-container
+            *ngTemplateOutlet="cardTemplate; context: { $implicit: scholarship }"
+          ></ng-container>
+        </ng-container>
+
         <!-- Empty State for Cards -->
         <div class="empty-state" *ngIf="filteredScholarships.length === 0">
           <div class="empty-icon">📚</div>
           <h3>No scholarships found</h3>
           <p *ngIf="searchTerm || statusFilter">Try adjusting your filters or search terms</p>
           <p *ngIf="!searchTerm && !statusFilter">You haven't posted any scholarships yet</p>
-          <button class="btn btn-primary" (click)="navigateToPost()" *ngIf="!searchTerm && !statusFilter">
+          <button
+            class="btn btn-primary"
+            (click)="navigateToPost()"
+            *ngIf="!searchTerm && !statusFilter"
+          >
             Post Your First Scholarship
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Bulk Actions (when items are selected) -->
+    <!-- Bulk Actions -->
     <div class="bulk-actions" *ngIf="selectedScholarships.length > 0">
       <div class="bulk-info">
-        <span>{{ selectedScholarships.length }} scholarship{{ selectedScholarships.length !== 1 ? 's' : '' }} selected</span>
+        <span
+          >{{ selectedScholarships.length }} scholarship{{
+            selectedScholarships.length !== 1 ? 's' : ''
+          }}
+          selected</span
+        >
       </div>
       <div class="bulk-buttons">
         <button class="btn btn-outline" (click)="clearSelection()">Clear Selection</button>
@@ -311,53 +292,46 @@
       </div>
     </div>
 
+    <!-- View & Edit Modals unchanged, just TS hooks intact -->
+
     <!-- View Details Modal -->
-     <div class="modal-overlay" *ngIf="showViewModal" (click)="closeViewModal()">
+    <div class="modal-overlay" *ngIf="showViewModal" (click)="closeViewModal()">
       <div class="modal-container view-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h2>📄 Scholarship Details</h2>
           <button class="modal-close" (click)="closeViewModal()">✕</button>
         </div>
-        
         <div class="modal-body" *ngIf="currentScholarship">
           <div class="detail-section">
             <div class="detail-header">
               <h3>{{ currentScholarship.title }}</h3>
-              <span 
-                class="status-badge"
-                [class]="getStatusClass(currentScholarship.status)">
+              <span class="status-badge" [class]="getStatusClass(currentScholarship.status)">
                 {{ currentScholarship.status }}
               </span>
             </div>
           </div>
-
           <div class="detail-section">
             <h4 class="section-title">📝 Summary</h4>
             <p class="detail-text">{{ currentScholarship.shortSummary }}</p>
           </div>
-
           <div class="detail-grid">
             <div class="detail-item">
               <label class="detail-label">🏢 Organization</label>
               <p class="detail-value">{{ currentScholarship.organizationName }}</p>
             </div>
-
             <div class="detail-item">
               <label class="detail-label">🌍 Country</label>
               <p class="detail-value">{{ currentScholarship.country }}</p>
             </div>
-
             <div class="detail-item">
               <label class="detail-label">🎓 Education Level</label>
               <p class="detail-value">{{ currentScholarship.educationLevel }}</p>
             </div>
-
             <div class="detail-item">
               <label class="detail-label">💰 Scholarship Type</label>
               <p class="detail-value">{{ currentScholarship.scholarshipType }}</p>
             </div>
           </div>
-
           <div class="detail-section">
             <h4 class="section-title">📚 Fields of Study</h4>
             <div class="fields-tags">
@@ -366,27 +340,30 @@
               </span>
             </div>
           </div>
-
           <div class="detail-section">
             <h4 class="section-title">📅 Important Dates</h4>
             <div class="dates-info">
               <div class="date-item">
                 <span class="date-label">Application Deadline:</span>
-                <span class="date-value">{{ currentScholarship.applicationDeadline | date:'MMMM dd, yyyy' }}</span>
-                <span 
+                <span class="date-value">{{
+                  currentScholarship.applicationDeadline | date : 'MMMM dd, yyyy'
+                }}</span>
+                <span
                   class="deadline-status"
                   [class.expired]="isExpired(currentScholarship.applicationDeadline)"
-                  [class.soon]="isDeadlineSoon(currentScholarship.applicationDeadline)">
+                  [class.soon]="isDeadlineSoon(currentScholarship.applicationDeadline)"
+                >
                   ({{ getDeadlineText(currentScholarship.applicationDeadline) }})
                 </span>
               </div>
               <div class="date-item">
                 <span class="date-label">Date Created:</span>
-                <span class="date-value">{{ currentScholarship.dateCreated | date:'MMMM dd, yyyy' }}</span>
+                <span class="date-value">{{
+                  currentScholarship.dateCreated | date : 'MMMM dd, yyyy'
+                }}</span>
               </div>
             </div>
           </div>
-
           <div class="detail-section">
             <h4 class="section-title">📊 Analytics</h4>
             <div class="analytics-display">
@@ -407,26 +384,27 @@
               <div class="analytics-card">
                 <div class="analytics-icon">📝</div>
                 <div class="analytics-info">
-                  <span class="analytics-number">{{ currentScholarship.analytics.applications }}</span>
+                  <span class="analytics-number">{{
+                    currentScholarship.analytics.applications
+                  }}</span>
                   <span class="analytics-text">Applications</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
         <div class="modal-footer">
           <button class="btn btn-outline" (click)="closeViewModal()">Close</button>
-          <button 
-            class="btn btn-primary" 
+          <button
+            class="btn btn-primary"
             (click)="editScholarship(currentScholarship!); closeViewModal()"
-            [disabled]="currentScholarship?.status === 'Rejected'">
+            [disabled]="currentScholarship?.status === 'rejected'"
+          >
             ✏️ Edit Scholarship
           </button>
         </div>
       </div>
     </div>
-
     <!-- Edit Modal -->
     <div class="modal-overlay" *ngIf="showEditModal" (click)="closeEditModal()">
       <div class="modal-container edit-modal" (click)="$event.stopPropagation()">
@@ -434,95 +412,95 @@
           <h2>✏️ Edit Scholarship</h2>
           <button class="modal-close" (click)="closeEditModal()">✕</button>
         </div>
-        
         <div class="modal-body" *ngIf="editingScholarship">
           <form class="edit-form">
             <div class="form-group">
               <label class="form-label" for="edit-title">
                 Scholarship Title <span class="required">*</span>
               </label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 id="edit-title"
                 class="form-input"
                 [(ngModel)]="editingScholarship.title"
                 name="title"
                 placeholder="Enter scholarship title"
-                required>
+                required
+              />
             </div>
-
             <div class="form-group">
               <label class="form-label" for="edit-summary">
                 Short Summary <span class="required">*</span>
               </label>
-              <textarea 
+              <textarea
                 id="edit-summary"
                 class="form-textarea"
                 [(ngModel)]="editingScholarship.shortSummary"
                 name="summary"
                 rows="3"
                 placeholder="Brief description of the scholarship"
-                required></textarea>
+                required
+              ></textarea>
             </div>
-
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label" for="edit-organization">
                   Organization Name <span class="required">*</span>
                 </label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   id="edit-organization"
                   class="form-input"
                   [(ngModel)]="editingScholarship.organizationName"
                   name="organization"
                   placeholder="Organization name"
-                  required>
+                  required
+                />
               </div>
-
               <div class="form-group">
                 <label class="form-label" for="edit-country">
                   Country <span class="required">*</span>
                 </label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   id="edit-country"
                   class="form-input"
                   [(ngModel)]="editingScholarship.country"
                   name="country"
                   placeholder="Country"
-                  required>
+                  required
+                />
               </div>
             </div>
-
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label" for="edit-education">
                   Education Level <span class="required">*</span>
                 </label>
-                <select 
+                <select
                   id="edit-education"
                   class="form-select"
                   [(ngModel)]="editingScholarship.educationLevel"
                   name="educationLevel"
-                  required>
+                  required
+                >
                   <option value="Undergraduate / Bachelor's">Undergraduate / Bachelor's</option>
                   <option value="Graduate / Master's">Graduate / Master's</option>
                   <option value="Doctorate / PhD">Doctorate / PhD</option>
                   <option value="Any Level">Any Level</option>
                 </select>
               </div>
-
               <div class="form-group">
                 <label class="form-label" for="edit-type">
                   Scholarship Type <span class="required">*</span>
                 </label>
-                <select 
+                <select
                   id="edit-type"
                   class="form-select"
                   [(ngModel)]="editingScholarship.scholarshipType"
                   name="scholarshipType"
-                  required>
+                  required
+                >
                   <option value="Fully Funded">Fully Funded</option>
                   <option value="Partial Funding">Partial Funding</option>
                   <option value="Merit-based">Merit-based</option>
@@ -532,40 +510,43 @@
                 </select>
               </div>
             </div>
-
             <div class="form-group">
               <label class="form-label" for="edit-deadline">
                 Application Deadline <span class="required">*</span>
               </label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 id="edit-deadline"
                 class="form-input"
                 [value]="formatDateForInput(editingScholarship.applicationDeadline)"
                 (change)="updateDeadline($any($event.target).value)"
                 name="deadline"
-                required>
+                required
+              />
             </div>
-
             <div class="form-group">
-              <label class="form-label">
-                Fields of Study
-              </label>
+              <label class="form-label"> Fields of Study </label>
               <div class="fields-edit">
-                <div class="field-tag-editable" *ngFor="let field of editingScholarship.fieldsOfStudy; let i = index">
+                <div
+                  class="field-tag-editable"
+                  *ngFor="let field of editingScholarship.fieldsOfStudy; let i = index"
+                >
                   {{ field }}
-                  <button type="button" class="remove-field" (click)="editingScholarship.fieldsOfStudy.splice(i, 1)">✕</button>
+                  <button
+                    type="button"
+                    class="remove-field"
+                    (click)="editingScholarship.fieldsOfStudy.splice(i, 1)"
+                  >
+                    ✕
+                  </button>
                 </div>
               </div>
               <p class="form-hint">Note: Field management can be enhanced later</p>
             </div>
-
             <div class="form-group">
               <label class="form-label">Current Status</label>
               <div class="status-display">
-                <span 
-                  class="status-badge"
-                  [class]="getStatusClass(editingScholarship.status)">
+                <span class="status-badge" [class]="getStatusClass(editingScholarship.status)">
                   {{ editingScholarship.status }}
                 </span>
                 <p class="form-hint">Status is managed by administrators</p>
@@ -573,12 +554,9 @@
             </div>
           </form>
         </div>
-
         <div class="modal-footer">
           <button class="btn btn-outline" (click)="closeEditModal()">Cancel</button>
-          <button class="btn btn-primary" (click)="saveEditedScholarship()">
-            💾 Save Changes
-          </button>
+          <button class="btn btn-primary" (click)="saveEditedScholarship()">💾 Save Changes</button>
         </div>
       </div>
     </div>
@@ -592,3 +570,72 @@
   (confirm)="confirmLogout()"
   (cancel)="cancelLogout()"
 ></app-confirm-modal>
+
+<!-- Card template for ngTemplateOutlet (reuses original classes for SCSS) -->
+<ng-template #cardTemplate let-scholarship>
+  <div class="scholarship-card">
+    <div class="card-header">
+      <div class="card-title-section">
+        <h4 class="card-title">{{ scholarship.title }}</h4>
+        <span class="status-badge small" [class]="getStatusClass(scholarship.status)">
+          {{ scholarship.status }}
+        </span>
+      </div>
+      <div class="card-actions">
+        <button class="action-btn view" (click)="viewScholarship(scholarship)" title="View">
+          📄
+        </button>
+        <button
+          class="action-btn edit"
+          (click)="editScholarship(scholarship)"
+          title="Edit"
+          [disabled]="scholarship.status === 'rejected'"
+        >
+          ✏️
+        </button>
+        <button class="action-btn delete" (click)="deleteScholarship(scholarship)" title="Delete">
+          ❌
+        </button>
+      </div>
+    </div>
+
+    <div class="card-content">
+      <p class="card-summary">{{ scholarship.shortSummary }}</p>
+      <div class="card-meta">
+        <span class="meta-item">🌍 {{ scholarship.country }}</span>
+        <span class="meta-item">🎓 {{ scholarship.educationLevel }}</span>
+      </div>
+      <div class="card-deadline">
+        <span class="deadline-label">Deadline:</span>
+        <span class="deadline-date">{{
+          scholarship.applicationDeadline | date : 'MMM dd, yyyy'
+        }}</span>
+        <span
+          class="deadline-status"
+          [class.expired]="isExpired(scholarship.applicationDeadline)"
+          [class.soon]="isDeadlineSoon(scholarship.applicationDeadline)"
+        >
+          ({{ getDeadlineText(scholarship.applicationDeadline) }})
+        </span>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <div class="card-analytics">
+        <div class="analytics-item">
+          <span class="analytics-icon">👁️</span>
+          <span class="analytics-value">{{ scholarship.analytics.views }}</span>
+        </div>
+        <div class="analytics-item">
+          <span class="analytics-icon">🔖</span>
+          <span class="analytics-value">{{ scholarship.analytics.bookmarks }}</span>
+        </div>
+        <div class="analytics-item">
+          <span class="analytics-icon">📝</span>
+          <span class="analytics-value">{{ scholarship.analytics.applications }}</span>
+        </div>
+      </div>
+      <span class="created-date">{{ scholarship.dateCreated | date : 'MMM dd' }}</span>
+    </div>
+  </div>
+</ng-template>

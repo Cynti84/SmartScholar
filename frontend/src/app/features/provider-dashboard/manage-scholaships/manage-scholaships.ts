@@ -4,6 +4,7 @@ import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashbo
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { ProviderService } from '../../../core/services/provider.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 
@@ -22,7 +23,7 @@ interface Scholarship {
   educationLevel: string;
   scholarshipType: string;
   fieldsOfStudy: string[];
-  status: 'Pending' | 'Approved' | 'Rejected' | 'Expired';
+  status: 'pending' | 'approved' | 'rejected' | 'expired';
   applicationDeadline: Date;
   dateCreated: Date;
   analytics: ScholarshipAnalytics;
@@ -38,7 +39,9 @@ type SortOption = 'dateCreated' | 'title' | 'applications' | 'views';
   styleUrl: './manage-scholaships.scss',
 })
 export class ManageScholaships implements OnInit {
-  //menu for navigation
+  // =========================
+  // MENU
+  // =========================
   menu = [
     { label: 'Overview', route: '/provider' },
     { label: 'Post Scholarships', route: '/provider/post' },
@@ -48,153 +51,135 @@ export class ManageScholaships implements OnInit {
     { label: 'Logout', action: 'logout' },
   ];
 
-  // Component state
+  // =========================
+  // STATE
+  // =========================
   scholarships: Scholarship[] = [];
   filteredScholarships: Scholarship[] = [];
   selectedScholarships: string[] = [];
   viewMode: ViewMode = 'table';
 
-  // Modal state
+  loading = false;
+  error = '';
+
+  // =========================
+  // MODALS
+  // =========================
   showViewModal = false;
   showEditModal = false;
   currentScholarship: Scholarship | null = null;
   editingScholarship: Scholarship | null = null;
 
-  // Filters
+  // =========================
+  // FILTERS
+  // =========================
   searchTerm = '';
   statusFilter = '';
   sortBy: SortOption = 'dateCreated';
   showExpiredOnly = false;
 
-  constructor(private router: Router, private authService: AuthService) {}
+  showLogoutModal = false;
 
-  ngOnInit() {
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private providerService: ProviderService
+  ) {}
+
+  // =========================
+  // INIT
+  // =========================
+  ngOnInit(): void {
     this.loadScholarships();
-    this.applyFilters();
   }
 
+  // =========================
+  // LOAD FROM API
+  // =========================
   private loadScholarships(): void {
-    // Sample data - replace with actual API call
-    this.scholarships = [
-      {
-        id: '1',
-        title: 'Excellence Scholarship for Engineering Students',
-        shortSummary:
-          'Full funding opportunity for outstanding engineering students pursuing their masters degree',
-        organizationName: 'Tech Foundation',
-        country: 'United States',
-        educationLevel: "Graduate / Master's",
-        scholarshipType: 'Fully Funded',
-        fieldsOfStudy: ['Engineering', 'Computer Science'],
-        status: 'Approved',
-        applicationDeadline: new Date('2025-12-15'),
-        dateCreated: new Date('2025-01-15'),
-        analytics: { views: 1250, bookmarks: 89, applications: 145 },
+    this.loading = true;
+    this.error = '';
+
+    this.providerService.getMyScholarships().subscribe({
+      next: (res: any) => {
+        const rows: any[] = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+
+        this.scholarships = rows
+          .filter((s) => s && s.scholarship_id) // 👈 important guard
+          .map((s) => this.mapScholarship(s));
+
+        this.applyFilters();
+        this.loading = false;
       },
-      {
-        id: '2',
-        title: 'Women in STEM Leadership Grant',
-        shortSummary:
-          'Supporting female students in Science, Technology, Engineering, and Mathematics fields',
-        organizationName: 'STEM Advancement Society',
-        country: 'Canada',
-        educationLevel: "Undergraduate / Bachelor's",
-        scholarshipType: 'Partial Funding',
-        fieldsOfStudy: ['Engineering', 'Computer Science', 'Mathematics'],
-        status: 'Pending',
-        applicationDeadline: new Date('2025-11-30'),
-        dateCreated: new Date('2025-02-20'),
-        analytics: { views: 890, bookmarks: 67, applications: 89 },
+      error: (err) => {
+        console.error('Load scholarships failed:', err);
+        this.error = 'Failed to load scholarships';
+        this.loading = false;
       },
-      {
-        id: '3',
-        title: 'International Business Excellence Award',
-        shortSummary:
-          'Merit-based scholarship for international students in business administration',
-        organizationName: 'Global Business Institute',
-        country: 'United Kingdom',
-        educationLevel: "Graduate / Master's",
-        scholarshipType: 'Merit-based',
-        fieldsOfStudy: ['Business Administration', 'Economics', 'Finance'],
-        status: 'Approved',
-        applicationDeadline: new Date('2025-10-30'),
-        dateCreated: new Date('2025-03-10'),
-        analytics: { views: 2100, bookmarks: 156, applications: 234 },
-      },
-      {
-        id: '4',
-        title: 'Medical Research Fellowship',
-        shortSummary:
-          'Research-focused fellowship for medical students interested in clinical research',
-        organizationName: 'Medical Research Foundation',
-        country: 'Australia',
-        educationLevel: 'Doctorate / PhD',
-        scholarshipType: 'Fellowship',
-        fieldsOfStudy: ['Medicine', 'Public Health'],
-        status: 'Expired',
-        applicationDeadline: new Date('2024-08-15'),
-        dateCreated: new Date('2024-05-20'),
-        analytics: { views: 567, bookmarks: 34, applications: 45 },
-      },
-      {
-        id: '5',
-        title: 'Environmental Science Innovation Grant',
-        shortSummary: 'Supporting innovative research in environmental science and sustainability',
-        organizationName: 'Green Future Foundation',
-        country: 'Germany',
-        educationLevel: 'Doctorate / PhD',
-        scholarshipType: 'Research Grant',
-        fieldsOfStudy: ['Environmental Science', 'Biology'],
-        status: 'Rejected',
-        applicationDeadline: new Date('2025-09-20'),
-        dateCreated: new Date('2025-01-08'),
-        analytics: { views: 340, bookmarks: 12, applications: 8 },
-      },
-      {
-        id: '6',
-        title: 'African Students Excellence Program',
-        shortSummary: 'Full scholarship program for African students pursuing higher education',
-        organizationName: 'Education for Africa',
-        country: 'Kenya',
-        educationLevel: "Undergraduate / Bachelor's",
-        scholarshipType: 'Fully Funded',
-        fieldsOfStudy: ['Any Level'],
-        status: 'Approved',
-        applicationDeadline: new Date('2026-01-15'),
-        dateCreated: new Date('2025-04-01'),
-        analytics: { views: 3200, bookmarks: 245, applications: 456 },
-      },
-    ];
+    });
   }
 
-  // Filtering and sorting methods
+  // =========================
+  // MAP API → UI MODEL
+  // =========================
+  private mapScholarship(api: any): Scholarship {
+    if (!api) {
+      console.warn('mapScholarship called with invalid value:', api);
+      return null as any;
+    }
+
+    return {
+      id: String(api.scholarship_id),
+      title: api.title ?? '',
+      shortSummary: api.short_summary ?? '',
+      organizationName: api.organization_name ?? '',
+      country: api.country ?? '',
+      educationLevel: api.education_level ?? '',
+      scholarshipType: api.scholarship_type ?? '',
+      fieldsOfStudy: Array.isArray(api.fields_of_study)
+        ? api.fields_of_study.flatMap((f: string) =>
+            typeof f === 'string' ? f.split(',').map((v) => v.trim()) : []
+          )
+        : typeof api.fields_of_study === 'string'
+        ? api.fields_of_study.split(',').map((v: string) => v.trim())
+        : [],
+      status: api.status ?? 'draft',
+      applicationDeadline: new Date(api.deadline),
+      dateCreated: new Date(api.created_at),
+      analytics: {
+        views: api.views ?? 0,
+        bookmarks: api.bookmarks ?? 0,
+        applications: api.applications ?? 0,
+      },
+    };
+  }
+
+  // =========================
+  // FILTERING & SORTING
+  // =========================
   applyFilters(): void {
     let filtered = [...this.scholarships];
 
-    // Apply search filter
     if (this.searchTerm) {
-      const searchLower = this.searchTerm.toLowerCase();
+      const q = this.searchTerm.toLowerCase();
       filtered = filtered.filter(
-        (scholarship) =>
-          scholarship.title.toLowerCase().includes(searchLower) ||
-          scholarship.shortSummary.toLowerCase().includes(searchLower) ||
-          scholarship.organizationName.toLowerCase().includes(searchLower) ||
-          scholarship.country.toLowerCase().includes(searchLower) ||
-          scholarship.fieldsOfStudy.some((field) => field.toLowerCase().includes(searchLower))
+        (s) =>
+          s.title.toLowerCase().includes(q) ||
+          s.shortSummary.toLowerCase().includes(q) ||
+          s.organizationName.toLowerCase().includes(q) ||
+          s.country.toLowerCase().includes(q) ||
+          s.fieldsOfStudy.some((f) => f.toLowerCase().includes(q))
       );
     }
 
-    // Apply status filter
     if (this.statusFilter) {
-      filtered = filtered.filter((scholarship) => scholarship.status === this.statusFilter);
+      filtered = filtered.filter((s) => s.status === this.statusFilter);
     }
 
-    // Apply expired only filter
     if (this.showExpiredOnly) {
-      filtered = filtered.filter((scholarship) => this.isExpired(scholarship.applicationDeadline));
+      filtered = filtered.filter((s) => this.isExpired(s.applicationDeadline));
     }
 
-    // Apply sorting
     filtered.sort((a, b) => {
       switch (this.sortBy) {
         case 'title':
@@ -203,7 +188,6 @@ export class ManageScholaships implements OnInit {
           return b.analytics.applications - a.analytics.applications;
         case 'views':
           return b.analytics.views - a.analytics.views;
-        case 'dateCreated':
         default:
           return b.dateCreated.getTime() - a.dateCreated.getTime();
       }
@@ -212,89 +196,18 @@ export class ManageScholaships implements OnInit {
     this.filteredScholarships = filtered;
   }
 
-  // Utility methods
-  getTotalScholarships(): number {
-    return this.scholarships.length;
-  }
-
-  getTotalApplications(): number {
-    return this.scholarships.reduce(
-      (total, scholarship) => total + scholarship.analytics.applications,
-      0
-    );
-  }
-
-  getScholarshipsByStatus(status: string): Scholarship[] {
-    return this.scholarships.filter((scholarship) => scholarship.status === status);
-  }
-
-  getStatusClass(status: string): string {
-    return status.toLowerCase();
-  }
-
-  isExpired(deadline: Date): boolean {
-    return new Date() > deadline;
-  }
-
-  isDeadlineSoon(deadline: Date): boolean {
-    const now = new Date();
-    const daysUntilDeadline = Math.ceil(
-      (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    return daysUntilDeadline <= 30 && daysUntilDeadline > 0;
-  }
-
-  getDeadlineText(deadline: Date): string {
-    const now = new Date();
-    const diffTime = deadline.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) {
-      return 'Expired';
-    } else if (diffDays === 0) {
-      return 'Today';
-    } else if (diffDays === 1) {
-      return '1 day left';
-    } else if (diffDays <= 7) {
-      return `${diffDays} days left`;
-    } else if (diffDays <= 30) {
-      return `${diffDays} days left`;
-    } else {
-      return `${Math.ceil(diffDays / 30)} months left`;
-    }
-  }
-
-  // View mode methods
-  setViewMode(mode: ViewMode): void {
-    this.viewMode = mode;
-  }
-
-  // Filter toggle methods
-  toggleExpiredOnly(): void {
-    this.showExpiredOnly = !this.showExpiredOnly;
-    this.applyFilters();
-  }
-
-  // Selection methods
-  toggleSelection(scholarshipId: string): void {
-    const index = this.selectedScholarships.indexOf(scholarshipId);
-    if (index > -1) {
-      this.selectedScholarships.splice(index, 1);
-    } else {
-      this.selectedScholarships.push(scholarshipId);
-    }
-  }
-
-  clearSelection(): void {
-    this.selectedScholarships = [];
-  }
-
-  // Modal methods
-  viewScholarship(scholarship: Scholarship): void {
-    console.log('Viewing scholarship:', scholarship);
-    // Implement navigation to scholarship detail view
-    this.currentScholarship = scholarship;
-    this.showViewModal = true;
+  // =========================
+  // VIEW
+  // =========================
+  viewScholarship(s: Scholarship): void {
+    console.log('Showing scholarship...');
+    this.providerService.getScholarshipById(+s.id).subscribe({
+      next: (res) => {
+        this.currentScholarship = this.mapScholarship(res);
+        console.log('Showing scholarship', res);
+        this.showViewModal = true;
+      },
+    });
   }
 
   closeViewModal(): void {
@@ -302,22 +215,16 @@ export class ManageScholaships implements OnInit {
     this.currentScholarship = null;
   }
 
-  editScholarship(scholarship: Scholarship): void {
-    if (scholarship.status === 'Rejected') {
-      alert('Rejected scholarships cannot be edited. Please create a new scholarship instead.');
+  // =========================
+  // EDIT
+  // =========================
+  editScholarship(s: Scholarship): void {
+    if (s.status === 'rejected') {
+      alert('Rejected scholarships cannot be edited.');
       return;
     }
 
-    console.log('Editing scholarship:', scholarship);
-    // Implement navigation to edit form with pre-filled data
-    //create a deep copy for editing
-    this.editingScholarship = {
-      ...scholarship,
-      fieldsOfStudy: [...scholarship.fieldsOfStudy],
-      applicationDeadline: new Date(scholarship.applicationDeadline),
-      dateCreated: new Date(scholarship.dateCreated),
-      analytics: { ...scholarship.analytics },
-    };
+    this.editingScholarship = JSON.parse(JSON.stringify(s));
     this.showEditModal = true;
   }
 
@@ -329,28 +236,141 @@ export class ManageScholaships implements OnInit {
   saveEditedScholarship(): void {
     if (!this.editingScholarship) return;
 
-    //validation
-    if (!this.editingScholarship.title.trim()) {
-      alert('Title is required');
-      return;
-    }
-    if (!this.editingScholarship.shortSummary.trim()) {
-      alert('Summary is required');
-      return;
-    }
-    if (!this.editingScholarship.organizationName.trim()) {
-      alert('Organization name is required');
-      return;
-    }
+    const formData = new FormData();
+    Object.entries(this.editingScholarship).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        formData.append(key, Array.isArray(value) ? JSON.stringify(value) : String(value));
+      }
+    });
 
-    //find and update the scholarship in the array
-    const index = this.scholarships.findIndex((s) => s.id === this.editingScholarship!.id);
-    if (index !== -1) {
-      this.scholarships[index] = { ...this.editingScholarship };
-      this.applyFilters();
-      this.showNotification('Scholarship updated successfully', 'success');
-    }
-    this.closeEditModal();
+    this.providerService.updateScholarship(+this.editingScholarship.id, formData).subscribe({
+      next: () => {
+        this.showNotification('Scholarship updated', 'success');
+        this.closeEditModal();
+        this.loadScholarships();
+      },
+      error: () => {
+        this.showNotification('Update failed', 'error');
+      },
+    });
+  }
+
+  // =========================
+  // DELETE
+  // =========================
+  deleteScholarship(s: Scholarship): void {
+    if (!confirm(`Delete "${s.title}"?`)) return;
+
+    this.providerService.deleteScholarship(+s.id).subscribe({
+      next: () => {
+        this.showNotification('Scholarship deleted', 'success');
+        this.loadScholarships();
+      },
+      error: () => {
+        this.showNotification('Delete failed', 'error');
+      },
+    });
+  }
+
+  bulkDelete(): void {
+    if (this.selectedScholarships.length === 0) return;
+
+    if (!confirm(`Delete ${this.selectedScholarships.length} scholarships?`)) return;
+
+    Promise.all(
+      this.selectedScholarships.map((id) => this.providerService.deleteScholarship(+id).toPromise())
+    ).then(() => {
+      this.clearSelection();
+      this.loadScholarships();
+      this.showNotification('Scholarships deleted', 'success');
+    });
+  }
+
+  // =========================
+  // UTILITIES
+  // =========================
+  isExpired(date: Date): boolean {
+    return new Date() > new Date(date);
+  }
+
+  toggleSelection(id: string): void {
+    this.selectedScholarships.includes(id)
+      ? (this.selectedScholarships = this.selectedScholarships.filter((x) => x !== id))
+      : this.selectedScholarships.push(id);
+  }
+
+  clearSelection(): void {
+    this.selectedScholarships = [];
+  }
+
+  navigateToPost(): void {
+    this.router.navigate(['/provider/post']);
+  }
+
+  trackByScholarshipId(_: number, s: Scholarship): string {
+    return s.id;
+  }
+
+  private showNotification(msg: string, type: 'success' | 'error' | 'info' = 'info'): void {
+    alert(msg);
+  }
+
+  /* ===============================
+   Dashboard / Summary helpers
+   =============================== */
+
+  getTotalScholarships(): number {
+    return this.scholarships.length;
+  }
+
+  getScholarshipsByStatus(status: 'pending' | 'approved' | 'rejected' | 'expired'): Scholarship[] {
+    return this.scholarships.filter((s) => s.status === status);
+  }
+
+  getTotalApplications(): number {
+    return this.scholarships.reduce((total, s) => total + (s.analytics?.applications ?? 0), 0);
+  }
+
+  /* ===============================
+   View & filter helpers
+   =============================== */
+
+  toggleExpiredOnly(): void {
+    this.showExpiredOnly = !this.showExpiredOnly;
+    this.applyFilters();
+  }
+
+  setViewMode(mode: ViewMode): void {
+    this.viewMode = mode;
+  }
+
+  /* ===============================
+   UI formatting helpers
+   =============================== */
+
+  getStatusClass(status: Scholarship['status']): string {
+    return status.toLowerCase(); // pending | approved | rejected | expired
+  }
+
+  getDeadlineText(deadline: Date): string {
+    const now = new Date();
+    const diffMs = deadline.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return 'Expired';
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return '1 day left';
+    if (diffDays <= 30) return `${diffDays} days left`;
+
+    return `${Math.ceil(diffDays / 30)} months left`;
+  }
+
+  isDeadlineSoon(deadline: Date): boolean {
+    const now = new Date();
+    const daysUntilDeadline = Math.ceil(
+      (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return daysUntilDeadline <= 30 && daysUntilDeadline > 0;
   }
 
   //Helper method to formate date for input field
@@ -362,62 +382,11 @@ export class ManageScholaships implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  //helper method to update deadline from input
+  // helper method to update deadline from input
   updateDeadline(dateString: string): void {
     if (this.editingScholarship) {
       this.editingScholarship.applicationDeadline = new Date(dateString);
     }
-  }
-
-  //action methods
-  deleteScholarship(scholarship: Scholarship): void {
-    const confirmMessage = `Are you sure you want to delete "${scholarship.title}"? This action cannot be undone.`;
-
-    if (confirm(confirmMessage)) {
-      console.log('Deleting scholarship:', scholarship);
-
-      // Remove from local array (in real app, make API call)
-      this.scholarships = this.scholarships.filter((s) => s.id !== scholarship.id);
-      this.applyFilters();
-
-      // Show success message
-      this.showNotification('Scholarship deleted successfully', 'success');
-    }
-  }
-
-  bulkDelete(): void {
-    if (this.selectedScholarships.length === 0) return;
-
-    const confirmMessage = `Are you sure you want to delete ${this.selectedScholarships.length} scholarship(s)? This action cannot be undone.`;
-
-    if (confirm(confirmMessage)) {
-      console.log('Bulk deleting scholarships:', this.selectedScholarships);
-
-      // Remove selected scholarships (in real app, make API call)
-      this.scholarships = this.scholarships.filter(
-        (s) => !this.selectedScholarships.includes(s.id)
-      );
-      this.clearSelection();
-      this.applyFilters();
-
-      // Show success message
-      this.showNotification('Scholarships deleted successfully', 'success');
-    }
-  }
-
-  // Navigation methods
-  navigateToPost(): void {
-    this.router.navigate(['/provider/post']);
-  }
-
-  // Utility methods
-  trackByScholarshipId(index: number, scholarship: Scholarship): string {
-    return scholarship.id;
-  }
-
-  private showNotification(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
-    // In a real app, you'd use a toast/notification service
-    alert(message);
   }
 
   // Export/Report methods
@@ -425,7 +394,6 @@ export class ManageScholaships implements OnInit {
     const csvData = this.convertToCSV(this.filteredScholarships);
     this.downloadCSV(csvData, 'scholarships-export.csv');
   }
-
   private convertToCSV(data: Scholarship[]): string {
     const headers = [
       'Title',
@@ -441,7 +409,7 @@ export class ManageScholaships implements OnInit {
       headers.join(','),
       ...data.map((scholarship) =>
         [
-          `"${scholarship.title}"`,
+          '${scholarship.title}',
           scholarship.status,
           scholarship.country,
           scholarship.educationLevel,
@@ -452,10 +420,8 @@ export class ManageScholaships implements OnInit {
         ].join(',')
       ),
     ].join('\n');
-
     return csvContent;
   }
-
   private downloadCSV(csvContent: string, filename: string): void {
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -468,7 +434,6 @@ export class ManageScholaships implements OnInit {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   }
-
   // Refresh data
   refreshData(): void {
     console.log('Refreshing scholarship data...');
@@ -477,20 +442,16 @@ export class ManageScholaships implements OnInit {
     this.showNotification('Data refreshed successfully', 'success');
   }
 
-  showLogoutModal = false;
-
+  // =========================
+  // LOGOUT
+  // =========================
   onSidebarAction(item: NavItem) {
-    if (item.action === 'logout') {
-      this.showLogoutModal = true;
-    }
+    if (item.action === 'logout') this.showLogoutModal = true;
   }
 
   confirmLogout() {
-    this.showLogoutModal = false;
-
-    this.authService.logout().subscribe({
-      next: () => this.router.navigate(['/auth/login']),
-      error: () => this.router.navigate(['/auth/login']),
+    this.authService.logout().subscribe(() => {
+      this.router.navigate(['/auth/login']);
     });
   }
 

@@ -1,4 +1,9 @@
-<app-dashboard-layout [title]="'Dashboard Overview'" [menu]="menu" logoUrl="logo.png"  (action)="onSidebarAction($event)">
+<app-dashboard-layout
+  [title]="'Dashboard Overview'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
   <section class="dashboard-container">
     <!-- Hero Section -->
     <div class="hero-section">
@@ -11,43 +16,44 @@
         <img src="provider-hero.png" alt="Dashboard Illustration" />
       </div>
     </div>
+
     <!-- Stats Cards Grid -->
     <div class="stats-grid">
       <app-card
         class="stat-card approved-card"
+        icon="✅"
         title="Approved Scholarship"
         [value]="approvedScholarships.count"
         [percentage]="approvedScholarships.percentage"
         [trend]="approvedScholarships.trend"
-      >
-      </app-card>
+      ></app-card>
 
       <app-card
         class="stat-card pending-card"
+        icon="⏳"
         title="Pending Scholarship"
         [value]="pendingScholarships.count"
         [percentage]="pendingScholarships.percentage"
         [trend]="pendingScholarships.trend"
-      >
-      </app-card>
+      ></app-card>
 
       <app-card
         class="stat-card applied-card"
         title="Students Applied"
+        icon="👥"
         [value]="studentsApplied.count"
         [percentage]="studentsApplied.percentage"
         [trend]="studentsApplied.trend"
-      >
-      </app-card>
+      ></app-card>
 
       <app-card
         class="stat-card total-card"
-        title="Scholarship"
+        icon="📚"
+        title="Total Scholarships"
         [value]="totalScholarships.count"
         [percentage]="totalScholarships.percentage"
         [trend]="totalScholarships.trend"
-      >
-      </app-card>
+      ></app-card>
     </div>
 
     <!-- Main Content Grid -->
@@ -56,28 +62,36 @@
       <div class="chart-card">
         <div class="card-header">
           <h3>Application Response</h3>
-          <button class="download-btn" (click)="downloadReport()">
+          <button class="download-btn" (click)="downloadReport()" *ngIf="hasAnyScholarship">
             <span class="download-icon">⬇</span>
             Download Report
           </button>
         </div>
-        <div class="chart-container">
-          <canvas #pieChart width="300" height="300"></canvas>
+
+        <!-- EMPTY STATE -->
+        <div class="empty-state" *ngIf="showEmptyState">
+          <div class="empty-icon">📊</div>
+          <h4>No data yet</h4>
+          <p>
+            You haven’t posted any scholarships yet. Once you do, you’ll start seeing application
+            insights here.
+          </p>
+          <button class="primary-btn" routerLink="/provider/post">
+            Post your first scholarship
+          </button>
+        </div>
+
+        <!-- CHART STATE -->
+        <div class="chart-container" *ngIf="hasAnyScholarship">
+          <div class="chart-canvas-wrapper">
+            <canvas #dashboardChart></canvas>
+          </div>
+
           <div class="chart-legend">
-            <div class="legend-item">
-              <span class="legend-color marked"></span>
-              <span class="legend-label">Marked as applied</span>
-              <span class="legend-value">942</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color total"></span>
-              <span class="legend-label">Total</span>
-              <span class="legend-value">25</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color approved"></span>
-              <span class="legend-label">Approved</span>
-              <span class="legend-value">15</span>
+            <div class="legend-item" *ngFor="let item of dashboardChartData">
+              <span class="legend-color" [style.backgroundColor]="item.color"></span>
+              <span class="legend-label">{{ item.label }}</span>
+              <span class="legend-value">{{ item.value }}</span>
             </div>
           </div>
         </div>
@@ -103,7 +117,7 @@
               Weekly
             </button>
             <button
-              class="filter-tab active-tab"
+              class="filter-tab"
               [class.active]="activeFilter === 'today'"
               (click)="setFilter('today')"
             >
@@ -125,8 +139,12 @@
             <tbody>
               <tr *ngFor="let scholarship of filteredScholarships">
                 <td class="scholarship-name">{{ scholarship.name }}</td>
-                <td class="date-posted">{{ scholarship.datePosted | date : 'dd-M-yyyy' }}</td>
-                <td class="application-count">{{ scholarship.applicationCount }}</td>
+                <td class="date-posted">
+                  {{ scholarship.datePosted | date : 'dd-M-yyyy' }}
+                </td>
+                <td class="application-count">
+                  {{ scholarship.applicationCount }}
+                </td>
                 <td class="status-cell">
                   <span
                     class="status-badge"

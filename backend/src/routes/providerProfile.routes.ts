@@ -30,6 +30,10 @@ router.put(
   "/update",
   AuthMiddleware.authenticate,
   AuthMiddleware.isProvider,
+  upload.fields([
+    { name: "logoFile", maxCount: 1 },
+    { name: "verificationDocument", maxCount: 5 },
+  ]),
   updateProviderProfile
 );
 router.delete(
