@@ -175,6 +175,8 @@ export class PostScholarships implements OnInit {
     'Aerospace Engineering',
     'Biomedical Engineering',
     'Environmental Engineering',
+    'Animation',
+    'Media Studies',
   ];
 
   selectedFields: string[] = [];
@@ -229,7 +231,6 @@ export class PostScholarships implements OnInit {
       // Step 5
       admin_notes: [''],
     });
-
 
     //Auto-fill organization name from user profile (if available)
     this.scholarshipForm.patchValue({

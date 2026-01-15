@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { Card } from '../../../shared/components/card/card';
@@ -6,13 +6,18 @@ import { AuthService } from '../../../core/services/auth.service';
 import { Router } from '@angular/router';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { Chart, ChartConfiguration, registerables } from 'chart.js';
+import { ProviderScholarshipDto, ProviderService } from '../../../core/services/provider.service';
+
+Chart.register(...registerables);
+
 interface StatCard {
   count: number;
   percentage: string;
   trend: 'up' | 'down';
 }
 
-interface Scholarship {
+interface ScholarshipTableRow {
   name: string;
   datePosted: Date;
   applicationCount: number;
@@ -25,12 +30,13 @@ interface Scholarship {
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
-export class Dashboard implements OnInit, AfterViewInit {
-  @ViewChild('pieChart', { static: false }) pieChart!: ElementRef<HTMLCanvasElement>;
+export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('dashboardChart', { static: false })
+  dashboardChartRef!: ElementRef<HTMLCanvasElement>;
 
-  /**
-   * Menu Data
-   */
+  private dashboardChart?: Chart;
+
+  /** Sidebar Menu */
   menu = [
     { label: 'Overview', route: '/provider' },
     { label: 'Post Scholarships', route: '/provider/post' },
@@ -40,85 +46,187 @@ export class Dashboard implements OnInit, AfterViewInit {
     { label: 'Logout', action: 'logout' },
   ];
 
-  // Stats Data
-  approvedScholarships: StatCard = {
-    count: 2456,
-    percentage: '+2.5%',
-    trend: 'up',
-  };
+  /** UI State */
+  today = new Date();
+  showLogoutModal = false;
+  hasAnyScholarship = false;
+  showEmptyState = false;
 
-  pendingScholarships: StatCard = {
-    count: 4561,
-    percentage: '-4.4%',
-    trend: 'down',
-  };
+  /** Stat Cards */
+  approvedScholarships: StatCard = { count: 0, percentage: '0%', trend: 'up' };
+  pendingScholarships: StatCard = { count: 0, percentage: '0%', trend: 'down' };
+  studentsApplied: StatCard = { count: 0, percentage: '0%', trend: 'up' };
+  totalScholarships: StatCard = { count: 0, percentage: '0%', trend: 'up' };
 
-  studentsApplied: StatCard = {
-    count: 125,
-    percentage: '+1.5%',
-    trend: 'up',
-  };
-
-  totalScholarships: StatCard = {
-    count: 2456,
-    percentage: '+4.5%',
-    trend: 'up',
-  };
-
-  // Table Data
-  scholarships: Scholarship[] = [
-    {
-      name: 'Masters',
-      datePosted: new Date('2025-12-24'),
-      applicationCount: 135,
-      status: 'Active',
-    },
-    {
-      name: 'Agriculture Scholarship',
-      datePosted: new Date('2025-06-13'),
-      applicationCount: 100,
-      status: 'Inactive',
-    },
-    {
-      name: 'BSC Computer Science masters',
-      datePosted: new Date('2025-09-05'),
-      applicationCount: 95,
-      status: 'Active',
-    },
-    {
-      name: 'Business Scholarship',
-      datePosted: new Date('2025-09-12'),
-      applicationCount: 45,
-      status: 'Active',
-    },
-    {
-      name: 'Masters',
-      datePosted: new Date('2025-05-12'),
-      applicationCount: 96,
-      status: 'Inactive',
-    },
-  ];
-
+  /** Table */
+  scholarships: ScholarshipTableRow[] = [];
+  filteredScholarships: ScholarshipTableRow[] = [];
   activeFilter: 'monthly' | 'weekly' | 'today' = 'today';
-  filteredScholarships: Scholarship[] = [];
 
-  // Chart Data
-  chartData = {
-    marked: { value: 942, percentage: 2.5 },
-    total: { value: 250, percentage: 0.4 },
-    approved: { value: 150, percentage: -0.5 },
-  };
+  /** Chart Data */
+  dashboardChartData: { label: string; value: number; color: string }[] = [];
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private providerService: ProviderService
+  ) {}
 
+  // ----------------------------------
+  // INIT
+  // ----------------------------------
   ngOnInit(): void {
-    this.filterScholarships();
+    this.loadDashboardData();
   }
 
   ngAfterViewInit(): void {
-    this.initChart();
+    // chart is created AFTER data loads
   }
 
+  // ----------------------------------
+  // DATA LOADING
+  // ----------------------------------
+  private loadDashboardData(): void {
+    this.providerService.getMyScholarships().subscribe({
+      next: (scholarships) => {
+        this.hasAnyScholarship = scholarships.length > 0;
+        this.showEmptyState = !this.hasAnyScholarship;
+
+        this.mapScholarshipsToTable(scholarships);
+        this.buildStats(scholarships);
+        this.buildChartData(scholarships);
+        this.filterScholarships();
+
+        setTimeout(() => this.renderChart(), 100);
+      },
+      error: (err) => {
+        console.error('Dashboard load failed', err);
+        this.hasAnyScholarship = false;
+        this.showEmptyState = true;
+      },
+    });
+  }
+
+  // ----------------------------------
+  // MAPPERS
+  // ----------------------------------
+  private mapScholarshipsToTable(apiScholarships: ProviderScholarshipDto[]): void {
+    this.scholarships = apiScholarships.map((s) => ({
+      name: s.title,
+      datePosted: new Date(s.created_at),
+      applicationCount: s.application_count ?? 0,
+      status: s.status === 'approved' ? 'Active' : 'Inactive',
+    }));
+  }
+
+  // ----------------------------------
+  // STATS
+  // ----------------------------------
+  private buildStats(apiScholarships: ProviderScholarshipDto[]): void {
+    const total = apiScholarships.length;
+    const approved = apiScholarships.filter((s) => s.status === 'approved').length;
+    const pending = apiScholarships.filter((s) => s.status === 'pending').length;
+
+    const totalApplications = apiScholarships.reduce(
+      (sum, s) => sum + (s.application_count ?? 0),
+      0
+    );
+
+    this.totalScholarships = {
+      count: total,
+      percentage: '100%',
+      trend: 'up',
+    };
+
+    this.approvedScholarships = {
+      count: approved,
+      percentage: this.getPercentage(approved, total),
+      trend: 'up',
+    };
+
+    this.pendingScholarships = {
+      count: pending,
+      percentage: this.getPercentage(pending, total),
+      trend: 'down',
+    };
+
+    this.studentsApplied = {
+      count: totalApplications,
+      percentage: '',
+      trend: 'up',
+    };
+  }
+
+  private getPercentage(part: number, total: number): string {
+    if (!total) return '0%';
+    return `${Math.round((part / total) * 100)}%`;
+  }
+
+  // ----------------------------------
+  // CHART
+  // ----------------------------------
+  private buildChartData(apiScholarships: ProviderScholarshipDto[]): void {
+    const approved = apiScholarships.filter((s) => s.status === 'approved').length;
+    const pending = apiScholarships.filter((s) => s.status === 'pending').length;
+    const rejected = apiScholarships.filter((s) => s.status === 'rejected').length;
+
+    this.dashboardChartData = [
+      { label: 'Approved', value: approved, color: '#3b82f6' },
+      { label: 'Pending', value: pending, color: '#f59e0b' },
+      { label: 'Rejected', value: rejected, color: '#ef4444' },
+    ];
+  }
+
+  private renderChart(): void {
+    if (!this.dashboardChartRef?.nativeElement) return;
+
+    if (this.dashboardChart) {
+      this.dashboardChart.destroy();
+    }
+
+    const ctx = this.dashboardChartRef.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    const total = this.dashboardChartData.reduce((sum, d) => sum + d.value, 0);
+
+    const config: ChartConfiguration<'doughnut'> = {
+      type: 'doughnut',
+      data: {
+        labels: this.dashboardChartData.map((d) => d.label),
+        datasets: [
+          {
+            data: this.dashboardChartData.map((d) => d.value),
+            backgroundColor: this.dashboardChartData.map((d) => d.color),
+            borderWidth: 0,
+            hoverOffset: 6,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '60%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const value = context.parsed;
+                const percentage = total ? Math.round((value / total) * 100) : 0;
+                return `${context.label}: ${value} (${percentage}%)`;
+              },
+            },
+          },
+        },
+      },
+    };
+
+    this.dashboardChart = new Chart(ctx, config);
+  }
+
+  // ----------------------------------
+  // TABLE FILTERING
+  // ----------------------------------
   setFilter(filter: 'monthly' | 'weekly' | 'today'): void {
     this.activeFilter = filter;
     this.filterScholarships();
@@ -127,135 +235,63 @@ export class Dashboard implements OnInit, AfterViewInit {
   private filterScholarships(): void {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const weekAgo = new Date(today.getTime() - 7 * 86400000);
+    const monthAgo = new Date(today.getTime() - 30 * 86400000);
 
     switch (this.activeFilter) {
       case 'today':
-        this.filteredScholarships = this.scholarships.filter(
-          (scholarship) => scholarship.datePosted >= today
-        );
+        this.filteredScholarships = this.scholarships.filter((s) => s.datePosted >= today);
         break;
       case 'weekly':
-        this.filteredScholarships = this.scholarships.filter(
-          (scholarship) => scholarship.datePosted >= weekAgo
-        );
+        this.filteredScholarships = this.scholarships.filter((s) => s.datePosted >= weekAgo);
         break;
       case 'monthly':
-        this.filteredScholarships = this.scholarships.filter(
-          (scholarship) => scholarship.datePosted >= monthAgo
-        );
+        this.filteredScholarships = this.scholarships.filter((s) => s.datePosted >= monthAgo);
         break;
-      default:
-        this.filteredScholarships = [...this.scholarships];
     }
 
-    // If no scholarships match the filter, show all for demo purposes
-    if (this.filteredScholarships.length === 0) {
+    if (!this.filteredScholarships.length) {
       this.filteredScholarships = [...this.scholarships];
     }
   }
 
-  private initChart(): void {
-    if (!this.pieChart?.nativeElement) return;
-
-    const canvas = this.pieChart.nativeElement;
-    const ctx = canvas.getContext('2d');
-
-    if (!ctx) return;
-
-    // Set canvas size
-    const size = 280;
-    canvas.width = size;
-    canvas.height = size;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, size, size);
-
-    // Chart data
-    const data = [
-      { value: 942, color: '#4f46e5', label: 'Marked as applied' },
-      { value: 250, color: '#ff6b35', label: 'Total' },
-      { value: 150, color: '#3b82f6', label: 'Approved' },
-    ];
-
-    const total = data.reduce((sum, item) => sum + item.value, 0);
-    let currentAngle = -Math.PI / 2; // Start from top
-
-    const centerX = size / 2;
-    const centerY = size / 2;
-    const radius = 90;
-    const innerRadius = 50;
-
-    // Draw donut chart
-    data.forEach((item) => {
-      const angle = (item.value / total) * 2 * Math.PI;
-
-      // Draw arc
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + angle);
-      ctx.arc(centerX, centerY, innerRadius, currentAngle + angle, currentAngle, true);
-      ctx.closePath();
-      ctx.fillStyle = item.color;
-      ctx.fill();
-
-      currentAngle += angle;
-    });
-
-    // Add percentage labels
-    currentAngle = -Math.PI / 2;
-    data.forEach((item, index) => {
-      const angle = (item.value / total) * 2 * Math.PI;
-      const midAngle = currentAngle + angle / 2;
-      const labelRadius = (radius + innerRadius) / 2;
-
-      const x = centerX + Math.cos(midAngle) * labelRadius;
-      const y = centerY + Math.sin(midAngle) * labelRadius;
-
-      const percentage = ((item.value / total) * 100).toFixed(1);
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 14px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      // Add percentage sign logic
-      const displayText =
-        index === 0 ? `+${percentage}%` : index === 1 ? `+${percentage}%` : `-${percentage}%`;
-
-      ctx.fillText(displayText, x, y);
-
-      currentAngle += angle;
-    });
-  }
+  // ----------------------------------
+  // Download Report
+  // ----------------------------------
 
   downloadReport(): void {
-    // Simulate report download
-    console.log('Downloading report...');
+    if (!this.scholarships.length) {
+      alert('No scholarships available to export.');
+      return;
+    }
 
-    // In a real application, we will:
-    // 1. Generate the report data
-    // 2. Create a downloadable file (PDF, Excel, etc.)
-    // 3. Trigger the download
+    const headers = ['Scholarship Title', 'Status', 'Date Posted', 'Application Count'];
 
-    // For now, we'll show a simple notification
-    alert('Report download started! Check your downloads folder.');
+    const rows = this.scholarships.map((s) => [
+      `"${s.name}"`,
+      s.status,
+      s.datePosted.toISOString().split('T')[0],
+      s.applicationCount.toString(),
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `smartscholar-dashboard-report-${new Date().toISOString().slice(0, 10)}.csv`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 
-  // Utility method to get trend icon
-  getTrendIcon(trend: 'up' | 'down'): string {
-    return trend === 'up' ? '↗' : '↘';
-  }
-
-  // Utility method to get trend class
-  getTrendClass(trend: 'up' | 'down'): string {
-    return trend === 'up' ? 'trend-up' : 'trend-down';
-  }
-
-  today: Date = new Date();
-
-  showLogoutModal = false;
-
+  // ----------------------------------
+  // LOGOUT
+  // ----------------------------------
   onSidebarAction(item: NavItem) {
     if (item.action === 'logout') {
       this.showLogoutModal = true;
@@ -264,7 +300,6 @@ export class Dashboard implements OnInit, AfterViewInit {
 
   confirmLogout() {
     this.showLogoutModal = false;
-
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/auth/login']),
       error: () => this.router.navigate(['/auth/login']),
@@ -273,5 +308,12 @@ export class Dashboard implements OnInit, AfterViewInit {
 
   cancelLogout() {
     this.showLogoutModal = false;
+  }
+
+  // ----------------------------------
+  // CLEANUP
+  // ----------------------------------
+  ngOnDestroy(): void {
+    this.dashboardChart?.destroy();
   }
 }
