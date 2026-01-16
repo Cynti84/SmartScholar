@@ -7,6 +7,7 @@ import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-m
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
+import { AdminService } from '../../../core/services/admin.service';
 
 interface Student {
   id: number;
@@ -53,7 +54,11 @@ export class StudentManagement {
     { label: 'Logout', action: 'logout' },
   ];
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private adminService: AdminService
+  ) {}
 
   students: Student[] = [];
   filteredStudents: Student[] = [];
@@ -93,116 +98,39 @@ export class StudentManagement {
 
   loadStudents(): void {
     // Mock data - replace with actual API call
-    this.students = [
-      {
-        id: 1,
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@email.com',
-        phone: '+1 234-567-8900',
-        dateOfBirth: new Date('2000-05-15'),
-        status: 'active',
-        registrationDate: new Date('2024-09-01'),
-        lastLogin: new Date('2025-10-09'),
-        address: '123 Main St, Boston, MA 02115',
-        university: 'State University',
-        major: 'Computer Science',
-        gpa: 3.8,
-        graduationYear: 2026,
-        applicationsCount: 12,
-        acceptedScholarships: 2,
+    this.adminService.getAllStudents().subscribe({
+      next: (res) => {
+        const users = res.data;
+
+        this.students = users.map((u: any) => ({
+          id: u.id,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          email: u.email,
+          phone: u.phone ?? 'N/A',
+          dateOfBirth: u.dateOfBirth ? new Date(u.dateOfBirth) : null,
+          status: u.status,
+          registrationDate: new Date(u.createdAt),
+          lastLogin: u.lastLogin ? new Date(u.lastLogin) : new Date(u.createdAt),
+          address: u.address ?? '—',
+          university: u.profile?.university ?? '—',
+          major: u.profile?.major ?? '—',
+          gpa: u.profile?.gpa ?? 0,
+          graduationYear: u.profile?.graduationYear ?? 0,
+          applicationsCount: u.applications?.length ?? 0,
+          acceptedScholarships:
+            u.applications?.filter((a: any) => a.status === 'accepted').length ?? 0,
+        }));
+
+        this.universities = [...new Set(this.students.map((s) => s.university))];
+
+        this.updateStatistics();
+        this.applyFilters();
       },
-      {
-        id: 2,
-        firstName: 'Sarah',
-        lastName: 'Johnson',
-        email: 'sarah.j@email.com',
-        phone: '+1 234-567-8901',
-        dateOfBirth: new Date('2001-08-22'),
-        status: 'pending',
-        registrationDate: new Date('2025-10-05'),
-        lastLogin: new Date('2025-10-05'),
-        address: '456 College Ave, Cambridge, MA 02138',
-        university: 'Tech Institute',
-        major: 'Engineering',
-        gpa: 3.9,
-        graduationYear: 2027,
-        applicationsCount: 0,
-        acceptedScholarships: 0,
+      error: (err) => {
+        console.error('Failed to load students', err);
       },
-      {
-        id: 3,
-        firstName: 'Michael',
-        lastName: 'Brown',
-        email: 'mbrown@email.com',
-        phone: '+1 234-567-8902',
-        dateOfBirth: new Date('1999-12-10'),
-        status: 'active',
-        registrationDate: new Date('2024-01-15'),
-        lastLogin: new Date('2025-10-10'),
-        address: '789 University Blvd, New York, NY 10001',
-        university: 'Business School',
-        major: 'Business Administration',
-        gpa: 3.6,
-        graduationYear: 2025,
-        applicationsCount: 18,
-        acceptedScholarships: 4,
-      },
-      {
-        id: 4,
-        firstName: 'Emily',
-        lastName: 'Davis',
-        email: 'emily.davis@email.com',
-        phone: '+1 234-567-8903',
-        dateOfBirth: new Date('2002-03-18'),
-        status: 'suspended',
-        registrationDate: new Date('2024-06-10'),
-        lastLogin: new Date('2025-09-20'),
-        address: '321 Student Dr, Chicago, IL 60611',
-        university: 'Medical College',
-        major: 'Pre-Medicine',
-        gpa: 3.7,
-        graduationYear: 2028,
-        applicationsCount: 8,
-        acceptedScholarships: 1,
-      },
-      {
-        id: 5,
-        firstName: 'David',
-        lastName: 'Wilson',
-        email: 'dwilson@email.com',
-        phone: '+1 234-567-8904',
-        dateOfBirth: new Date('2000-11-25'),
-        status: 'active',
-        registrationDate: new Date('2024-03-20'),
-        lastLogin: new Date('2025-10-08'),
-        address: '555 Campus Way, Los Angeles, CA 90012',
-        university: 'Arts Academy',
-        major: 'Fine Arts',
-        gpa: 3.5,
-        graduationYear: 2026,
-        applicationsCount: 15,
-        acceptedScholarships: 3,
-      },
-      {
-        id: 6,
-        firstName: 'Jessica',
-        lastName: 'Martinez',
-        email: 'jmartinez@email.com',
-        phone: '+1 234-567-8905',
-        dateOfBirth: new Date('2001-07-08'),
-        status: 'pending',
-        registrationDate: new Date('2025-10-08'),
-        lastLogin: new Date('2025-10-08'),
-        address: '888 Education Ln, Austin, TX 78701',
-        university: 'State University',
-        major: 'Psychology',
-        gpa: 3.85,
-        graduationYear: 2027,
-        applicationsCount: 0,
-        acceptedScholarships: 0,
-      },
-    ];
+    });
 
     this.universities = [...new Set(this.students.map((s) => s.university))];
     this.updateStatistics();

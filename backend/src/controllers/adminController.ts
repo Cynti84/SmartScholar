@@ -60,19 +60,18 @@ export class AdminController {
   /** Get total number of students   tested */
   static async getTotalStudents(req: Request, res: Response): Promise<void> {
     try {
-      const studentRepo = AppDataSource.getRepository(User);
-      const total = await studentRepo.count();
+      const userRepo = AppDataSource.getRepository(User);
+
+      const total = await userRepo.count({
+        where: { role: UserRole.STUDENT },
+      });
 
       res.json({
         success: true,
         data: { total },
       });
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(500).json({ message: error.message });
-      } else {
-        res.status(500).json({ message: "Failed to get total students" });
-      }
+      res.status(500).json({ message: "Failed to get total students" });
     }
   }
 
@@ -82,6 +81,7 @@ export class AdminController {
       const studentRepo = AppDataSource.getRepository(User);
 
       const students = await studentRepo.find({
+        where: { role: UserRole.STUDENT },
         relations: ["applications"],
         order: { createdAt: "DESC" },
       });
@@ -104,11 +104,15 @@ export class AdminController {
   //Getting providers
   static async getProviders(req: Request, res: Response): Promise<void> {
     try {
-      const providerRepo = AppDataSource.getRepository(ProviderProfile);
+      const userRepo = AppDataSource.getRepository(User);
 
-      const providers = await providerRepo.find({
-        // relations: ["provider_id"],
-        order: { created_at: "DESC" },
+      const providers = await userRepo.find({
+        where: {
+          role: UserRole.PROVIDER,
+          status: UserStatus.ACTIVE,
+        },
+        relations: ["providerProfile"], // optional
+        order: { createdAt: "DESC" },
       });
 
       res.json({

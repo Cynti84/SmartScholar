@@ -8,6 +8,8 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { AdminService } from '../../../core/services/admin.service';
+
 interface QuickStat {
   label: string;
   value: number;
@@ -48,7 +50,11 @@ export class Dashboard {
 
   Math = Math; // ✅ Fix for Math.abs()
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private adminService: AdminService
+  ) {}
 
   getMonthlySignupPoints(): string {
     const max = this.getMaxValue(this.monthlySignups);
@@ -57,11 +63,11 @@ export class Dashboard {
       .join(' ');
   }
   // ✅ Summary cards
-  pendingProviders = 4;
-  pendingScholarships = 7;
-  activeScholarships = 12;
-  totalStudents = 56;
-
+  pendingProviders = 0;
+  pendingScholarships = 0;
+  activeScholarships = 0;
+  totalStudents = 0;
+  activeProviders = 0;
   // ✅ Lists
   newProviders = ['Oxford Foundation', 'MIT Global Aid', 'Chevening Trust'];
   newScholarships = ['STEM Excellence 2025', 'Women in Tech', 'Green Scholars'];
@@ -110,47 +116,105 @@ export class Dashboard {
   }
 
   loadDashboardData(): void {
-    // Simulate API call
-    setTimeout(() => {
-      this.loadQuickStats();
-      this.loadNotifications();
-      this.loadChartData();
-      this.isLoading = false;
-    }, 1000);
+    this.isLoading = true;
+
+    Promise.all([
+      this.loadStudentsCount(),
+      this.loadPendingProviders(),
+      this.loadScholarships(),
+      this.loadProviders(),
+    ])
+      .then(() => {
+        this.buildQuickStats();
+        this.isLoading = false;
+      })
+      .catch(() => {
+        this.isLoading = false;
+      });
+  }
+  //added
+  loadStudentsCount(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.adminService.getTotalStudents().subscribe({
+        next: (res) => {
+          this.totalStudents = res.data.total;
+          resolve();
+        },
+        error: reject,
+      });
+    });
+  }
+  //added2
+  loadPendingProviders(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.adminService.getPendingProviders().subscribe({
+        next: (res) => {
+          this.pendingProviders = res.count;
+          resolve();
+        },
+        error: reject,
+      });
+    });
+  }
+  //added3
+  loadScholarships(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.adminService.getAllScholarships().subscribe({
+        next: (res) => {
+          this.activeScholarships = res.count;
+          resolve();
+        },
+        error: reject,
+      });
+    });
+  }
+  //added4
+  loadProviders(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.adminService.getProviders().subscribe({
+        next: (res) => {
+          this.activeProviders = res.count; // ✅ REAL DATA
+          resolve();
+        },
+        error: reject,
+      });
+    });
   }
 
-  loadQuickStats(): void {
+  buildQuickStats(): void {
     this.quickStats = [
       {
         label: 'Total Scholarships',
-        value: 248,
-        change: 12.5,
+        value: this.activeScholarships,
+        change: 0,
         icon: 'school',
         color: '#4299e1',
       },
       {
         label: 'Pending Approvals',
-        value: 15,
-        change: -5.2,
+        value: this.pendingProviders,
+        change: 0,
         icon: 'hourglass_empty',
         color: '#ed8936',
       },
       {
         label: 'Active Providers',
-        value: 87,
-        change: 8.3,
+        value: this.activeProviders, // ✅ BACKEND COUNT
+        change: 0,
         icon: 'apartment',
         color: '#48bb78',
       },
+
       {
         label: 'Registered Students',
-        value: 3542,
-        change: 15.7,
+        value: this.totalStudents,
+        change: 0,
         icon: 'group',
         color: '#9f7aea',
       },
     ];
   }
+
   getNotificationIcon(type: string): string {
     switch (type) {
       case 'scholarship':
@@ -302,20 +366,22 @@ export class Dashboard {
     this.notifications = this.notifications.filter((n) => n.id !== id);
   }
 
-  viewAllScholarships(): void {
-    console.log('Navigate to scholarships page');
+  viewPendingApprovals(): void {
+    this.router.navigate(['/admin/providers'], {
+      queryParams: { status: 'pending' },
+    });
   }
 
-  viewPendingApprovals(): void {
-    console.log('Navigate to pending approvals');
+  viewAllScholarships(): void {
+    this.router.navigate(['/admin/scholarships']);
   }
 
   viewProviders(): void {
-    console.log('Navigate to providers page');
+    this.router.navigate(['/admin/providers']);
   }
 
   viewStudents(): void {
-    console.log('Navigate to students page');
+    this.router.navigate(['/admin/students']);
   }
 
   showLogoutModal = false;
