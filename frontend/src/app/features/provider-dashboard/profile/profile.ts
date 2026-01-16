@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -12,10 +12,10 @@ import { AuthService } from '../../../core/services/auth.service';
 import { Router } from '@angular/router';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { ProviderService } from '../../../core/services/provider.service';
 
 interface Country {
   name: string;
-  code: string;
 }
 
 interface UploadedDocument {
@@ -42,6 +42,8 @@ export class Profile implements OnInit {
     { label: 'Logout', action: 'logout' },
   ];
 
+  @ViewChild('logoInput') logoInput!: ElementRef<HTMLInputElement>;
+
   profileForm!: FormGroup;
   passwordForm!: FormGroup;
 
@@ -63,63 +65,69 @@ export class Profile implements OnInit {
 
   // Countries list (sample - you can replace with your actual list)
   countries: Country[] = [
-    { name: 'United States', code: 'US' },
-    { name: 'Canada', code: 'CA' },
-    { name: 'United Kingdom', code: 'GB' },
-    { name: 'Germany', code: 'DE' },
-    { name: 'France', code: 'FR' },
-    { name: 'Australia', code: 'AU' },
-    { name: 'Kenya', code: 'KE' },
-    { name: 'South Africa', code: 'ZA' },
-    { name: 'Nigeria', code: 'NG' },
-    { name: 'Ghana', code: 'GH' },
-    { name: 'Japan', code: 'JP' },
-    { name: 'South Korea', code: 'KR' },
-    { name: 'Singapore', code: 'SG' },
-    { name: 'India', code: 'IN' },
-    { name: 'Brazil', code: 'BR' },
-    { name: 'Mexico', code: 'MX' },
-    { name: 'Argentina', code: 'AR' },
-    { name: 'Chile', code: 'CL' },
-    { name: 'Netherlands', code: 'NL' },
-    { name: 'Sweden', code: 'SE' },
-    { name: 'Norway', code: 'NO' },
-    { name: 'Denmark', code: 'DK' },
-    { name: 'Finland', code: 'FI' },
-    { name: 'Switzerland', code: 'CH' },
-    { name: 'Austria', code: 'AT' },
-    { name: 'Belgium', code: 'BE' },
-    { name: 'Italy', code: 'IT' },
-    { name: 'Spain', code: 'ES' },
-    { name: 'Portugal', code: 'PT' },
-    { name: 'Ireland', code: 'IE' },
-    { name: 'New Zealand', code: 'NZ' },
-    { name: 'China', code: 'CN' },
-    { name: 'Thailand', code: 'TH' },
-    { name: 'Malaysia', code: 'MY' },
-    { name: 'Indonesia', code: 'ID' },
-    { name: 'Philippines', code: 'PH' },
-    { name: 'Vietnam', code: 'VN' },
-    { name: 'Egypt', code: 'EG' },
-    { name: 'Morocco', code: 'MA' },
-    { name: 'Tunisia', code: 'TN' },
-    { name: 'Ethiopia', code: 'ET' },
-    { name: 'Uganda', code: 'UG' },
-    { name: 'Tanzania', code: 'TZ' },
-    { name: 'Rwanda', code: 'RW' },
-    { name: 'Zambia', code: 'ZM' },
-    { name: 'Botswana', code: 'BW' },
-    { name: 'Namibia', code: 'NA' },
+    { name: 'United States' },
+    { name: 'Canada' },
+    { name: 'United Kingdom' },
+    { name: 'Germany' },
+    { name: 'France' },
+    { name: 'Australia' },
+    { name: 'Kenya' },
+    { name: 'South Africa' },
+    { name: 'Nigeria' },
+    { name: 'Ghana' },
+    { name: 'Japan' },
+    { name: 'South Korea' },
+    { name: 'Singapore' },
+    { name: 'India' },
+    { name: 'Brazil' },
+    { name: 'Mexico' },
+    { name: 'Argentina' },
+    { name: 'Chile' },
+    { name: 'Netherlands' },
+    { name: 'Sweden' },
+    { name: 'Norway' },
+    { name: 'Denmark' },
+    { name: 'Finland' },
+    { name: 'Switzerland' },
+    { name: 'Austria' },
+    { name: 'Belgium' },
+    { name: 'Italy' },
+    { name: 'Spain' },
+    { name: 'Portugal' },
+    { name: 'Ireland' },
+    { name: 'New Zealand' },
+    { name: 'China' },
+    { name: 'Thailand' },
+    { name: 'Malaysia' },
+    { name: 'Indonesia' },
+    { name: 'Philippines' },
+    { name: 'Vietnam' },
+    { name: 'Egypt' },
+    { name: 'Morocco' },
+    { name: 'Tunisia' },
+    { name: 'Ethiopia' },
+    { name: 'Uganda' },
+    { name: 'Tanzania' },
+    { name: 'Rwanda' },
+    { name: 'Zambia' },
+    { name: 'Botswana' },
+    { name: 'Namibia' },
   ];
 
   private originalFormData: any;
   private originalEmail: string = '';
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router,
+    private providerService: ProviderService
+  ) {
     this.initializeForms();
   }
 
   ngOnInit() {
+    this.initializeForms();
     this.loadProfileData();
     this.watchEmailChanges();
   }
@@ -130,7 +138,7 @@ export class Profile implements OnInit {
       providerType: ['', Validators.required],
       country: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.pattern(/^[\+]?[1-9][\d]{0,15}$/)]],
+      phone: ['', Validators.pattern(/^[+]?[\d\s\-()]{7,20}$/)],
       website: ['', [Validators.pattern(/^https?:\/\/.+\..+/)]],
       socialLinks: [''],
       twoFactorEnabled: [false],
@@ -153,6 +161,24 @@ export class Profile implements OnInit {
     this.originalFormData = this.profileForm.value;
   }
 
+  private mapProviderTypeToValue(type: string): string {
+    const map: Record<string, string> = {
+      'University/Educational Institution': 'university',
+      NGO: 'ngo',
+      'Government Agency': 'government',
+      Foundation: 'foundation',
+      'Private Company/Corporation': 'corporation',
+      'Religious Organization': 'religious',
+      'Community-Based Organization': 'community-based',
+      'International Organization': 'international',
+      'Research Institute': 'research-institute',
+      'Healthcare Organization': 'healthcare',
+      Other: 'other',
+    };
+
+    return map[type] || '';
+  }
+
   private passwordMatchValidator(group: AbstractControl): { [key: string]: any } | null {
     const newPassword = group.get('newPassword')?.value;
     const confirmPassword = group.get('confirmPassword')?.value;
@@ -160,34 +186,29 @@ export class Profile implements OnInit {
   }
 
   private loadProfileData() {
-    // Simulate loading existing profile data
-    // In a real app, you'd call your service here
-    const mockData = {
-      organizationName: 'Tech University Foundation',
-      providerType: 'university',
-      country: 'US',
-      email: 'scholarships@techuniv.edu',
-      phone: '+1-555-123-4567',
-      website: 'https://www.techuniv.edu',
-      socialLinks:
-        'LinkedIn: https://linkedin.com/company/techuniv\nTwitter: https://twitter.com/techuniv',
-      twoFactorEnabled: false,
-      notifyScholarshipExpiry: true,
-      notifyNewApplications: true,
-      notifySystemUpdates: false,
-      defaultDashboardView: 'overview',
-    };
+    this.providerService.getProvider().subscribe({
+      next: (res) => {
+        const provider = res;
 
-    this.profileForm.patchValue(mockData);
-    this.originalFormData = { ...mockData };
-    this.originalEmail = mockData.email;
+        this.profileForm.patchValue({
+          organizationName: provider.organization_name,
+          providerType: provider.organization_type,
+          country: provider.country,
+          email: provider.user.email,
+          phone: provider.phone,
+        });
 
-    // Mock verification status - change these values to test different states
-    this.verificationStatus = 'verified'; // Change to 'pending' or 'rejected' to test other states
-    this.rejectionReason = 'Documents were not clear enough. Please upload higher quality scans.';
+        this.originalFormData = { ...this.profileForm.value };
+        this.originalEmail = provider.user.email;
 
-    // Mock existing logo
-    this.logoPreview = 'https://via.placeholder.com/150x150/3b82f6/ffffff?text=ORG';
+        this.verificationStatus = provider.verified ? 'verified' : 'pending';
+
+        this.logoPreview = provider.logo_url || null;
+      },
+      error: (err) => {
+        console.error('Failed to load provider profile', err);
+      },
+    });
   }
 
   private watchEmailChanges() {
@@ -219,27 +240,28 @@ export class Profile implements OnInit {
     const target = event.target as HTMLInputElement;
     const file = target.files?.[0];
 
-    if (file) {
-      // Validate file size (5MB limit)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File size must be less than 5MB');
-        target.value = '';
-        return;
-      }
+    if (!file) return;
 
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
-        target.value = '';
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.logoPreview = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      target.value = '';
+      return;
     }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      target.value = '';
+      return;
+    }
+
+    // Show immediate preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.logoPreview = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 
   removeLogo() {
@@ -357,85 +379,96 @@ export class Profile implements OnInit {
 
   // Form submission handlers
   onSave() {
-    if (this.profileForm.valid) {
-      this.saving = true;
+    if (this.profileForm.invalid) {
+      Object.values(this.profileForm.controls).forEach((c) => c.markAsTouched());
+      return;
+    }
 
-      // Simulate API call
-      setTimeout(() => {
-        console.log('Profile saved:', this.profileForm.value);
-        console.log('Logo file:', this.logoPreview ? 'Updated' : 'No change');
-        console.log(
-          'Documents:',
-          this.uploadedDocuments.map((doc) => doc.name)
-        );
+    this.saving = true;
 
+    const formData = new FormData();
+    const value = this.profileForm.value;
+
+    formData.append('organization_name', value.organizationName);
+    formData.append('organization_type', value.providerType);
+    formData.append('country', value.country);
+    formData.append('phone', value.phone || '');
+    formData.append('email', value.email || '');
+
+    if (this.logoInput?.nativeElement.files?.[0]) {
+      formData.append('logo', this.logoInput.nativeElement.files[0]);
+    }
+
+    this.uploadedDocuments.forEach((doc) => {
+      formData.append('verification_documents', doc.file);
+    });
+
+    this.providerService.updateProvider(formData).subscribe({
+      next: () => {
         this.saving = false;
         this.originalFormData = { ...this.profileForm.value };
-        this.originalEmail = this.profileForm.get('email')?.value || '';
+        this.originalEmail = value.email;
         this.emailChanged = false;
-
-        // Mark form as pristine
         this.profileForm.markAsPristine();
-
-        // Show success message (you can implement a toast/notification service)
         alert('Profile updated successfully!');
-      }, 2000);
-    } else {
-      // Mark all fields as touched to show validation errors
-      Object.keys(this.profileForm.controls).forEach((key) => {
-        this.profileForm.get(key)?.markAsTouched();
-      });
-    }
+      },
+      error: (err) => {
+        console.error('Update failed', err);
+        this.saving = false;
+      },
+    });
   }
 
   onReset() {
     this.profileForm.patchValue(this.originalFormData);
-    this.profileForm.markAsUntouched();
     this.profileForm.markAsPristine();
+    this.profileForm.markAsUntouched();
     this.emailChanged = false;
 
-    // Reset logo to original (in real app, you'd load from server)
-    this.logoPreview = 'https://via.placeholder.com/150x150/3b82f6/ffffff?text=ORG';
-
-    // Reset documents (in real app, you'd reload from server)
+    this.loadProfileData();
     this.uploadedDocuments = [];
   }
 
   onPasswordChange() {
-    if (this.passwordForm.valid) {
-      this.changingPassword = true;
+    if (this.passwordForm.invalid) {
+      Object.values(this.passwordForm.controls).forEach((c) => c.markAsTouched());
+      return;
+    }
 
-      // Simulate API call
-      setTimeout(() => {
-        console.log('Password changed successfully');
+    const { currentPassword, newPassword } = this.passwordForm.value;
+    this.changingPassword = true;
+
+    this.authService.changePassword(currentPassword, newPassword).subscribe({
+      next: () => {
         this.changingPassword = false;
         this.closePasswordModal();
-
-        // Show success message
         alert('Password updated successfully!');
-      }, 1500);
-    } else {
-      // Mark all fields as touched to show validation errors
-      Object.keys(this.passwordForm.controls).forEach((key) => {
-        this.passwordForm.get(key)?.markAsTouched();
-      });
-    }
+      },
+      error: (err) => {
+        console.error('Password change failed', err);
+        this.changingPassword = false;
+        alert('Failed to change password');
+      },
+    });
   }
 
   onDeactivateAccount() {
     this.deactivating = true;
 
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Account deactivated');
-      this.deactivating = false;
-      this.closeDeactivateModal();
-
-      // Show success message and potentially redirect
-      alert('Account has been deactivated. You will be redirected to the login page.');
-      // In a real app, you'd redirect to login or home page
-      // this.router.navigate(['/login']);
-    }, 2000);
+    this.providerService.deleteProvider().subscribe({
+      next: () => {
+        this.deactivating = false;
+        this.closeDeactivateModal();
+        alert('Account deactivated');
+        this.authService.logout().subscribe(() => {
+          this.router.navigate(['/auth/login']);
+        });
+      },
+      error: (err) => {
+        console.error('Deactivation failed', err);
+        this.deactivating = false;
+      },
+    });
   }
 
   // Helper method to prevent event propagation (used in template)
