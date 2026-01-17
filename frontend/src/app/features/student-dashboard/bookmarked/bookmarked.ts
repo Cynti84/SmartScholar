@@ -24,6 +24,9 @@ export interface SavedScholarship {
   tags?: string[];
   notes?: string;
   status: 'active' | 'expired' | 'applied';
+  eligibility?: string[];
+  requiredDocuments?: string[];
+  applicationUrl?: string;
 }
 
 @Component({
@@ -77,7 +80,7 @@ export class Bookmarked {
     private userScholarshipService: UserScholarshipService
   ) {}
 
-  selectedScholarship: any = null;
+  selectedScholarship: SavedScholarship | null = null;
 
   // Add this method to open the scholarship details modal
   openScholarshipDetails(scholarship: any, event?: Event): void {
@@ -118,32 +121,54 @@ export class Bookmarked {
       next: (res) => {
         this.savedScholarships = res.data
           .filter((b: any) => b.scholarship)
-          .map((b: any) => ({
-            id: b.id, // ✅ REQUIRED (bookmark id)
+          .map(
+            (b: any): SavedScholarship => ({
+              id: b.id, // bookmark id ✅
+              scholarshipId: b.scholarship.scholarship_id, // scholarship id ✅
 
-            scholarshipId: b.scholarshipId, // ✅ from bookmark table
+              title: b.scholarship.title,
+              provider: b.scholarship.organization_name,
+              description: b.scholarship.short_summary,
+              deadline: new Date(b.scholarship.deadline),
+              category: b.scholarship.education_level,
+              amount: 0,
 
-            title: b.scholarship.title,
-            provider: b.scholarship.organization_name,
-            description: b.scholarship.short_summary,
-            deadline: new Date(b.scholarship.deadline),
-            category: b.scholarship.education_level,
-            amount: 0,
+              status: this.computeStatus(b.scholarship),
+              savedDate: new Date(b.bookmarkedAt),
 
-            status: this.computeStatus(b.scholarship),
-            savedDate: new Date(b.bookmarkedAt),
+              providerLogo: b.scholarship.banner_url ?? undefined,
 
-            providerLogo: b.scholarship.banner_url ?? null,
-            tags: b.scholarship.fields_of_study?.split(',') ?? [],
-          }));
+              tags: Array.isArray(b.scholarship.fields_of_study)
+                ? b.scholarship.fields_of_study
+                : typeof b.scholarship.fields_of_study === 'string'
+                ? b.scholarship.fields_of_study.split(',')
+                : [],
+              eligibility: Array.isArray(b.scholarship.eligibility)
+                ? b.scholarship.eligibility
+                : typeof b.scholarship.eligibility === 'string'
+                ? b.scholarship.eligibility.split(',')
+                : undefined,
+
+              requiredDocuments: Array.isArray(b.scholarship.required_documents)
+                ? b.scholarship.required_documents
+                : typeof b.scholarship.required_documents === 'string'
+                ? b.scholarship.required_documents.split(',')
+                : undefined,
+
+              applicationUrl: b.scholarship.application_url ?? undefined,
+            })
+          );
 
         this.filteredScholarships = [...this.savedScholarships];
-
-        // 🔴 MISSING CALLS
         this.extractCategories();
         this.calculateStats();
+        this.applyFilters();
 
         this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        alert('Failed to load bookmarked scholarships');
       },
     });
   }
@@ -236,21 +261,36 @@ export class Bookmarked {
   toggleViewMode(): void {
     this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
   }
-
+  //unsavescholarship
   unsaveScholarship(scholarship: SavedScholarship, event?: Event): void {
     event?.stopPropagation();
 
-    if (!confirm(`Remove "${scholarship.title}" from saved scholarships?`)) return;
+    if (!confirm(`Remove "${scholarship.title}" from saved scholarships?`)) {
+      return;
+    }
 
     this.userScholarshipService.removeBookmark(scholarship.scholarshipId).subscribe({
       next: () => {
+        // 1️⃣ Remove from source list
         this.savedScholarships = this.savedScholarships.filter(
           (s) => s.scholarshipId !== scholarship.scholarshipId
         );
+
+        // 2️⃣ Rebuild filtered list + stats
         this.calculateStats();
         this.applyFilters();
+
+        // 3️⃣ 🔥 CLOSE MODAL IF THIS WAS THE OPEN SCHOLARSHIP
+        if (
+          this.selectedScholarship &&
+          this.selectedScholarship.scholarshipId === scholarship.scholarshipId
+        ) {
+          this.closeScholarshipDetails();
+        }
       },
-      error: () => alert('Failed to remove bookmark'),
+      error: () => {
+        alert('Failed to remove bookmark');
+      },
     });
   }
 
