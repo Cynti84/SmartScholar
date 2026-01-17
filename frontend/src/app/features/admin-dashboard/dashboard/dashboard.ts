@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { NgChartsModule } from 'ng2-charts';
@@ -38,7 +38,7 @@ interface ChartData {
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
 })
-export class Dashboard {
+export class Dashboard implements OnInit {
   menu = [
     { label: 'Overview', route: '/admin' },
     { label: 'Providers', route: '/admin/providers' },
@@ -118,20 +118,17 @@ export class Dashboard {
   loadDashboardData(): void {
     this.isLoading = true;
 
-    Promise.all([
+    Promise.allSettled([
       this.loadStudentsCount(),
       this.loadPendingProviders(),
       this.loadScholarships(),
       this.loadProviders(),
-    ])
-      .then(() => {
-        this.buildQuickStats();
-        this.isLoading = false;
-      })
-      .catch(() => {
-        this.isLoading = false;
-      });
+    ]).then(() => {
+      this.buildQuickStats();
+      this.isLoading = false;
+    });
   }
+
   //added
   loadStudentsCount(): Promise<void> {
     return new Promise((resolve, reject) => {
