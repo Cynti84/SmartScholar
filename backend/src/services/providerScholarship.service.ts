@@ -25,6 +25,9 @@ export class ProviderScholarshipSerivice {
   }
 
   async getScholarshipById(providerId: number, id: number) {
+    if (!Number.isInteger(id)) {
+      throw new Error("Invalid scholarshipId passed to service.");
+    }
     const scholarship = await ScholarshipRepository.findOne({
       where: { scholarship_id: id, provider_id: providerId },
     });

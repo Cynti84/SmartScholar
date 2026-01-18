@@ -3,12 +3,14 @@ import { providerScholarshipSerivice } from "../services/providerScholarship.ser
 
 export const createScholarship = async (req: Request, res: Response) => {
   const providerId = req.user!.id;
-  const files = req.files as Record<string, Express.Multer.File[]>
+  const files = req.files as Record<string, Express.Multer.File[]>;
 
-  const flyerUrl = files?.flyer?.[0]?.path ?? null
-  const bannerUrl = files?.banner?.[0]?.path ?? null
-  
-  const verificationDocs = files?.verificationDocuments? files.verificationDocuments.map((file)=> file.path) : []
+  const flyerUrl = files?.flyer?.[0]?.path ?? null;
+  const bannerUrl = files?.banner?.[0]?.path ?? null;
+
+  const verificationDocs = files?.verificationDocuments
+    ? files.verificationDocuments.map((file) => file.path)
+    : [];
 
   const result = await providerScholarshipSerivice.createScholarship(
     providerId,
@@ -35,6 +37,13 @@ export const getAllScholarships = async (req: Request, res: Response) => {
 export const getScholarshipById = async (req: Request, res: Response) => {
   const providerId = req.user!.id;
   const id = Number(req.params.id);
+
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid Scholarship ID",
+    });
+  }
 
   const result = await providerScholarshipSerivice.getScholarshipById(
     providerId,
