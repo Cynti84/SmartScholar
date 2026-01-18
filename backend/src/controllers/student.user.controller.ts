@@ -416,7 +416,9 @@ export const getScholarshipsForStudent = async (
     }
 
     const [scholarships, total] = await scholarshipRepo.findAndCount({
-      where,
+      where: {
+        status: "approved",
+      },
       order: { scholarship_id: sort === "ASC" ? "ASC" : "DESC" },
       skip: (page - 1) * limit,
       take: limit,

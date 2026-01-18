@@ -60,3 +60,82 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
   );
   return res.status(200).json(result);
 };
+
+export const getApplicantsByEducationLevel = async (
+  req: Request,
+  res: Response
+) => {
+  const providerId = req.user!.id;
+  const scholarshipId = req.query.scholarshipId
+    ? Number(req.query.scholarshipId)
+    : undefined;
+
+  const data = await scholarshipAnalyticsService.getApplicantsByEducationLevel(
+    providerId,
+    scholarshipId
+  );
+
+  res.json(data);
+};
+
+export const getApplicantsByField = async (req: Request, res: Response) => {
+  const providerId = req.user!.id;
+  const scholarshipId = req.query.scholarshipId
+    ? Number(req.query.scholarshipId)
+    : undefined;
+
+  const data = await scholarshipAnalyticsService.getApplicantsByField(
+    providerId,
+    scholarshipId
+  );
+
+  res.json(data);
+};
+
+export const getApplicantsByCountry = async (req: Request, res: Response) => {
+  const providerId = req.user!.id;
+  const scholarshipId = req.query.scholarshipId
+    ? Number(req.query.scholarshipId)
+    : undefined;
+
+  const data = await scholarshipAnalyticsService.getApplicantsByCountry(
+    providerId,
+    scholarshipId
+  );
+
+  res.json(data);
+};
+
+export const getScholarshipOverview = async (req: Request, res: Response) => {
+  const providerId = req.user!.id;
+  const data = await scholarshipAnalyticsService.getScholarshipOverview(
+    providerId
+  );
+  res.json(data);
+};
+
+export const getTotalApplicationsCount = async (
+  req: Request,
+  res: Response
+) => {
+  const providerId = req.user!.id;
+
+  const result = await scholarshipAnalyticsService.getTotalApplicationsCount(
+    providerId
+  );
+
+  res.json(result);
+};
+
+export const getSoonestScholarshipDeadline = async (
+  req: Request,
+  res: Response
+) => {
+  const providerId = req.user!.id;
+
+  const data = await scholarshipAnalyticsService.getSoonestScholarshipDeadline(
+    providerId
+  );
+
+  res.json(data);
+};
