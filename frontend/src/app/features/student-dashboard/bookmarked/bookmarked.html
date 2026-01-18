@@ -182,7 +182,7 @@
 
               <div class="scholarship-meta">
                 <span class="category-badge">{{ scholarship.category }}</span>
-                <span class="amount">${{ scholarship.amount.toLocaleString() }}</span>
+                <span class="amount">{{ scholarship.amount }}</span>
                 <span class="match-score" *ngIf="scholarship.matchScore">
                   {{ scholarship.matchScore }}% Match
                 </span>
@@ -203,7 +203,7 @@
 
               <!-- Deadline -->
               <div class="deadline-section" [class]="getDeadlineClass(scholarship.deadline)">
-                <span class="deadline-icon">📅</span>
+                <span class="deadline-icon">Deadline</span>
                 <span class="deadline-text">{{ formatDeadline(scholarship.deadline) }}</span>
               </div>
             </div>
@@ -217,14 +217,17 @@
                 View Details
               </button>
               <button
-                class="btn btn-primary btn-sm"
-                [disabled]="scholarship.status === 'applied' || scholarship.status === 'expired'"
-                (click)="applyToScholarship(scholarship, $event)"
+                class="btn btn-primary"
+                [disabled]="
+                  selectedScholarship?.status === 'applied' ||
+                  selectedScholarship?.status === 'expired'
+                "
+                (click)="goToApplyPage(scholarship.scholarshipId)"
               >
                 {{
-                  scholarship.status === 'applied'
+                  selectedScholarship?.status === 'applied'
                     ? 'Already Applied'
-                    : scholarship.status === 'expired'
+                    : selectedScholarship?.status === 'expired'
                     ? 'Expired'
                     : 'Apply Now'
                 }}
@@ -305,7 +308,7 @@
 
       <div class="scholarship-meta">
         <span class="category-badge">{{ selectedScholarship.category }}</span>
-        <span class="amount">${{ selectedScholarship.amount.toLocaleString() }}</span>
+        <span class="amount">{{ selectedScholarship.amount }}</span>
         <span class="match-score" *ngIf="selectedScholarship.matchScore">
           {{ selectedScholarship.matchScore }}% Match
         </span>
@@ -321,23 +324,31 @@
       </div>
 
       <!-- Deadline -->
-      <div class="detail-section">
-        <h3 class="section-title">Deadline</h3>
-        <div class="deadline-info" [class]="getDeadlineClass(selectedScholarship.deadline)">
-          <span class="deadline-text">{{ formatDeadline(selectedScholarship.deadline) }}</span>
-          <span class="deadline-date">{{
-            selectedScholarship.deadline | date : 'MMMM d, yyyy'
-          }}</span>
-        </div>
+      <div class="detail-section" *ngIf="selectedScholarship.eligibility?.length">
+        <h2>Eligibility Criteria</h2>
+        <ul class="criteria-list">
+          <li *ngFor="let criterion of selectedScholarship.eligibility">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            {{ criterion }}
+          </li>
+        </ul>
       </div>
 
       <!-- Eligibility Requirements -->
-      <div class="detail-section" *ngIf="selectedScholarship.eligibility">
+      <!-- <div class="detail-section" *ngIf="selectedScholarship.eligibility">
         <h3 class="section-title">Eligibility Requirements</h3>
         <ul class="requirements-list">
           <li *ngFor="let requirement of selectedScholarship.eligibility">{{ requirement }}</li>
         </ul>
-      </div>
+      </div> -->
 
       <!-- Required Documents -->
       <div class="detail-section" *ngIf="selectedScholarship.requiredDocuments">
@@ -368,7 +379,7 @@
 
       <!-- Additional Info -->
       <div class="detail-section">
-        <h3 class="section-title">Additional Information</h3>
+        <!-- <h3 class="section-title">Additional Information</h3> -->
         <div class="info-grid">
           <div class="info-item">
             <span class="info-label">Saved Date:</span>
@@ -395,14 +406,14 @@
       <button
         class="btn btn-primary"
         [disabled]="
-          selectedScholarship.status === 'applied' || selectedScholarship.status === 'expired'
+          selectedScholarship?.status === 'applied' || selectedScholarship?.status === 'expired'
         "
-        (click)="applyToScholarship(selectedScholarship, $event)"
+        (click)="goToApplyPage(selectedScholarship!.scholarshipId)"
       >
         {{
-          selectedScholarship.status === 'applied'
+          selectedScholarship?.status === 'applied'
             ? 'Already Applied'
-            : selectedScholarship.status === 'expired'
+            : selectedScholarship?.status === 'expired'
             ? 'Expired'
             : 'Apply Now'
         }}

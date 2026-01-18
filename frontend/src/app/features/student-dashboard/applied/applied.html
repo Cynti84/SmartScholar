@@ -1,4 +1,9 @@
-<app-dashboard-layout [title]="'Applied Scholarships'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
+<app-dashboard-layout
+  [title]="'Applied Scholarships'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
   <section>
     <!-- applied-scholarships.component.html -->
     <div class="scholarship-container">
@@ -82,10 +87,10 @@
               <p class="provider">{{ scholarship.provider }}</p>
             </div>
             <div class="header-right">
-              <span class="amount">{{ formatCurrency(scholarship.amount) }}</span>
-              <span class="status-badge" [ngClass]="getStatusClass(scholarship.status)">
+              <span class="amount">{{ scholarship.amount }}</span>
+              <!-- <span class="status-badge" [ngClass]="getStatusClass(scholarship.status)">
                 {{ scholarship.status | titlecase }}
-              </span>
+              </span> -->
             </div>
           </div>
 
@@ -121,12 +126,12 @@
             </div>
           </div>
 
-          <div class="card-footer">
+          <!-- <div class="card-footer">
             <button class="btn btn-secondary" (click)="viewDetails(scholarship)">
               View Details
             </button>
             <button class="btn btn-primary" (click)="trackStatus(scholarship)">Track Status</button>
-          </div>
+          </div> -->
         </div>
 
         <!-- Empty State -->

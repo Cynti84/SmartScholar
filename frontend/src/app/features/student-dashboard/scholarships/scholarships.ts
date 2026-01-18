@@ -184,7 +184,11 @@ export class Scholarships {
       deadline: s.deadline ? new Date(s.deadline).toISOString().split('T')[0] : '',
 
       description: s.description ?? '',
-      eligibility: [s.eligibility_criteria].filter(Boolean),
+      eligibility:
+        typeof s.eligibility_criteria === 'string'
+          ? s.eligibility_criteria.split(',').map((e: string) => e.trim())
+          : [],
+
       fundingDetails: s.application_link ?? '',
       requirements: [],
       isSaved: false,
@@ -351,11 +355,8 @@ export class Scholarships {
     }
   }
 
-  applyScholarship(scholarship: ScholarshipUI): void {
-    this.userScholarshipService.markAsApplied(scholarship.id).subscribe({
-      next: () => alert('Application submitted successfully'),
-      error: () => alert('Failed to apply'),
-    });
+  applyScholarship(scholarship: any): void {
+    this.router.navigate(['/student/apply', scholarship.id]);
   }
 
   getDaysRemaining(deadline: string | Date): number {

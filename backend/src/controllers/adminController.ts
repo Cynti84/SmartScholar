@@ -13,6 +13,7 @@ export class AdminController {
       const scholarships = await scholarshipRepo.find({
         relations: ["provider"],
         order: { scholarship_id: "DESC" },
+        where: { status: "approved" },
       });
 
       res.json({
@@ -108,8 +109,7 @@ export class AdminController {
 
       const providers = await userRepo.find({
         where: {
-          role: UserRole.PROVIDER,
-          status: UserStatus.ACTIVE,
+          role: UserRole.PROVIDER, // ✅ NO status filter
         },
         relations: ["providerProfile"], // optional
         order: { createdAt: "DESC" },

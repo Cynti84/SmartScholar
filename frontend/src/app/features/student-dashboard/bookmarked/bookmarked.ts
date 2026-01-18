@@ -15,7 +15,7 @@ export interface SavedScholarship {
   title: string;
   provider: string;
   providerLogo?: string;
-  amount: number;
+  amount: string;
   deadline: Date;
   category: string;
   description: string;
@@ -128,11 +128,10 @@ export class Bookmarked {
 
               title: b.scholarship.title,
               provider: b.scholarship.organization_name,
-              description: b.scholarship.short_summary,
+              description: b.scholarship.description,
               deadline: new Date(b.scholarship.deadline),
               category: b.scholarship.education_level,
-              amount: 0,
-
+              amount: String(b.scholarship?.scholarship_type),
               status: this.computeStatus(b.scholarship),
               savedDate: new Date(b.bookmarkedAt),
 
@@ -143,11 +142,13 @@ export class Bookmarked {
                 : typeof b.scholarship.fields_of_study === 'string'
                 ? b.scholarship.fields_of_study.split(',')
                 : [],
-              eligibility: Array.isArray(b.scholarship.eligibility)
-                ? b.scholarship.eligibility
-                : typeof b.scholarship.eligibility === 'string'
-                ? b.scholarship.eligibility.split(',')
-                : undefined,
+              eligibility:
+                typeof b.scholarship.eligibility_criteria === 'string'
+                  ? b.scholarship.eligibility_criteria
+                      .split(/,|\n|;/)
+                      .map((e: string) => e.trim())
+                      .filter(Boolean)
+                  : [],
 
               requiredDocuments: Array.isArray(b.scholarship.required_documents)
                 ? b.scholarship.required_documents
@@ -228,18 +229,33 @@ export class Bookmarked {
 
     this.filteredScholarships = filtered;
   }
+  private fundingPriority(amount?: string): number {
+    if (!amount) return 99;
 
+    const value = amount.toLowerCase();
+
+    if (value.includes('fully')) return 1;
+    if (value.includes('partial')) return 2;
+    if (value.includes('partly')) return 2;
+    if (value.includes('not')) return 3;
+
+    return 99;
+  }
   sortScholarships(scholarships: SavedScholarship[]): void {
     scholarships.sort((a, b) => {
       switch (this.sortBy) {
         case 'saved_date':
           return new Date(b.savedDate).getTime() - new Date(a.savedDate).getTime();
+
         case 'deadline':
           return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
-        case 'amount':
-          return b.amount - a.amount;
+
+        case 'amount': // funding type
+          return this.fundingPriority(a.amount) - this.fundingPriority(b.amount);
+
         case 'match_score':
-          return (b.matchScore || 0) - (a.matchScore || 0);
+          return (b.matchScore ?? 0) - (a.matchScore ?? 0);
+
         default:
           return 0;
       }
@@ -297,11 +313,9 @@ export class Bookmarked {
   // viewScholarship(scholarship: SavedScholarship): void {
   //   this.router.navigate(['/student/scholarships', scholarship.scholarshipId]);
   // }
-  applyToScholarship(scholarship: SavedScholarship, event?: Event): void {
-    if (event) {
-      event.stopPropagation();
-    }
-    this.router.navigate(['/scholarships', scholarship.scholarshipId, 'apply']);
+
+  goToApplyPage(scholarshipId: number): void {
+    this.router.navigate(['/student/apply', scholarshipId]);
   }
 
   formatDeadline(deadline: Date): string {

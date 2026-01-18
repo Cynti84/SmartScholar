@@ -7,22 +7,34 @@ import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-m
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
-interface Provider {
+import { AdminService } from '../../../core/services/admin.service';
+
+export interface AdminProvider {
   id: number;
+
+  // Organization
   name: string;
-  type: 'university' | 'ngo' | 'company';
+  type: string;
+
+  // Contact
   email: string;
-  phone: string;
-  website: string;
+  phone?: string;
+
+  // Status & meta
   status: 'active' | 'pending' | 'suspended';
-  scholarshipsPosted: number;
+  registrationDate: string;
+
+  // Stats
+  postedScholarship: number;
   activeScholarships: number;
-  registrationDate: Date;
-  lastActive: Date;
-  description: string;
-  address: string;
-  contactPerson: string;
-  verificationDocs: string[];
+
+  // Optional UI fields
+  website?: string;
+  address?: string;
+  contactPerson?: string;
+  verificationDocs?: string[];
+  description?: string;
+  lastActive?: string;
 }
 
 interface ActivityLog {
@@ -49,10 +61,14 @@ export class ProviderManagement {
     { label: 'Logout', action: 'logout' },
   ];
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private adminService: AdminService
+  ) {}
   Math = Math;
-  providers: Provider[] = [];
-  filteredProviders: Provider[] = [];
+  providers: AdminProvider[] = [];
+  filteredProviders: AdminProvider[] = [];
 
   // Filter properties
   searchTerm: string = '';
@@ -66,7 +82,7 @@ export class ProviderManagement {
   // Modal states
   showDetailsModal: boolean = false;
   showConfirmModal: boolean = false;
-  selectedProvider: Provider | null = null;
+  selectedProvider: AdminProvider | null = null;
   confirmAction: 'approve' | 'decline' | 'suspend' | 'activate' | null = null;
   confirmReason: string = '';
 
@@ -75,158 +91,81 @@ export class ProviderManagement {
 
   // Statistics
   stats = {
-    total: 0,
-    active: 0,
-    pending: 0,
-    suspended: 0,
+    totalProviders: 0,
+    activeProviders: 0,
+    pendingProviders: 0,
+    suspendedProviders: 0,
   };
+  formatDate(date: Date | string | null | undefined): string {
+    if (!date) return '—';
+    const d = typeof date === 'string' ? new Date(date) : date;
+    return d.toLocaleDateString();
+  }
 
   ngOnInit(): void {
     this.loadProviders();
   }
-
-  loadProviders(): void {
-    // Mock data - replace with actual API call
-    this.providers = [
-      {
-        id: 1,
-        name: 'TechCorp Foundation',
-        type: 'company',
-        email: 'contact@techcorp.com',
-        phone: '+1 234-567-8900',
-        website: 'www.techcorp.com',
-        status: 'active',
-        scholarshipsPosted: 15,
-        activeScholarships: 12,
-        registrationDate: new Date('2024-01-15'),
-        lastActive: new Date('2025-10-05'),
-        description: 'Leading technology company supporting STEM education',
-        address: '123 Tech Street, Silicon Valley, CA 94025',
-        contactPerson: 'John Smith',
-        verificationDocs: ['business_license.pdf', 'tax_certificate.pdf'],
-      },
-      {
-        id: 2,
-        name: 'Global Education Foundation',
-        type: 'ngo',
-        email: 'info@globaledu.org',
-        phone: '+1 234-567-8901',
-        website: 'www.globaledu.org',
-        status: 'pending',
-        scholarshipsPosted: 0,
-        activeScholarships: 0,
-        registrationDate: new Date('2025-10-01'),
-        lastActive: new Date('2025-10-01'),
-        description: 'NGO dedicated to providing educational opportunities worldwide',
-        address: '456 Education Ave, New York, NY 10001',
-        contactPerson: 'Sarah Johnson',
-        verificationDocs: ['ngo_registration.pdf', 'board_resolution.pdf'],
-      },
-      {
-        id: 3,
-        name: 'State University',
-        type: 'university',
-        email: 'scholarships@stateuni.edu',
-        phone: '+1 234-567-8902',
-        website: 'www.stateuni.edu',
-        status: 'active',
-        scholarshipsPosted: 28,
-        activeScholarships: 24,
-        registrationDate: new Date('2023-09-10'),
-        lastActive: new Date('2025-10-06'),
-        description: 'Premier public university offering various scholarship programs',
-        address: '789 University Blvd, Boston, MA 02115',
-        contactPerson: 'Dr. Emily Chen',
-        verificationDocs: ['accreditation.pdf', 'authorization_letter.pdf'],
-      },
-      {
-        id: 4,
-        name: 'Healthcare Scholars Inc.',
-        type: 'company',
-        email: 'support@healthscholars.com',
-        phone: '+1 234-567-8903',
-        website: 'www.healthscholars.com',
-        status: 'suspended',
-        scholarshipsPosted: 8,
-        activeScholarships: 0,
-        registrationDate: new Date('2024-06-20'),
-        lastActive: new Date('2025-09-15'),
-        description: 'Healthcare company supporting medical students',
-        address: '321 Medical Center Dr, Chicago, IL 60611',
-        contactPerson: 'Michael Brown',
-        verificationDocs: ['incorporation_cert.pdf'],
-      },
-      {
-        id: 5,
-        name: 'Innovation Hub',
-        type: 'company',
-        email: 'hello@innovationhub.io',
-        phone: '+1 234-567-8904',
-        website: 'www.innovationhub.io',
-        status: 'pending',
-        scholarshipsPosted: 0,
-        activeScholarships: 0,
-        registrationDate: new Date('2025-10-04'),
-        lastActive: new Date('2025-10-04'),
-        description: 'Tech startup fostering innovation in education',
-        address: '555 Startup Lane, Austin, TX 78701',
-        contactPerson: 'Alex Martinez',
-        verificationDocs: ['company_profile.pdf', 'founders_agreement.pdf'],
-      },
-      {
-        id: 6,
-        name: 'Arts & Culture Society',
-        type: 'ngo',
-        email: 'info@artsculture.org',
-        phone: '+1 234-567-8905',
-        website: 'www.artsculture.org',
-        status: 'active',
-        scholarshipsPosted: 10,
-        activeScholarships: 8,
-        registrationDate: new Date('2024-03-12'),
-        lastActive: new Date('2025-10-03'),
-        description: 'Supporting artists and creative professionals',
-        address: '888 Arts Plaza, Los Angeles, CA 90012',
-        contactPerson: 'Maria Garcia',
-        verificationDocs: ['501c3_status.pdf', 'bylaws.pdf'],
-      },
-    ];
-
-    this.updateStatistics();
-    this.applyFilters();
+  loadProviders() {
+    this.adminService.getProviders().subscribe((res) => {
+      this.providers = res.data.map((user: any) => this.mapProvider(user));
+      this.updateStatistics();
+    });
   }
 
-  updateStatistics(): void {
-    this.stats.total = this.providers.length;
-    this.stats.active = this.providers.filter((p) => p.status === 'active').length;
-    this.stats.pending = this.providers.filter((p) => p.status === 'pending').length;
-    this.stats.suspended = this.providers.filter((p) => p.status === 'suspended').length;
+  mapProvider(user: any): AdminProvider {
+    const profile = user.providerProfile;
+
+    return {
+      id: user.id,
+      name: profile?.organization_name ?? '—',
+      type: profile?.organization_type ?? 'unknown',
+
+      email: profile?.contact_email ?? user.email,
+      phone: profile?.phone,
+
+      status: user.status,
+      registrationDate: user.createdAt,
+
+      postedScholarship: 0, // plug API later
+      activeScholarships: 0,
+
+      website: profile?.website,
+      address: profile?.country,
+      contactPerson: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(),
+      verificationDocs: profile?.verification_document_url
+        ? [profile.verification_document_url]
+        : [],
+    };
+  }
+
+  updateStatistics() {
+    this.stats = {
+      totalProviders: this.providers.length,
+      activeProviders: this.providers.filter((p) => p.status === 'active').length,
+      pendingProviders: this.providers.filter((p) => p.status === 'pending').length,
+      suspendedProviders: this.providers.filter((p) => p.status === 'suspended').length,
+    };
   }
 
   applyFilters(): void {
+    const search = this.searchTerm.toLowerCase().trim();
+
     this.filteredProviders = this.providers.filter((provider) => {
       const matchesSearch =
-        provider.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        provider.email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        provider.contactPerson.toLowerCase().includes(this.searchTerm.toLowerCase());
+        provider.email.toLowerCase().includes(search) ||
+        provider.name.toLowerCase().includes(search) ||
+        provider.type.toLowerCase().includes(search);
+
       const matchesStatus =
         this.selectedStatus === 'all' || provider.status === this.selectedStatus;
-      const matchesType = this.selectedType === 'all' || provider.type === this.selectedType;
 
-      return matchesSearch && matchesStatus && matchesType;
+      return matchesSearch && matchesStatus;
     });
+
     this.currentPage = 1;
   }
 
-  onSearchChange(): void {
-    this.applyFilters();
-  }
-
-  onFilterChange(): void {
-    this.applyFilters();
-  }
-
-  getPaginatedProviders(): Provider[] {
+  getPaginatedProviders(): AdminProvider[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
     const end = start + this.itemsPerPage;
     return this.filteredProviders.slice(start, end);
@@ -242,7 +181,7 @@ export class ProviderManagement {
     }
   }
 
-  viewProviderDetails(provider: Provider): void {
+  viewProviderDetails(provider: AdminProvider): void {
     this.selectedProvider = provider;
     this.loadActivityLogs(provider.id);
     this.showDetailsModal = true;
@@ -284,56 +223,68 @@ export class ProviderManagement {
     ];
   }
 
-  confirmApprove(provider: Provider): void {
+  confirmApprove(provider: AdminProvider): void {
     this.selectedProvider = provider;
     this.confirmAction = 'approve';
     this.showConfirmModal = true;
   }
 
-  confirmDecline(provider: Provider): void {
+  confirmDecline(provider: AdminProvider): void {
     this.selectedProvider = provider;
     this.confirmAction = 'decline';
     this.showConfirmModal = true;
   }
 
-  confirmSuspend(provider: Provider | null): void {
+  confirmSuspend(provider: AdminProvider | null): void {
     if (!provider) return;
     this.selectedProvider = provider;
     this.confirmAction = 'suspend';
     this.showConfirmModal = true;
   }
 
-  confirmActivate(provider: Provider | null) {
+  confirmActivate(provider: AdminProvider | null) {
     if (!provider) return; // this handles null
     this.selectedProvider = provider;
     this.confirmAction = 'activate';
     this.showConfirmModal = true;
   }
 
+  onSearchChange(): void {
+    this.applyFilters();
+  }
+
+  onFilterChange(): void {
+    this.applyFilters();
+  }
   executeConfirmAction(): void {
     if (!this.selectedProvider || !this.confirmAction) return;
 
-    const index = this.providers.findIndex((p) => p.id === this.selectedProvider!.id);
-    if (index === -1) return;
+    const id = this.selectedProvider.id;
+
+    let request$;
 
     switch (this.confirmAction) {
       case 'approve':
-        this.providers[index].status = 'active';
+        request$ = this.adminService.approveProvider(id);
         break;
       case 'decline':
-        this.providers.splice(index, 1);
+        request$ = this.adminService.rejectProvider(id);
         break;
       case 'suspend':
-        this.providers[index].status = 'suspended';
+        request$ = this.adminService.suspendProvider(id);
         break;
       case 'activate':
-        this.providers[index].status = 'active';
+        request$ = this.adminService.activateProvider(id);
         break;
+      default:
+        return;
     }
 
-    this.updateStatistics();
-    this.applyFilters();
-    this.closeConfirmModal();
+    request$.subscribe({
+      next: () => this.loadProviders(),
+      error: (err) => console.error('Action failed', err),
+      complete: () => this.closeConfirmModal(),
+    });
   }
 
   closeDetailsModal(): void {
@@ -382,25 +333,18 @@ export class ProviderManagement {
         return 'insert_chart';
     }
   }
+  //added
+  getTimeSinceActive(date?: string | Date): string {
+    if (!date) return 'Never';
 
-  formatDate(date: Date): string {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  }
+    const d = typeof date === 'string' ? new Date(date) : date;
 
-  getTimeSinceActive(date: Date): string {
-    const now = new Date();
-    const diff = now.getTime() - new Date(date).getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const diffMs = Date.now() - d.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days} days ago`;
-    if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
-    return `${Math.floor(days / 30)} months ago`;
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return '1 day ago';
+    return `${diffDays} days ago`;
   }
 
   downloadDocument(docName: string): void {

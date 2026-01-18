@@ -7,6 +7,7 @@ import { Scholarships } from './scholarships/scholarships';
 import { Applied } from './applied/applied';
 import { Bookmarked } from './bookmarked/bookmarked';
 import { Profile } from '../student-dashboard/profile/profile';
+import { ApplyScholarship } from './apply-scholarship/apply-scholarship';
 
 export const STUDENT_DASHBOARD_ROUTES: Routes = [
   {
@@ -29,5 +30,9 @@ export const STUDENT_DASHBOARD_ROUTES: Routes = [
   {
     path: 'profile',
     component: Profile,
+  },
+  {
+    path: 'apply/:id',
+    component: ApplyScholarship,
   },
 ];
