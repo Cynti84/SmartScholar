@@ -58,4 +58,57 @@ export class ProviderService {
   deleteScholarship(id: number): Observable<any> {
     return this.http.delete(`${this.API_URL}/scholarships/${id}`);
   }
+
+  getMostPopularScholarship(): Observable<any> {
+    return this.http.get<any>(`${this.API_URL}/scholarships/popular`);
+  }
+
+  getSingleScholarshipApplicationsCount(scholarshipId: number): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(
+      `${this.API_URL}/scholarships/${scholarshipId}/applications/count`
+    );
+  }
+
+  getScholarshipApplicationsCount(scholarshipId: number): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(`${this.API_URL}/applications/count`);
+  }
+
+  getScholarshipDeadlineById(scholarshipId: number): Observable<{ deadline: string }> {
+    return this.http.get<{ deadline: string }>(
+      `${this.API_URL}/scholarships/${scholarshipId}/deadline`
+    );
+  }
+
+  getScholarshipDeadline(): Observable<{ title: string | null; deadline: string | null }> {
+    return this.http.get<{ title: string | null; deadline: string | null }>(
+      `${this.API_URL}/scholarships/deadline/soonest`
+    );
+  }
+
+  // Analytics
+
+  getApplicantsByEducationLevel(scholarshipId?: number): Observable<any[]> {
+    const url = scholarshipId
+      ? `${this.API_URL}/applicants/education-level?scholarshipId=${scholarshipId}`
+      : `${this.API_URL}/applicants/education-level`;
+    return this.http.get<any[]>(url);
+  }
+
+  getApplicantsByField(scholarshipId?: number): Observable<any[]> {
+    const url = scholarshipId
+      ? `${this.API_URL}/applicants/field?scholarshipId=${scholarshipId}`
+      : `${this.API_URL}/applicants/field`;
+    return this.http.get<any[]>(url);
+  }
+
+  getApplicantsByCountry(scholarshipId?: number): Observable<any[]> {
+    const url = scholarshipId
+      ? `${this.API_URL}/applicants/country?scholarshipId=${scholarshipId}`
+      : `${this.API_URL}/applicants/country`;
+    return this.http.get<any[]>(url);
+  }
+
+  getScholarshipOverview(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URL}/scholarships/overview`);
+  }
 }

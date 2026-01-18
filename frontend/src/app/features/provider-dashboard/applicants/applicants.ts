@@ -1,14 +1,14 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { FormsModule } from '@angular/forms';
-import { Chart, ChartConfiguration, ChartType, registerables } from 'chart.js';
+import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { AuthService } from '../../../core/services/auth.service';
 import { Router } from '@angular/router';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { ProviderService } from '../../../core/services/provider.service';
 
-// Register Chart.js components
 Chart.register(...registerables);
 
 interface Scholarship {
@@ -44,12 +44,12 @@ interface ScholarshipTableData {
 
 @Component({
   selector: 'app-applicants',
+  standalone: true,
   imports: [CommonModule, DashboardLayout, FormsModule, ConfirmModal],
   templateUrl: './applicants.html',
   styleUrl: './applicants.scss',
 })
-export class Applicants implements OnInit, AfterViewInit {
-  //menu items
+export class Applicants implements OnInit, OnDestroy {
   menu = [
     { label: 'Overview', route: '/provider' },
     { label: 'Post Scholarships', route: '/provider/post' },
@@ -59,259 +59,224 @@ export class Applicants implements OnInit, AfterViewInit {
     { label: 'Logout', action: 'logout' },
   ];
 
-  @ViewChild('educationChart', { static: false }) educationChartRef!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('fieldChart', { static: false }) fieldChartRef!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('countryChart', { static: false }) countryChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('educationChart') educationChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('fieldChart') fieldChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('countryChart') countryChartRef!: ElementRef<HTMLCanvasElement>;
 
   selectedScholarship: string = 'all';
+
   scholarships: Scholarship[] = [];
+
   summaryStats: SummaryStats = {
     totalApplied: 0,
-    mostPopular: { title: '', count: 0 },
-    deadlineSoonest: { title: '', daysLeft: 0 },
+    mostPopular: { title: '-', count: 0 },
+    deadlineSoonest: { title: '-', daysLeft: 0 },
   };
 
   educationData: EducationData[] = [];
+  fieldData: { label: string; value: number }[] = [];
+  countryData: { label: string; value: number }[] = [];
+
   scholarshipTableData: ScholarshipTableData[] = [];
 
   private educationChart?: Chart;
   private fieldChart?: Chart;
   private countryChart?: Chart;
 
-  // Mock data - replace with actual service calls
-  private mockData = {
-    scholarships: [
-      { id: '1', title: 'DAAD Masters 2025' },
-      { id: '2', title: 'Chevening 2025' },
-      { id: '3', title: 'Fulbright 2025' },
-      { id: '4', title: 'Commonwealth Scholarship' },
-      { id: '5', title: 'Gates Cambridge' },
-    ],
-    summaryStats: {
-      totalApplied: 126,
-      mostPopular: { title: 'DAAD Masters 2025', count: 42 },
-      deadlineSoonest: { title: 'Chevening 2025', daysLeft: 5 },
-    },
-    educationLevels: [
-      { label: 'Undergraduate', value: 50, percentage: 40, color: '#3b82f6' },
-      { label: 'Masters', value: 57, percentage: 45, color: '#10b981' },
-      { label: 'PhD', value: 19, percentage: 15, color: '#f59e0b' },
-    ],
-    fieldsOfStudy: [
-      { label: 'Engineering', value: 35 },
-      { label: 'Business', value: 28 },
-      { label: 'Medicine', value: 22 },
-      { label: 'Computer Science', value: 18 },
-      { label: 'Social Sciences', value: 15 },
-      { label: 'Arts & Humanities', value: 8 },
-    ],
-    countries: [
-      { label: 'Nigeria', value: 25 },
-      { label: 'Kenya', value: 20 },
-      { label: 'South Africa', value: 18 },
-      { label: 'Ghana', value: 15 },
-      { label: 'Uganda', value: 12 },
-      { label: 'Tanzania', value: 10 },
-      { label: 'Others', value: 26 },
-    ],
-    scholarshipTable: [
-      {
-        title: 'DAAD Masters 2025',
-        totalApplied: 42,
-        topField: 'Engineering',
-        topCountry: 'Nigeria',
-      },
-      { title: 'Chevening 2025', totalApplied: 28, topField: 'Business', topCountry: 'Kenya' },
-      {
-        title: 'Fulbright 2025',
-        totalApplied: 23,
-        topField: 'Computer Science',
-        topCountry: 'South Africa',
-      },
-      {
-        title: 'Commonwealth Scholarship',
-        totalApplied: 19,
-        topField: 'Medicine',
-        topCountry: 'Ghana',
-      },
-      {
-        title: 'Gates Cambridge',
-        totalApplied: 14,
-        topField: 'Social Sciences',
-        topCountry: 'Uganda',
-      },
-    ],
-  };
+  showLogoutModal = false;
+
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private providerService: ProviderService
+  ) {}
 
   ngOnInit(): void {
-    this.loadInitialData();
+    this.loadScholarships();
+    this.loadSummaryStats();
+    this.loadEducationStats();
+    this.loadFieldStats();
+    this.loadCountryStats();
+    this.loadScholarshipOverview();
   }
 
-  ngAfterViewInit(): void {
-    // Small delay to ensure DOM is fully rendered
-    setTimeout(() => {
-      this.initializeCharts();
-    }, 100);
+  private loadScholarships(): void {
+    this.providerService
+      .getMyScholarships()
+      .subscribe((data: { scholarship_id: string; title: string }[]) => {
+        this.scholarships = data.map((s) => ({
+          id: s.scholarship_id,
+          title: s.title,
+        }));
+      });
   }
 
-  constructor(private authService: AuthService, private router: Router) {}
+  private loadSummaryStats(): void {
+    this.providerService.getMostPopularScholarship().subscribe((popular) => {
+      if (!popular?.popular_scholarship) return;
 
-  private loadInitialData(): void {
-    // In a real application, these would be service calls
-    this.scholarships = this.mockData.scholarships;
-    this.summaryStats = this.mockData.summaryStats;
-    this.educationData = this.mockData.educationLevels;
-    this.scholarshipTableData = this.mockData.scholarshipTable;
+      const s = popular.popular_scholarship;
+
+      this.summaryStats.mostPopular = {
+        title: s.title,
+        count: s.application_count,
+      };
+
+      this.providerService.getScholarshipApplicationsCount(s.scholarship_id).subscribe((res) => {
+        this.summaryStats.totalApplied = res.count;
+      });
+
+      this.providerService.getScholarshipDeadline().subscribe((res) => {
+        if (!res.deadline || !res.title) {
+          this.summaryStats.deadlineSoonest = { title: '-', daysLeft: 0 };
+          return;
+        }
+
+        const deadline = new Date(res.deadline);
+        const today = new Date();
+        const daysLeft = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+        this.summaryStats.deadlineSoonest = {
+          title: res.title,
+          daysLeft,
+        };
+      });
+    });
+  }
+
+  private loadEducationStats(scholarshipId?: number): void {
+    this.providerService.getApplicantsByEducationLevel(scholarshipId).subscribe((data) => {
+      const total = data.reduce((sum, d) => sum + d.count, 0);
+
+      this.educationData = data.map((d) => ({
+        label: d.education_level,
+        value: d.count,
+        percentage: total ? Math.round((d.count / total) * 100) : 0,
+        color: this.getRandomColor(),
+      }));
+
+      this.educationChart ? this.updateEducationChart() : this.createEducationChart();
+    });
+  }
+
+  private loadFieldStats(scholarshipId?: number): void {
+    this.providerService.getApplicantsByField(scholarshipId).subscribe((data) => {
+      this.fieldData = data.map((d) => ({
+        label: d.field,
+        value: d.count,
+      }));
+
+      this.fieldChart ? this.updateFieldChart() : this.createFieldChart();
+    });
+  }
+
+  private loadCountryStats(scholarshipId?: number): void {
+    this.providerService.getApplicantsByCountry(scholarshipId).subscribe((data) => {
+      this.countryData = data.map((d) => ({
+        label: d.country,
+        value: d.count,
+      }));
+
+      this.countryChart ? this.updateCountryChart() : this.createCountryChart();
+    });
+  }
+
+  private loadScholarshipOverview(): void {
+    this.providerService.getScholarshipOverview().subscribe((data) => {
+      this.scholarshipTableData = data.map((item) => ({
+        title: item.title,
+        totalApplied: item.total_applications,
+        topField: item.top_field,
+        topCountry: item.top_country,
+      }));
+    });
   }
 
   onScholarshipChange(): void {
-    // Reload data based on selected scholarship
-    this.loadDataForScholarship(this.selectedScholarship);
-    this.updateCharts();
-  }
+    const id = this.selectedScholarship === 'all' ? undefined : Number(this.selectedScholarship);
 
-  private loadDataForScholarship(scholarshipId: string): void {
-    // In a real application, this would filter data based on scholarship
-    // For now, we'll use the same mock data
-    if (scholarshipId === 'all') {
-      this.summaryStats = this.mockData.summaryStats;
-      this.scholarshipTableData = this.mockData.scholarshipTable;
-    } else {
-      // Filter data for specific scholarship
-      const selectedScholarship = this.scholarships.find((s) => s.id === scholarshipId);
-      if (selectedScholarship) {
-        this.summaryStats = {
-          ...this.mockData.summaryStats,
-          totalApplied: Math.floor(this.mockData.summaryStats.totalApplied * 0.3), // Simulate filtered data
-          mostPopular: { title: selectedScholarship.title, count: 42 },
-        };
-        this.scholarshipTableData = this.mockData.scholarshipTable.filter(
-          (item) => item.title === selectedScholarship.title
-        );
-      }
-    }
-  }
-
-  private initializeCharts(): void {
-    this.createEducationChart();
-    this.createFieldChart();
-    this.createCountryChart();
+    this.loadEducationStats(id);
+    this.loadFieldStats(id);
+    this.loadCountryStats(id);
   }
 
   private createEducationChart(): void {
-    if (!this.educationChartRef?.nativeElement) return;
-
-    const ctx = this.educationChartRef.nativeElement.getContext('2d');
+    const ctx = this.educationChartRef?.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const config: ChartConfiguration<'doughnut'> = {
+    this.educationChart = new Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: this.educationData.map((item) => item.label),
+        labels: this.educationData.map((d) => d.label),
         datasets: [
           {
-            data: this.educationData.map((item) => item.value),
-            backgroundColor: this.educationData.map((item) => item.color),
+            data: this.educationData.map((d) => d.value),
+            backgroundColor: this.educationData.map((d) => d.color),
             borderWidth: 0,
-            hoverOffset: 4,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false,
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) => {
-                const label = context.label || '';
-                const value = context.parsed;
-                const percentage = Math.round((value / this.summaryStats.totalApplied) * 100);
-                return `${label}: ${value} (${percentage}%)`;
-              },
-            },
-          },
-        },
         cutout: '60%',
-        elements: {
-          arc: {
-            borderWidth: 0,
-          },
-        },
+        plugins: { legend: { display: false } },
       },
-    };
+    });
+  }
 
-    this.educationChart = new Chart(ctx, config);
+  private updateEducationChart(): void {
+    if (!this.educationChart) return;
+    this.educationChart.data.labels = this.educationData.map((d) => d.label);
+    this.educationChart.data.datasets[0].data = this.educationData.map((d) => d.value);
+    this.educationChart.update();
   }
 
   private createFieldChart(): void {
-    if (!this.fieldChartRef?.nativeElement) return;
-
-    const ctx = this.fieldChartRef.nativeElement.getContext('2d');
+    const ctx = this.fieldChartRef?.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const config: ChartConfiguration<'bar'> = {
+    this.fieldChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: this.mockData.fieldsOfStudy.map((item) => item.label),
+        labels: this.fieldData.map((d) => d.label),
         datasets: [
           {
-            data: this.mockData.fieldsOfStudy.map((item) => item.value),
+            data: this.fieldData.map((d) => d.value),
             backgroundColor: '#3b82f6',
             borderRadius: 4,
-            maxBarThickness: 40,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false,
-          },
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: {
-              color: '#f1f5f9',
-            },
-          },
-          x: {
-            grid: {
-              display: false,
-            },
-            ticks: {
-              maxRotation: 45,
-            },
-          },
-        },
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } },
       },
-    };
+    });
+  }
 
-    this.fieldChart = new Chart(ctx, config);
+  private updateFieldChart(): void {
+    if (!this.fieldChart) return;
+    this.fieldChart.data.labels = this.fieldData.map((d) => d.label);
+    this.fieldChart.data.datasets[0].data = this.fieldData.map((d) => d.value);
+    this.fieldChart.update();
   }
 
   private createCountryChart(): void {
-    if (!this.countryChartRef?.nativeElement) return;
-
-    const ctx = this.countryChartRef.nativeElement.getContext('2d');
+    const ctx = this.countryChartRef?.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const config: ChartConfiguration<'bar'> = {
+    this.countryChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: this.mockData.countries.map((item) => item.label),
+        labels: this.countryData.map((d) => d.label),
         datasets: [
           {
-            data: this.mockData.countries.map((item) => item.value),
+            data: this.countryData.map((d) => d.value),
             backgroundColor: '#10b981',
             borderRadius: 4,
-            maxBarThickness: 40,
           },
         ],
       },
@@ -319,74 +284,42 @@ export class Applicants implements OnInit, AfterViewInit {
         responsive: true,
         maintainAspectRatio: false,
         indexAxis: 'y',
-        plugins: {
-          legend: {
-            display: false,
-          },
-        },
-        scales: {
-          x: {
-            beginAtZero: true,
-            grid: {
-              color: '#f1f5f9',
-            },
-          },
-          y: {
-            grid: {
-              display: false,
-            },
-          },
-        },
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true } },
       },
-    };
-
-    this.countryChart = new Chart(ctx, config);
+    });
   }
 
-  private updateCharts(): void {
-    // Update chart data when scholarship filter changes
-    if (this.educationChart) {
-      this.educationChart.update();
-    }
-    if (this.fieldChart) {
-      this.fieldChart.update();
-    }
-    if (this.countryChart) {
-      this.countryChart.update();
-    }
+  private updateCountryChart(): void {
+    if (!this.countryChart) return;
+    this.countryChart.data.labels = this.countryData.map((d) => d.label);
+    this.countryChart.data.datasets[0].data = this.countryData.map((d) => d.value);
+    this.countryChart.update();
   }
 
-  ngOnDestroy(): void {
-    // Clean up chart instances
-    if (this.educationChart) {
-      this.educationChart.destroy();
-    }
-    if (this.fieldChart) {
-      this.fieldChart.destroy();
-    }
-    if (this.countryChart) {
-      this.countryChart.destroy();
-    }
+  private getRandomColor(): string {
+    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+    return colors[Math.floor(Math.random() * colors.length)];
   }
-
-  showLogoutModal = false;
 
   onSidebarAction(item: NavItem) {
-    if (item.action === 'logout') {
-      this.showLogoutModal = true;
-    }
+    if (item.action === 'logout') this.showLogoutModal = true;
   }
 
   confirmLogout() {
     this.showLogoutModal = false;
-
-    this.authService.logout().subscribe({
-      next: () => this.router.navigate(['/auth/login']),
-      error: () => this.router.navigate(['/auth/login']),
+    this.authService.logout().subscribe(() => {
+      this.router.navigate(['/auth/login']);
     });
   }
 
   cancelLogout() {
     this.showLogoutModal = false;
+  }
+
+  ngOnDestroy(): void {
+    this.educationChart?.destroy();
+    this.fieldChart?.destroy();
+    this.countryChart?.destroy();
   }
 }
