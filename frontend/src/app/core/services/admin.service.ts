@@ -65,4 +65,20 @@ export class AdminService {
       headers: this.getHeaders(),
     });
   }
+
+  approveProvider(id: number) {
+    return this.http.patch(`${this.API_URL}/providers/${id}/approve`, {});
+  }
+
+  rejectProvider(id: number) {
+    return this.http.patch(`${this.API_URL}/providers/${id}/reject`, {});
+  }
+
+  suspendProvider(id: number) {
+    return this.http.patch(`${this.API_URL}/providers/${id}/suspend`, {});
+  }
+
+  activateProvider(id: number) {
+    return this.http.patch(`${this.API_URL}/providers/${id}/activate`, {});
+  }
 }

@@ -60,10 +60,10 @@ export class UserScholarshipService {
   }
 
   // Mark as applied
-  markAsApplied(scholarshipId: number, notes?: number): Observable<ApiResponse<UserScholarship>> {
-    return this.http.post<ApiResponse<UserScholarship>>(
+  markAsApplied(scholarshipId: number) {
+    return this.http.post(
       `${this.apiUrl}/${scholarshipId}/apply`,
-      { notes },
+      {}, // ✅ empty body
       { headers: this.getHeaders() }
     );
   }
@@ -106,5 +106,11 @@ export class UserScholarshipService {
       `${this.apiUrl}/applied/expired`,
       { headers: this.getHeaders() }
     );
+  }
+  // added
+  getScholarshipDetails(scholarshipId: number): Observable<ApiResponse<UserScholarship>> {
+    return this.http.get<ApiResponse<UserScholarship>>(`${this.apiUrl}/${scholarshipId}`, {
+      headers: this.getHeaders(),
+    });
   }
 }

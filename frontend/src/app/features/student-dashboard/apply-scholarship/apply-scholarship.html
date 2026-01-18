@@ -1,0 +1,81 @@
+<app-dashboard-layout
+  [title]="'Dashboard Overview'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
+  <section class="apply-page" *ngIf="scholarship">
+    <!-- Header -->
+    <div class="apply-header">
+      <div class="provider">
+        <div class="logo" *ngIf="scholarship.providerLogo">
+          <img [src]="scholarship.providerLogo" alt="Provider logo" />
+        </div>
+        <div class="logo placeholder" *ngIf="!scholarship.providerLogo">
+          {{ scholarship.organization_name.charAt(0) }}
+        </div>
+
+        <div class="info">
+          <h1>{{ scholarship.title }}</h1>
+          <p class="org">{{ scholarship.organization_name }}</p>
+        </div>
+      </div>
+
+      <span class="status-badge active">Apply</span>
+    </div>
+
+    <!-- Description -->
+    <div class="card">
+      <h2>Description</h2>
+      <p>{{ scholarship.description }}</p>
+    </div>
+
+    <!-- Eligibility -->
+    <div class="card" *ngIf="scholarship.eligibility_criteria?.length">
+      <h2>Eligibility Criteria</h2>
+      <ul class="check-list">
+        <li *ngFor="let item of scholarship.eligibility_criteria">
+          <span class="check">✔</span>
+          {{ item }}
+        </li>
+      </ul>
+    </div>
+
+    <!-- Required Documents -->
+    <div class="card" *ngIf="scholarship.required_documents?.length">
+      <h2>Required Documents</h2>
+      <ul class="doc-list">
+        <li *ngFor="let doc of scholarship.required_documents">📄 {{ doc }}</li>
+      </ul>
+    </div>
+
+    <!-- Application Steps -->
+    <div class="card">
+      <h2>How to Apply</h2>
+
+      <ol class="steps" *ngIf="scholarship.application_steps?.length">
+        <li *ngFor="let step of scholarship.application_steps">
+          {{ step }}
+        </li>
+      </ol>
+
+      <a
+        *ngIf="scholarship.application_url"
+        [href]="scholarship.application_url"
+        target="_blank"
+        class="external-link"
+      >
+        Visit Application Website →
+      </a>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <button class="btn-outline" (click)="goBack()">← Back</button>
+
+      <button class="apply-btn" [disabled]="alreadyApplied" (click)="applyScholarship()">
+        {{ alreadyApplied ? 'Already Applied' : 'Mark as Applied' }}
+      </button>
+    </div>
+  </section>
+</app-dashboard-layout>

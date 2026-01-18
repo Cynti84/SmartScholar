@@ -1,4 +1,9 @@
-<app-dashboard-layout [title]="'Providers Management'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
+<app-dashboard-layout
+  [title]="'Providers Management'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
   <section>
     <div class="provider-management">
       <!-- Header -->
@@ -22,28 +27,28 @@
           <div class="stat-icon"><mat-icon style="color: #4299e1">bar_chart</mat-icon></div>
           <div class="stat-details">
             <div class="stat-label">Total Providers</div>
-            <div class="stat-value">{{ stats.total }}</div>
+            <div class="stat-value">{{ stats.totalProviders }}</div>
           </div>
         </div>
         <div class="stat-card active">
           <div class="stat-icon"><mat-icon style="color: #10b981">check_circle</mat-icon></div>
           <div class="stat-details">
             <div class="stat-label">Active</div>
-            <div class="stat-value">{{ stats.active }}</div>
+            <div class="stat-value">{{ stats.activeProviders }}</div>
           </div>
         </div>
         <div class="stat-card pending">
           <div class="stat-icon"><mat-icon style="color: #f59e0b">hourglass_top</mat-icon></div>
           <div class="stat-details">
             <div class="stat-label">Pending</div>
-            <div class="stat-value">{{ stats.pending }}</div>
+            <div class="stat-value">{{ stats.pendingProviders }}</div>
           </div>
         </div>
         <div class="stat-card suspended">
           <div class="stat-icon"><mat-icon style="color: #ef4444">block</mat-icon></div>
           <div class="stat-details">
             <div class="stat-label">Suspended</div>
-            <div class="stat-value">{{ stats.suspended }}</div>
+            <div class="stat-value">{{ stats.suspendedProviders }}</div>
           </div>
         </div>
       </div>
@@ -103,12 +108,16 @@
               <td class="provider-cell">
                 <div class="provider-info">
                   <mat-icon *ngIf="selectedProvider">
-                    {{ getTypeIcon(selectedProvider.type) }}
+                    {{ getTypeIcon(provider.type) }}
                   </mat-icon>
 
                   <div>
-                    <div class="provider-name">{{ provider.name }}</div>
-                    <div class="provider-contact-person">{{ provider.contactPerson }}</div>
+                    <div class="provider-name">
+                      {{ provider.name }}
+                    </div>
+                    <!-- <div class="provider-contact-person">
+                      {{ provider.phone || '—' }}
+                    </div> -->
                   </div>
                 </div>
               </td>
@@ -119,13 +128,15 @@
               </td>
               <td class="contact-cell">
                 <div class="contact-info">
-                  <div>{{ provider.email }}</div>
-                  <div class="phone">{{ provider.phone }}</div>
+                  <div>
+                    <div>{{ provider.email }}</div>
+                  </div>
+                  <div class="phone">{{ provider.phone || '—' }}</div>
                 </div>
               </td>
               <td class="scholarships-cell">
                 <div class="scholarship-stats">
-                  <span class="total">{{ provider.scholarshipsPosted }} posted</span>
+                  <span class="total">{{ provider.postedScholarship }} posted</span>
                   <span class="active">{{ provider.activeScholarships }} active</span>
                 </div>
               </td>
@@ -320,7 +331,7 @@
             </h4>
             <div class="stats-grid">
               <div class="stat-box">
-                <div class="stat-number">{{ selectedProvider.scholarshipsPosted }}</div>
+                <div class="stat-number">{{ selectedProvider.postedScholarship }}</div>
                 <div class="stat-label">Total Posted</div>
               </div>
               <div class="stat-box">
@@ -329,7 +340,7 @@
               </div>
               <div class="stat-box">
                 <div class="stat-number">
-                  {{ selectedProvider.scholarshipsPosted - selectedProvider.activeScholarships }}
+                  {{ selectedProvider.postedScholarship - selectedProvider.activeScholarships }}
                 </div>
                 <div class="stat-label">Closed/Expired</div>
               </div>
