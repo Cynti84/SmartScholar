@@ -27,6 +27,7 @@ connectDB();
 
 //6. Middleware (parse JSON)
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Simple Test
 app.get("/", (req: Request, res: Response) => {

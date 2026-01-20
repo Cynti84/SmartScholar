@@ -64,7 +64,7 @@ export class ProviderManagement {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private adminService: AdminService
+    private adminService: AdminService,
   ) {}
   Math = Math;
   providers: AdminProvider[] = [];
@@ -109,6 +109,7 @@ export class ProviderManagement {
     this.adminService.getProviders().subscribe((res) => {
       this.providers = res.data.map((user: any) => this.mapProvider(user));
       this.updateStatistics();
+      this.applyFilters();
     });
   }
 
