@@ -13,6 +13,7 @@ import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-m
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { AdminService } from '../../../core/services/admin.service';
 
 export interface Scholarship {
   id: number;
@@ -20,13 +21,20 @@ export interface Scholarship {
   description: string;
   provider: string;
   category: string;
-  amount: number;
+  scholarshipType: string;
   deadline: Date;
-  status: 'active' | 'expired' | 'pending';
+  status: 'pending' | 'approved' | 'rejected';
   createdDate: Date;
   eligibility: string;
   requirements: string[];
   applicationUrl?: string;
+  email: string;
+  logoUrl?: string;
+  benefits?: string;
+  verificationDocs?: {
+    name: string;
+    url: string;
+  }[];
 }
 
 export interface FilterCriteria {
@@ -66,9 +74,8 @@ export class ScholarshipManagement implements OnInit {
   selectedScholarship: Scholarship | null = null;
 
   // Forms
-  filterForm: FormGroup;
-  editForm: FormGroup;
-
+  editForm!: FormGroup;
+  filterForm!: FormGroup;
   // UI state
   isEditModalOpen = false;
   isDeleteModalOpen = false;
@@ -77,14 +84,26 @@ export class ScholarshipManagement implements OnInit {
   // Filter options
   providers: string[] = [];
   categories: string[] = [];
-  statusOptions = ['all', 'active', 'expired', 'pending'];
+  statusOptions = ['all', 'approved', 'expired', 'pending'];
+
+  stats = {
+    totalScholarships: 0,
+    activeScholarships: 0,
+    pendingScholarships: 0,
+    expiredScholarships: 0,
+  };
 
   // Pagination
   currentPage = 1;
   itemsPerPage = 10;
   totalItems = 0;
 
-  constructor(private fb: FormBuilder, private router: Router, private authService: AuthService) {
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private authService: AuthService,
+    private adminService: AdminService,
+  ) {
     this.filterForm = this.fb.group({
       provider: [''],
       category: [''],
@@ -97,7 +116,7 @@ export class ScholarshipManagement implements OnInit {
       description: ['', Validators.required],
       provider: ['', Validators.required],
       category: ['', Validators.required],
-      amount: [0, [Validators.required, Validators.min(1)]],
+      scholarship_type: ['', Validators.required],
       deadline: ['', Validators.required],
       eligibility: ['', Validators.required],
       requirements: [''],
@@ -108,66 +127,52 @@ export class ScholarshipManagement implements OnInit {
   ngOnInit(): void {
     this.loadScholarships();
     this.setupFilterSubscription();
+    this.loadPendingScholarships();
   }
   loadScholarships(): void {
-    this.scholarships = [
-      {
-        id: 1,
-        title: 'Merit Excellence Scholarship',
-        description: 'For outstanding academic performance',
-        provider: 'University Foundation',
-        category: 'Academic Excellence',
-        amount: 5000,
-        deadline: new Date('2024-12-31'),
-        status: 'active',
-        createdDate: new Date('2024-01-15'),
-        eligibility: 'GPA 3.5 or higher',
-        requirements: ['Transcript', 'Essay', 'Recommendation letters'],
-        applicationUrl: 'https://example.com/apply/1',
-      },
-      {
-        id: 2,
-        title: 'STEM Innovation Grant',
-        description: 'Supporting future scientists and engineers',
-        provider: 'Tech Corp Foundation',
-        category: 'STEM',
-        amount: 7500,
-        deadline: new Date('2024-11-15'),
-        status: 'pending',
-        createdDate: new Date('2024-02-01'),
-        eligibility: 'STEM major with research experience',
-        requirements: ['Portfolio', 'Research proposal', 'Academic records'],
-      },
-      {
-        id: 3,
-        title: 'Community Service Award',
-        description: 'Recognizing community engagement',
-        provider: 'Local Community Trust',
-        category: 'Community Service',
-        amount: 3000,
-        deadline: new Date('2024-01-30'),
-        status: 'expired',
-        createdDate: new Date('2023-11-01'),
-        eligibility: '100+ community service hours',
-        requirements: ['Service log', 'Supervisor references'],
-      },
-      {
-        id: 4,
-        title: 'Arts & Culture Scholarship',
-        description: 'Supporting creative talents',
-        provider: 'Arts Council',
-        category: 'Arts',
-        amount: 4000,
-        deadline: new Date('2025-03-15'),
-        status: 'active',
-        createdDate: new Date('2024-01-20'),
-        eligibility: 'Arts major with portfolio',
-        requirements: ['Portfolio submission', 'Artist statement'],
-      },
-    ];
+    this.adminService.getAllScholarships().subscribe({
+      next: (res) => {
+        this.scholarships = res.data.map((s: any) => ({
+          id: s.scholarship_id,
+          title: s.title,
+          description: s.description,
+          provider: s.provider?.providerProfile?.organization_name || 'Unknown',
+          category: s.category,
+          scholarshipType: s.scholarship_type,
+          deadline: new Date(s.deadline),
+          createdDate: new Date(s.created_at),
+          eligibility: s.eligibility || [], // ✅ include eligibility
+          requirements: s.requirements || [], // ✅ include requirements
+          applicationUrl: s.application_url,
+          email: s.contact_email,
+          logoUrl: s.logo_url, // ✅ include logo
+          benefits: s.benefits || '', // ✅ include benefits
+          verificationDocs: s.verification_docs || [], // ✅ include verification documents
+          status: this.mapStatus(s.status),
+        }));
 
-    this.extractFilterOptions();
-    this.applyFilters();
+        this.extractFilterOptions();
+        this.applyFilters();
+        this.calculateScholarshipStats();
+      },
+      error: (err) => {
+        console.error('Failed to load scholarships', err);
+      },
+    });
+  }
+
+  mapStatus(status: string): 'pending' | 'approved' | 'rejected' {
+    if (status === 'approved') return 'approved';
+    if (status === 'rejected') return 'rejected';
+    return 'pending';
+  }
+
+  calculateScholarshipStats(): void {
+    this.stats.totalScholarships = this.scholarships.length;
+
+    this.stats.pendingScholarships = this.scholarships.filter((s) => s.status === 'pending').length;
+
+    this.stats.activeScholarships = this.scholarships.filter((s) => s.status === 'approved').length;
   }
 
   extractFilterOptions(): void {
@@ -220,15 +225,33 @@ export class ScholarshipManagement implements OnInit {
 
   // CRUD Operations
   approveScholarship(scholarship: Scholarship): void {
-    scholarship.status = 'active';
-    // API call would go here
-    console.log('Approved scholarship:', scholarship.id);
+    this.adminService.approveScholarship(scholarship.id).subscribe({
+      next: () => {
+        scholarship.status = 'approved';
+        this.calculateScholarshipStats(); // ✅
+      },
+      error: (err) => console.error(err),
+    });
   }
 
   declineScholarship(scholarship: Scholarship): void {
-    scholarship.status = 'expired';
-    // API call would go here
-    console.log('Declined scholarship:', scholarship.id);
+    this.adminService.rejectScholarship(scholarship.id).subscribe({
+      next: () => {
+        scholarship.status = 'rejected';
+        this.calculateScholarshipStats(); // ✅
+      },
+      error: (err) => console.error(err),
+    });
+  }
+
+  loadPendingScholarships(): void {
+    this.adminService.getPendingScholarships().subscribe({
+      next: (res) => {
+        // Assuming your API returns an array of scholarships
+        this.stats.pendingScholarships = res.data.length;
+      },
+      error: (err) => console.error('Failed to fetch pending scholarships', err),
+    });
   }
 
   openEditModal(scholarship: Scholarship): void {
@@ -238,7 +261,7 @@ export class ScholarshipManagement implements OnInit {
       description: scholarship.description,
       provider: scholarship.provider,
       category: scholarship.category,
-      amount: scholarship.amount,
+      scholarship_type: scholarship.scholarshipType,
       deadline: this.formatDateForInput(scholarship.deadline),
       eligibility: scholarship.eligibility,
       requirements: scholarship.requirements.join(', '),
@@ -254,28 +277,35 @@ export class ScholarshipManagement implements OnInit {
   }
 
   saveScholarship(): void {
-    if (this.editForm.valid && this.selectedScholarship) {
-      const formValue = this.editForm.value;
+    console.log('SAVE CLICKED');
 
-      this.selectedScholarship.title = formValue.title;
-      this.selectedScholarship.description = formValue.description;
-      this.selectedScholarship.provider = formValue.provider;
-      this.selectedScholarship.category = formValue.category;
-      this.selectedScholarship.amount = formValue.amount;
-      this.selectedScholarship.deadline = new Date(formValue.deadline);
-      this.selectedScholarship.eligibility = formValue.eligibility;
-      this.selectedScholarship.requirements = formValue.requirements
-        .split(',')
-        .map((r: string) => r.trim());
-      this.selectedScholarship.applicationUrl = formValue.applicationUrl;
-
-      // API call would go here
-      console.log('Updated scholarship:', this.selectedScholarship);
-
-      this.closeEditModal();
-      this.extractFilterOptions();
-      this.applyFilters();
+    if (!this.editForm.valid) {
+      console.log('FORM INVALID', this.editForm.errors);
+      return;
     }
+
+    if (!this.selectedScholarship) {
+      console.log('NO SELECTED SCHOLARSHIP');
+      return;
+    }
+
+    const payload = {
+      ...this.editForm.value,
+      deadline: new Date(this.editForm.value.deadline),
+      requirements: this.editForm.value.requirements?.split(',').map((r: string) => r.trim()),
+    };
+
+    this.adminService.updateScholarship(this.selectedScholarship.id, payload).subscribe({
+      next: (res) => {
+        console.log('UPDATE SUCCESS', res);
+        Object.assign(this.selectedScholarship!, payload);
+        this.closeEditModal();
+        this.applyFilters();
+      },
+      error: (err) => {
+        console.error('UPDATE FAILED', err);
+      },
+    });
   }
 
   openDeleteModal(scholarship: Scholarship): void {
@@ -289,29 +319,27 @@ export class ScholarshipManagement implements OnInit {
   }
 
   confirmDelete(): void {
-    if (this.selectedScholarship) {
-      const index = this.scholarships.findIndex((s) => s.id === this.selectedScholarship!.id);
-      if (index > -1) {
-        this.scholarships.splice(index, 1);
-        // API call would go here
-        console.log('Deleted scholarship:', this.selectedScholarship.id);
-      }
-      this.closeDeleteModal();
-      this.extractFilterOptions();
-      this.applyFilters();
-    }
-  }
+    if (!this.selectedScholarship) return;
 
-  openViewModal(scholarship: Scholarship): void {
-    this.selectedScholarship = scholarship;
-    this.isViewModalOpen = true;
+    this.adminService.deleteScholarship(this.selectedScholarship.id).subscribe({
+      next: () => {
+        this.scholarships = this.scholarships.filter((s) => s.id !== this.selectedScholarship!.id);
+        this.closeDeleteModal();
+        this.applyFilters();
+      },
+      error: (err) => console.error(err),
+    });
   }
 
   closeViewModal(): void {
     this.isViewModalOpen = false;
     this.selectedScholarship = null;
   }
-
+  // added
+  viewScholarship(scholarship: Scholarship) {
+    this.selectedScholarship = scholarship; // set the scholarship to view
+    this.isViewModalOpen = true; // open the modal
+  }
   // Utility methods
   getStatusClass(status: string): string {
     return `status-${status}`;

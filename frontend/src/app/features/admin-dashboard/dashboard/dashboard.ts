@@ -9,6 +9,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { AdminService } from '../../../core/services/admin.service';
+import { ChangeDetectorRef } from '@angular/core';
 
 interface QuickStat {
   label: string;
@@ -53,7 +54,8 @@ export class Dashboard implements OnInit {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private adminService: AdminService
+    private adminService: AdminService,
+    private cd: ChangeDetectorRef,
   ) {}
 
   getMonthlySignupPoints(): string {
@@ -113,6 +115,8 @@ export class Dashboard implements OnInit {
 
   ngOnInit(): void {
     this.loadDashboardData();
+    this.loadChartData();
+    this.loadNotifications();
   }
 
   loadDashboardData(): void {
@@ -282,41 +286,10 @@ export class Dashboard implements OnInit {
   }
 
   loadChartData(): void {
-    this.mostAppliedScholarships = [
-      { label: 'Tech Excellence', value: 324 },
-      { label: 'Medical Grant', value: 298 },
-      { label: 'Engineering Award', value: 267 },
-      { label: 'Arts Scholarship', value: 189 },
-      { label: 'Business Leaders', value: 156 },
-    ];
-
-    this.monthlySignups = [
-      { label: 'Apr', value: 234 },
-      { label: 'May', value: 298 },
-      { label: 'Jun', value: 356 },
-      { label: 'Jul', value: 412 },
-      { label: 'Aug', value: 478 },
-      { label: 'Sep', value: 523 },
-      { label: 'Oct', value: 241 },
-    ];
-
-    this.categoryDistribution = [
-      { label: 'Engineering', value: 35 },
-      { label: 'Medicine', value: 28 },
-      { label: 'Business', value: 18 },
-      { label: 'Arts', value: 12 },
-      { label: 'Law', value: 7 },
-    ];
-
-    this.providerActivity = [
-      { label: 'TechCorp', value: 45 },
-      { label: 'Health Foundation', value: 38 },
-      { label: 'Global Edu', value: 32 },
-      { label: 'Innovation Hub', value: 28 },
-      { label: 'Cultural Society', value: 22 },
-    ];
+    this.mostAppliedScholarships = [];
+    this.monthlySignups = [];
+    this.cd.detectChanges(); // ✅ force update after loading chart data
   }
-
   getVisibleNotifications(): Notification[] {
     return this.showAllNotifications
       ? this.notifications

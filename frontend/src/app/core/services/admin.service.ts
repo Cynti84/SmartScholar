@@ -10,7 +10,10 @@ import { AuthService } from './auth.service';
 export class AdminService {
   private API_URL = `${environment.apiUrl}/admin`;
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService,
+  ) {}
 
   // 🔐 Always get token from AuthService (single source of truth)
   private getHeaders(): HttpHeaders {
@@ -65,20 +68,65 @@ export class AdminService {
       headers: this.getHeaders(),
     });
   }
-
+  //provider action
   approveProvider(id: number) {
-    return this.http.patch(`${this.API_URL}/providers/${id}/approve`, {});
+    return this.http.patch(
+      `${this.API_URL}/providers/${id}/approve`,
+      {},
+      { headers: this.getHeaders() },
+    );
   }
 
   rejectProvider(id: number) {
-    return this.http.patch(`${this.API_URL}/providers/${id}/reject`, {});
+    return this.http.patch(
+      `${this.API_URL}/providers/${id}/reject`,
+      {},
+      { headers: this.getHeaders() },
+    );
   }
 
   suspendProvider(id: number) {
-    return this.http.patch(`${this.API_URL}/providers/${id}/suspend`, {});
+    return this.http.patch(
+      `${this.API_URL}/providers/${id}/suspend`,
+      {},
+      { headers: this.getHeaders() },
+    );
   }
 
   activateProvider(id: number) {
-    return this.http.patch(`${this.API_URL}/providers/${id}/activate`, {});
+    return this.http.patch(
+      `${this.API_URL}/providers/${id}/activate`,
+      {},
+      { headers: this.getHeaders() },
+    );
+  }
+
+  // =========================
+  // SCHOLARSHIPS
+  // =========================
+  approveScholarship(id: number): Observable<any> {
+    return this.http.patch(
+      `${this.API_URL}/scholarships/${id}/approve`,
+      {},
+      { headers: this.getHeaders() },
+    );
+  }
+
+  rejectScholarship(id: number): Observable<any> {
+    return this.http.patch(
+      `${this.API_URL}/scholarships/${id}/reject`,
+      {},
+      { headers: this.getHeaders() },
+    );
+  }
+
+  deleteScholarship(id: number): Observable<any> {
+    return this.http.delete(`${this.API_URL}/scholarships/${id}`, { headers: this.getHeaders() });
+  }
+
+  updateScholarship(id: number, payload: any): Observable<any> {
+    return this.http.put(`${this.API_URL}/scholarships/${id}`, payload, {
+      headers: this.getHeaders(),
+    });
   }
 }

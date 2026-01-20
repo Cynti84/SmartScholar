@@ -1,29 +1,28 @@
-<app-dashboard-layout [title]="'ScholarshipManagement'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
+<app-dashboard-layout
+  [title]="'ScholarshipManagement'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
   <section>
     <div class="scholarship-management">
       <div class="header">
         <!-- <h1 class="title">Scholarship Management</h1> -->
         <div class="stats">
           <div class="stat-item">
-            <span class="stat-number">{{ scholarships.length }}</span>
+            <span class="stat-number">{{ stats.totalScholarships }}</span>
             <span class="stat-label">Total Scholarships</span>
           </div>
           <div class="stat-item">
-            <span class="stat-number">{{
-              (scholarships | filter : { status: 'active' }).length
-            }}</span>
-            <span class="stat-label">Active</span>
+            <span class="stat-number">{{ stats.activeScholarships }}</span>
+            <span class="stat-label">Approved</span>
           </div>
           <div class="stat-item">
-            <span class="stat-number">{{
-              (scholarships | filter : { status: 'pending' }).length
-            }}</span>
+            <span class="stat-number">{{ stats.pendingScholarships }}</span>
             <span class="stat-label">Pending</span>
           </div>
           <div class="stat-item">
-            <span class="stat-number">{{
-              (scholarships | filter : { status: 'expired' }).length
-            }}</span>
+            <span class="stat-number">{{ stats.expiredScholarships }}</span>
             <span class="stat-label">Expired</span>
           </div>
         </div>
@@ -68,7 +67,7 @@
               <label for="status">Status</label>
               <select id="status" formControlName="status" class="filter-select">
                 <option value="all">All Status</option>
-                <option value="active">Active</option>
+                <option value="active">Approved</option>
                 <option value="pending">Pending</option>
                 <option value="expired">Expired</option>
               </select>
@@ -110,14 +109,14 @@
               <td class="title-cell">
                 <div class="title-content">
                   <h3>{{ scholarship.title }}</h3>
-                  <p class="description">{{ scholarship.description }}</p>
+                  <p class="description">{{ scholarship.email }}</p>
                 </div>
               </td>
               <td>{{ scholarship.provider }}</td>
               <td>
                 <span class="category-badge">{{ scholarship.category }}</span>
               </td>
-              <td class="amount-cell">{{ formatCurrency(scholarship.amount) }}</td>
+              <td class="amount-cell">{{ scholarship.scholarshipType }}</td>
               <td>{{ formatDate(scholarship.deadline) }}</td>
               <td>
                 <span [class]="'status-badge ' + getStatusClass(scholarship.status)">
@@ -126,11 +125,7 @@
               </td>
               <td class="actions-cell">
                 <div class="action-buttons">
-                  <button
-                    (click)="openViewModal(scholarship)"
-                    class="btn btn-info btn-sm"
-                    title="View Details"
-                  >
+                  <button (click)="viewScholarship(scholarship)" class="btn btn-info btn-sm">
                     View
                   </button>
 
@@ -218,13 +213,15 @@
 
     <!-- View Modal -->
     <div *ngIf="isViewModalOpen" class="modal-overlay" (click)="closeViewModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-content large" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h2>Scholarship Details</h2>
           <button (click)="closeViewModal()" class="close-btn">&times;</button>
         </div>
+
         <div class="modal-body" *ngIf="selectedScholarship">
-          <div class="detail-section">
+          <!-- Header info -->
+          <div class="detail-header">
             <h3>{{ selectedScholarship.title }}</h3>
             <p class="provider">by {{ selectedScholarship.provider }}</p>
             <span [class]="'status-badge ' + getStatusClass(selectedScholarship.status)">
@@ -232,10 +229,11 @@
             </span>
           </div>
 
+          <!-- Grid for main details -->
           <div class="detail-grid">
             <div class="detail-item">
-              <label>Amount:</label>
-              <span>{{ formatCurrency(selectedScholarship.amount) }}</span>
+              <label>Scholarship Type:</label>
+              <span>{{ selectedScholarship.scholarshipType }}</span>
             </div>
             <div class="detail-item">
               <label>Category:</label>
@@ -249,30 +247,56 @@
               <label>Created:</label>
               <span>{{ formatDate(selectedScholarship.createdDate) }}</span>
             </div>
+            <div class="detail-item" *ngIf="selectedScholarship.benefits">
+              <label>Benefits:</label>
+              <span>{{ selectedScholarship.benefits }}</span>
+            </div>
           </div>
 
+          <!-- Description -->
           <div class="detail-section">
             <label>Description:</label>
             <p>{{ selectedScholarship.description }}</p>
           </div>
 
+          <!-- Eligibility -->
           <div class="detail-section">
             <label>Eligibility:</label>
             <p>{{ selectedScholarship.eligibility }}</p>
           </div>
 
+          <!-- Requirements -->
           <div class="detail-section">
             <label>Requirements:</label>
             <ul>
-              <li *ngFor="let req of selectedScholarship.requirements">{{ req }}</li>
+              <li *ngFor="let req of selectedScholarship.requirements">
+                {{ selectedScholarship.requirements }}
+              </li>
             </ul>
           </div>
 
+          <!-- Application URL -->
           <div class="detail-section" *ngIf="selectedScholarship.applicationUrl">
             <label>Application URL:</label>
             <a [href]="selectedScholarship.applicationUrl" target="_blank">
               {{ selectedScholarship.applicationUrl }}
             </a>
+          </div>
+
+          <!-- Verification Documents -->
+          <div class="detail-section" *ngIf="selectedScholarship.verificationDocs?.length">
+            <label>Verification Documents:</label>
+            <ul>
+              <li *ngFor="let doc of selectedScholarship.verificationDocs">
+                <a [href]="doc.url" target="_blank">{{ doc.name }}</a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Logo -->
+          <div class="detail-section" *ngIf="selectedScholarship.logoUrl">
+            <label>Logo:</label>
+            <img [src]="selectedScholarship.logoUrl" alt="Logo" class="scholarship-logo" />
           </div>
         </div>
       </div>
@@ -326,7 +350,7 @@
               </div>
 
               <div class="form-group">
-                <label for="editAmount">Amount *</label>
+                <label for="editAmount">Sholaship type*</label>
                 <input
                   id="editAmount"
                   type="number"

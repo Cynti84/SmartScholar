@@ -13,7 +13,7 @@ export class AdminController {
       const scholarships = await scholarshipRepo.find({
         relations: ["provider"],
         order: { scholarship_id: "DESC" },
-        where: { status: "approved" },
+        // where: { status: "approved" },
       });
 
       res.json({
@@ -33,7 +33,7 @@ export class AdminController {
   // Getting PendingScholarship
   static async getPendingScholarships(
     req: Request,
-    res: Response
+    res: Response,
   ): Promise<void> {
     try {
       const scholarshipRepo = AppDataSource.getRepository(Scholarship);
@@ -150,6 +150,139 @@ export class AdminController {
       res.status(500).json({
         success: false,
         message: "Failed to fetch pending providers",
+        error: error.message,
+      });
+    }
+  }
+
+  // ================= PROVIDER ACTIONS =================
+  //approve
+  static async approveProvider(req: Request, res: Response): Promise<void> {
+    try {
+      const providerId = Number(req.params.id);
+
+      const userRepo = AppDataSource.getRepository(User);
+      const profileRepo = AppDataSource.getRepository(ProviderProfile);
+
+      const provider = await userRepo.findOne({
+        where: { id: providerId, role: UserRole.PROVIDER },
+        relations: ["providerProfile"],
+      });
+
+      if (!provider) {
+        res.status(404).json({ success: false, message: "Provider not found" });
+        return;
+      }
+
+      provider.status = UserStatus.ACTIVE;
+      await userRepo.save(provider);
+
+      if (provider.providerProfile) {
+        provider.providerProfile.verified = true;
+        await profileRepo.save(provider.providerProfile);
+      }
+
+      res.json({
+        success: true,
+        message: "Provider approved successfully",
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to approve provider",
+        error: error.message,
+      });
+    }
+  }
+  //reject
+  static async rejectProvider(req: Request, res: Response): Promise<void> {
+    try {
+      const providerId = Number(req.params.id);
+
+      const userRepo = AppDataSource.getRepository(User);
+
+      const provider = await userRepo.findOne({
+        where: { id: providerId, role: UserRole.PROVIDER },
+      });
+
+      if (!provider) {
+        res.status(404).json({ success: false, message: "Provider not found" });
+        return;
+      }
+
+      provider.status = UserStatus.SUSPENDED;
+      await userRepo.save(provider);
+
+      res.json({
+        success: true,
+        message: "Provider rejected",
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to reject provider",
+        error: error.message,
+      });
+    }
+  }
+  //suspend
+  static async suspendProvider(req: Request, res: Response): Promise<void> {
+    try {
+      const providerId = Number(req.params.id);
+
+      const userRepo = AppDataSource.getRepository(User);
+
+      const provider = await userRepo.findOne({
+        where: { id: providerId, role: UserRole.PROVIDER },
+      });
+
+      if (!provider) {
+        res.status(404).json({ success: false, message: "Provider not found" });
+        return;
+      }
+
+      provider.status = UserStatus.SUSPENDED;
+      await userRepo.save(provider);
+
+      res.json({
+        success: true,
+        message: "Provider suspended",
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to suspend provider",
+        error: error.message,
+      });
+    }
+  }
+  //activate
+  static async activateProvider(req: Request, res: Response): Promise<void> {
+    try {
+      const providerId = Number(req.params.id);
+
+      const userRepo = AppDataSource.getRepository(User);
+
+      const provider = await userRepo.findOne({
+        where: { id: providerId, role: UserRole.PROVIDER },
+      });
+
+      if (!provider) {
+        res.status(404).json({ success: false, message: "Provider not found" });
+        return;
+      }
+
+      provider.status = UserStatus.ACTIVE;
+      await userRepo.save(provider);
+
+      res.json({
+        success: true,
+        message: "Provider activated",
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to activate provider",
         error: error.message,
       });
     }

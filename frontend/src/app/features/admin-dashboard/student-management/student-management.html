@@ -1,4 +1,9 @@
-<app-dashboard-layout [title]="'Student Management'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
+<app-dashboard-layout
+  [title]="'Student Management'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
   <section>
     <div class="student-management">
       <!-- Header -->
@@ -31,13 +36,13 @@
             <div class="stat-value">{{ stats.active }}</div>
           </div>
         </div>
-        <div class="stat-card pending">
+        <!-- <div class="stat-card pending">
           <div class="stat-icon"><mat-icon style="color: #f59e0b">hourglass_top</mat-icon></div>
           <div class="stat-details">
             <div class="stat-label">Pending Approval</div>
             <div class="stat-value">{{ stats.pending }}</div>
           </div>
-        </div>
+        </div> -->
         <div class="stat-card suspended">
           <div class="stat-icon"><mat-icon style="color: #ef4444">block</mat-icon></div>
           <div class="stat-details">
@@ -219,7 +224,6 @@
   </section>
 </app-dashboard-layout>
 
-
 <!-- logout confirm modal -->
 <app-confirm-modal
   *ngIf="showLogoutModal"
@@ -228,7 +232,6 @@
   (confirm)="confirmLogout()"
   (cancel)="cancelLogout()"
 ></app-confirm-modal>
-
 
 <!-- Student Details Modal -->
 <div class="modal-overlay" *ngIf="showDetailsModal" (click)="closeDetailsModal()">
@@ -458,10 +461,10 @@
             confirmAction === 'approve'
               ? 'Approve Student'
               : confirmAction === 'decline'
-              ? 'Decline Student'
-              : confirmAction === 'suspend'
-              ? 'Suspend Account'
-              : 'Activate Account'
+                ? 'Decline Student'
+                : confirmAction === 'suspend'
+                  ? 'Suspend Account'
+                  : 'Activate Account'
           }}
         </h3>
 
@@ -515,10 +518,10 @@
           confirmAction === 'approve'
             ? 'Approve'
             : confirmAction === 'decline'
-            ? 'Decline'
-            : confirmAction === 'suspend'
-            ? 'Suspend'
-            : 'Activate'
+              ? 'Decline'
+              : confirmAction === 'suspend'
+                ? 'Suspend'
+                : 'Activate'
         }}
       </button>
     </div>
