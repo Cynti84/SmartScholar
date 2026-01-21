@@ -46,12 +46,18 @@ export class StudentProfile {
   })
   gender?: "male" | "female" | "other";
 
+  // Used to filter scholarships by financial need
   @Column({
-    type: "boolean",
+    type: "enum",
+    enum: ["low", "middle", "any"],
     nullable: true,
-    default: null,
+    default: "any",
   })
-  financial_need?: boolean | null;
+  income_level?: "low" | "middle" | "any";
+
+  // Used to filter scholarships requiring disability
+  @Column({ type: "boolean", nullable: true, default: false })
+  is_disabled?: boolean;
 
   // --- Timestamps ---
   @CreateDateColumn({ type: "timestamp with time zone" })
@@ -59,6 +65,19 @@ export class StudentProfile {
 
   @UpdateDateColumn({ type: "timestamp with time zone" })
   updated_at!: Date;
+
+  // --- Helper ---
+  get age(): number | null {
+    if (!this.date_of_birth) return null;
+    const today = new Date();
+    const dob = new Date(this.date_of_birth);
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    return age;
+  }
 
   // --- Associations ---
   @OneToOne(() => User, (user) => user.profile, {

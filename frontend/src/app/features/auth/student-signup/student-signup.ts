@@ -12,7 +12,8 @@ interface StudentSignupForm {
 
   date_of_birth: string; // HTML date input = string
   gender: 'male' | 'female' | 'other';
-  financial_need: boolean;
+  income_level?: 'low' | 'middle' | 'any';
+  is_disabled?: boolean | null;
 
   profileImageFile: File | null;
   cvFile: File | null;
@@ -36,37 +37,83 @@ export class StudentSignup {
 
     date_of_birth: '',
     gender: 'male',
-    financial_need: false,
+    income_level: 'any',
 
     profileImageFile: null,
     cvFile: null,
   };
 
   countries = [
-    'Kenya',
-    'Uganda',
-    'Tanzania',
-    'Rwanda',
-    'Burundi',
-    'South Sudan',
+    'Algeria',
+    'Australia',
+    'Austria',
+    'Belgium',
+    'Botswana',
+    'Bulgaria',
+    'Cameroon',
+    'Canada',
+    'Croatia',
+    'Cyprus',
+    'Czech Republic',
+    'Denmark',
+    'Egypt',
+    'Estonia',
     'Ethiopia',
-    'Somalia',
-    'Djibouti',
-    'Eritrea',
+    'Finland',
+    'France',
+    'Germany',
+    'Ghana',
+    'Hungary',
+    'Ireland',
+    'Italy',
+    'Japan',
+    'Kenya',
+    'Latvia',
+    'Lithuania',
+    'Malawi',
+    'Malta',
+    'Morocco',
+    'Netherlands',
+    'New Zealand',
+    'Nigeria',
+    'Norway',
+    'Poland',
+    'Portugal',
+    'Romania',
+    'Rwanda',
+    'Senegal',
+    'Singapore',
+    'Slovakia',
+    'Slovenia',
+    'South Africa',
+    'South Korea',
+    'Spain',
+    'Sweden',
+    'Switzerland',
+    'Tanzania',
+    'Tunisia',
+    'Uganda',
+    'United Kingdom',
+    'United States',
+    'Zambia',
+    'Zimbabwe',
   ];
 
   educationLevels = [
-    'High school student',
-    'High school graduate',
-    'Undergraduate student',
-    'Graduate student',
-    'Postgraduate student',
+    'High School / Secondary',
+    "Undergraduate / Bachelor's",
+    "Graduate / Master's",
+    'Doctorate / PhD',
+    'Postdoctoral',
+    'Professional Certification',
+    'Vocational / Technical',
+    'Other',
   ];
 
   fieldsOfStudy = [
     'Engineering',
     'Medicine',
-    'Computer Science',
+    'Technology',
     'Business',
     'Law',
     'Education',
@@ -81,18 +128,14 @@ export class StudentSignup {
   ];
 
   interests = [
-    'Science',
     'Technology',
-    'Arts',
-    'Sports',
-    'Music',
-    'Literature',
-    'Environment',
-    'Community Service',
-    'Research',
-    'Innovation',
-    'Leadership',
-    'Entrepreneurship',
+    'Engineering',
+    'Business_and_Economics',
+    'Health_and_Medicine',
+    'Natural_Sciences',
+    'Arts_and_Design',
+    'Social_Sciences_and_Humanities',
+    'General',
   ];
 
   constructor(
@@ -241,12 +284,12 @@ export class StudentSignup {
         formData.append('date_of_birth', dobStr);
       }
 
-      if (this.profileData.gender) formData.append('gender', this.profileData.gender);
-      if (
-        this.profileData.financial_need !== null &&
-        this.profileData.financial_need !== undefined
-      ) {
-        formData.append('financial_need', String(this.profileData.financial_need));
+      if (this.profileData.income_level) {
+        formData.append('income_level', this.profileData.income_level);
+      }
+
+      if (this.profileData.is_disabled !== null && this.profileData.is_disabled !== undefined) {
+        formData.append('is_disabled', String(this.profileData.is_disabled));
       }
 
       // --- Files ---

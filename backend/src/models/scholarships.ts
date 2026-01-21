@@ -12,6 +12,7 @@ import { User } from "./users";
 import { MatchResult } from "./match_result";
 import { Application } from "./applications";
 import { Bookmark } from "./Bookmark";
+import { JSONB } from "sequelize";
 @Entity("scholarships")
 export class Scholarship {
   @PrimaryGeneratedColumn()
@@ -58,6 +59,38 @@ export class Scholarship {
 
   @Column({ type: "jsonb" })
   fields_of_study!: string[];
+
+  /* === STRUCTURED ELIGIBILITY (NEW) === */
+
+  // male | female | any
+  @Column({
+    type: "enum",
+    enum: ["male", "female", "any"],
+    nullable: true,
+  })
+  eligibility_gender?: "male" | "female" | "any";
+
+  // Example: ['Kenya', 'Uganda'] or ['Any']
+  @Column({ type: "jsonb", nullable: true })
+  eligibility_countries?: string[];
+
+  @Column({ type: "int", nullable: true })
+  min_age?: number;
+
+  @Column({ type: "int", nullable: true })
+  max_age?: number;
+
+  // Example: ["Undergraduate", "Masters"]
+  @Column({ type: "jsonb", nullable: true })
+  eligible_education_levels?: string[];
+
+  // Example: true if only disabled students
+  @Column({ type: "boolean", nullable: true })
+  requires_disability?: boolean;
+
+  // Example: "low", "middle", "any"
+  @Column({ type: "varchar", length: 20, nullable: true })
+  income_level?: string;
 
   /* === APPLICATION === */
   @Column()

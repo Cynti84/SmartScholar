@@ -162,6 +162,10 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     return `${Math.round((part / total) * 100)}%`;
   }
 
+  onPost(): void {
+    this.router.navigate(['/provider/post']);
+  }
+
   // ----------------------------------
   // CHART
   // ----------------------------------

@@ -406,14 +406,14 @@
       <button
         class="btn btn-primary"
         [disabled]="
-          selectedScholarship?.status === 'applied' || selectedScholarship?.status === 'expired'
+          selectedScholarship.status === 'applied' || selectedScholarship.status === 'expired'
         "
         (click)="goToApplyPage(selectedScholarship!.scholarshipId)"
       >
         {{
-          selectedScholarship?.status === 'applied'
+          selectedScholarship.status === 'applied'
             ? 'Already Applied'
-            : selectedScholarship?.status === 'expired'
+            : selectedScholarship.status === 'expired'
             ? 'Expired'
             : 'Apply Now'
         }}

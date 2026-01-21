@@ -124,13 +124,28 @@
 
           <!-- Financial Need -->
           <div class="form-group">
+            <label for="income_level"> Income Level </label>
+            <div class="select_wrapper">
+              <select
+                required
+                name="income_level"
+                id="income_level"
+                class="form-select"
+                [(ngModel)]="profileData.income_level"
+              >
+                <option value="" disabled>Select your income level</option>
+                <option value="low">Low income</option>
+                <option value="middle">Middle income</option>
+                <option value="any">Any / Prefer not to say</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Disability Status -->
+          <div class="form-group">
             <label class="checkbox-label">
-              <input
-                type="checkbox"
-                name="financial_need"
-                [(ngModel)]="profileData.financial_need"
-              />
-              I require financial assistance to pursue my education
+              <input type="checkbox" name="is_disabled" [(ngModel)]="profileData.is_disabled" />
+              I have a disability
             </label>
           </div>
 

@@ -25,11 +25,15 @@ export class PostScholarships implements OnInit {
 
   scholarshipForm!: FormGroup;
   currentStep = 1;
-  maxStep = 5;
+  maxStep = 6;
   isSubmitting = false;
   minDate: string;
-
+  genders = ['Any', 'Male', 'Female', 'Other'];
+  incomeLevels = ['low', 'middle', 'any'];
   //menu for navigation
+
+  // step 4 tag selections
+  selectedEligibilityCountries: string[] = [];
   menu = [
     { label: 'Overview', route: '/provider' },
     { label: 'Post Scholarships', route: '/provider/post' },
@@ -41,53 +45,59 @@ export class PostScholarships implements OnInit {
 
   // Form options data
   countries = [
-    'United States',
-    'Canada',
-    'United Kingdom',
+    'Algeria',
     'Australia',
-    'Germany',
-    'France',
-    'Netherlands',
-    'Sweden',
-    'Norway',
-    'Denmark',
-    'Switzerland',
-    'Singapore',
-    'Japan',
-    'South Korea',
-    'New Zealand',
-    'Ireland',
-    'Belgium',
     'Austria',
-    'Finland',
-    'Italy',
-    'Spain',
-    'Portugal',
+    'Belgium',
+    'Botswana',
+    'Bulgaria',
+    'Cameroon',
+    'Canada',
+    'Croatia',
+    'Cyprus',
     'Czech Republic',
-    'Poland',
-    'Hungary',
+    'Denmark',
+    'Egypt',
     'Estonia',
+    'Ethiopia',
+    'Finland',
+    'France',
+    'Germany',
+    'Ghana',
+    'Hungary',
+    'Ireland',
+    'Italy',
+    'Japan',
+    'Kenya',
     'Latvia',
     'Lithuania',
-    'Slovenia',
-    'Slovakia',
-    'Croatia',
-    'Romania',
-    'Bulgaria',
-    'Cyprus',
+    'Malawi',
     'Malta',
-    'Kenya',
-    'South Africa',
-    'Nigeria',
-    'Ghana',
-    'Egypt',
     'Morocco',
-    'Tunisia',
-    'Ethiopia',
-    'Tanzania',
-    'Uganda',
+    'Netherlands',
+    'New Zealand',
+    'Nigeria',
+    'Norway',
+    'Poland',
+    'Portugal',
+    'Romania',
     'Rwanda',
-    'Botswana',
+    'Senegal',
+    'Singapore',
+    'Slovakia',
+    'Slovenia',
+    'South Africa',
+    'South Korea',
+    'Spain',
+    'Sweden',
+    'Switzerland',
+    'Tanzania',
+    'Tunisia',
+    'Uganda',
+    'United Kingdom',
+    'United States',
+    'Zambia',
+    'Zimbabwe',
   ];
 
   educationLevels = [
@@ -122,6 +132,7 @@ export class PostScholarships implements OnInit {
     'Computer Science',
     'Medicine',
     'Business Administration',
+    'Business',
     'Economics',
     'Finance',
     'Accounting',
@@ -154,6 +165,8 @@ export class PostScholarships implements OnInit {
     'Urban Planning',
     'Art',
     'Design',
+    'Graphic design',
+    'UI/UX design',
     'Music',
     'Theatre',
     'Film Studies',
@@ -166,6 +179,7 @@ export class PostScholarships implements OnInit {
     'Astronomy',
     'Data Science',
     'Artificial Intelligence',
+    'Machine Learning',
     'Cybersecurity',
     'Information Technology',
     'Mechanical Engineering',
@@ -175,8 +189,19 @@ export class PostScholarships implements OnInit {
     'Aerospace Engineering',
     'Biomedical Engineering',
     'Environmental Engineering',
+    'Environmental Science',
     'Animation',
     'Media Studies',
+    'Software Engineering',
+    'Renewable Energy',
+    'Fashion Design',
+    'Fintech',
+    'Robotics',
+    'Automation',
+    'Cloud Computing',
+    'Blockchain',
+    'Mobile development',
+    'Sports',
   ];
 
   selectedFields: string[] = [];
@@ -189,7 +214,6 @@ export class PostScholarships implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private renderer: Renderer2,
     private authService: AuthService,
     private providerScholarshipService: ProviderService
   ) {
@@ -222,6 +246,14 @@ export class PostScholarships implements OnInit {
       scholarship_type: ['', [Validators.required]],
       fields_of_study: ['', [Validators.required]],
 
+      // Step 4: Enhanced Eligibility
+      min_age: [null, [Validators.min(0)]],
+      max_age: [null, [Validators.min(0)]],
+      gender: ['any'], // default to any
+      is_disabled: [false],
+      financial_need: [''],
+      eligibility_countries: [''],
+
       // Step 4
       application_link: ['', [Validators.required, Validators.pattern(/^https?:\/\/.+/)]],
       application_instructions: ['', [Validators.required]],
@@ -234,8 +266,27 @@ export class PostScholarships implements OnInit {
 
     //Auto-fill organization name from user profile (if available)
     this.scholarshipForm.patchValue({
-      organization_name: 'Your Organization Name', //replace with actual user data
+      organization_name: '', //replace with actual user data
     });
+  }
+
+  // Country methods
+  addEligibilityCountry(country: string) {
+    if (!this.selectedEligibilityCountries.includes(country)) {
+      this.selectedEligibilityCountries.push(country);
+      this.scholarshipForm.patchValue({ eligibility_countries: this.selectedEligibilityCountries });
+    }
+  }
+
+  removeEligibilityCountry(country: string) {
+    this.selectedEligibilityCountries = this.selectedEligibilityCountries.filter(
+      (c) => c !== country
+    );
+    this.scholarshipForm.patchValue({ eligibility_countries: this.selectedEligibilityCountries });
+  }
+
+  getAvailableEligibilityCountries() {
+    return this.countries.filter((c) => !this.selectedEligibilityCountries.includes(c));
   }
 
   //custom validator for future dats
@@ -286,12 +337,15 @@ export class PostScholarships implements OnInit {
           this.selectedFields.length > 0
         );
       case 4:
+        return true;
+      case 5:
         return (
           (this.scholarshipForm.get('application_link')?.valid ?? false) &&
           (this.scholarshipForm.get('application_instructions')?.valid ?? false)
         );
-      case 5:
+      case 6:
         return true; // Step 5 has no required fields
+
       default:
         return false;
     }
