@@ -41,7 +41,10 @@ export interface PaginatedResponse<T> {
 export class ScholarshipService {
   private apiUrl = `${environment.apiUrl}/student/scholarships`;
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService,
+  ) {}
 
   private getHeaders(): HttpHeaders {
     const token = this.authService.getAccessToken();
@@ -54,11 +57,14 @@ export class ScholarshipService {
   // Get all scholarships with pagination and search
   getScholarships(
     page: number = 1,
-    limit: number = 10,
     search?: string,
-    sort?: string
+    sort?: string,
   ): Observable<PaginatedResponse<Scholarship>> {
-    let params = new HttpParams().set('page', page.toString()).set('limit', limit.toString());
+    const VERY_LARGE_LIMIT = 1000;
+
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', VERY_LARGE_LIMIT.toString());
 
     if (search) params = params.set('search', search);
     if (sort) params = params.set('sort', sort);
@@ -90,7 +96,7 @@ export class ScholarshipService {
             ...s,
             matchScore: s.match_score, // ✅ map snake_case → camelCase
           })),
-        }))
+        })),
       );
   }
   // Get active scholarships
