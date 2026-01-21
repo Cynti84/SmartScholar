@@ -49,7 +49,7 @@
     color: #f1f5f9;
     border-bottom: 1px solid #334155;
 
-    .topbar-title{
+    .topbar-title {
       color: #f1f5f9;
     }
   }
@@ -86,7 +86,9 @@
       border: none;
       font-size: 1.25rem;
       cursor: pointer;
-      transition: transform 0.2s ease, color 0.2s ease;
+      transition:
+        transform 0.2s ease,
+        color 0.2s ease;
 
       &:hover {
         transform: scale(1.1);
@@ -122,7 +124,7 @@
 
 .content {
   flex: 1;
-  padding: 1.5rem;
+  padding: 0.5rem;
   background: #f8fafc;
   overflow-y: auto;
 
@@ -241,4 +243,3 @@ body {
 .fade-in {
   animation: fadeIn 0.6s ease forwards;
 }
-

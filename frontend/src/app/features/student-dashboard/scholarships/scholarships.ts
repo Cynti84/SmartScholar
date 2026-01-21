@@ -124,7 +124,7 @@ export class Scholarships {
 
   sortBy: string = 'deadline';
   currentPage: number = 1;
-  itemsPerPage: number = 9;
+  itemsPerPage: number = 8;
   totalPages: number = 1;
 
   showFilters: boolean = true;
@@ -132,7 +132,7 @@ export class Scholarships {
     private authService: AuthService,
     private router: Router,
     private scholarshipService: ScholarshipService,
-    private userScholarshipService: UserScholarshipService
+    private userScholarshipService: UserScholarshipService,
   ) {}
 
   ngOnInit(): void {
@@ -144,6 +144,7 @@ export class Scholarships {
       next: (res) => {
         this.scholarships = res.data.map((s) => this.mapToUI(s));
         this.filteredScholarships = [...this.scholarships];
+        this.calculatePagination();
       },
       error: (err) => console.error('Failed to load scholarships', err),
     });
@@ -206,7 +207,7 @@ export class Scholarships {
           s.title.toLowerCase().includes(keyword) ||
           s.provider.toLowerCase().includes(keyword) ||
           s.fieldOfStudy.toLowerCase().includes(keyword) ||
-          s.description.toLowerCase().includes(keyword)
+          s.description.toLowerCase().includes(keyword),
       );
     }
 
@@ -233,7 +234,7 @@ export class Scholarships {
     // Deadline filter
     if (this.filters.deadlineBefore) {
       filtered = filtered.filter(
-        (s) => new Date(s.deadline) <= new Date(this.filters.deadlineBefore)
+        (s) => new Date(s.deadline) <= new Date(this.filters.deadlineBefore),
       );
     }
 
@@ -242,6 +243,7 @@ export class Scholarships {
     this.filteredScholarships = filtered;
     this.totalPages = Math.ceil(filtered.length / this.itemsPerPage);
     this.currentPage = 1;
+    this.calculatePagination();
   }
 
   sortScholarships(scholarships: ScholarshipUI[]): void {
@@ -279,6 +281,13 @@ export class Scholarships {
   onSortChange(): void {
     this.applyFilters();
   }
+  calculatePagination() {
+    this.totalPages = Math.ceil(this.filteredScholarships.length / this.itemsPerPage);
+
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = 1;
+    }
+  }
 
   getPaginatedScholarships(): ScholarshipUI[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
@@ -286,36 +295,26 @@ export class Scholarships {
     return this.filteredScholarships.slice(start, end);
   }
 
-  nextPage(): void {
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  nextPage() {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
     }
   }
 
-  prevPage(): void {
+  prevPage() {
     if (this.currentPage > 1) {
       this.currentPage--;
     }
   }
 
-  goToPage(page: number): void {
-    this.currentPage = page;
-  }
-
   getPageNumbers(): number[] {
-    const pages: number[] = [];
-    const maxVisible = 5;
-    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
-    let end = Math.min(this.totalPages, start + maxVisible - 1);
-
-    if (end - start < maxVisible - 1) {
-      start = Math.max(1, end - maxVisible + 1);
-    }
-
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-    return pages;
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
   viewScholarship(s: ScholarshipUI): void {
@@ -328,7 +327,7 @@ export class Scholarships {
       .filter(
         (x) =>
           x.id !== s.id &&
-          (x.level === s.level || x.fieldOfStudy === s.fieldOfStudy || x.country === s.country)
+          (x.level === s.level || x.fieldOfStudy === s.fieldOfStudy || x.country === s.country),
       )
       .slice(0, 3);
   }
