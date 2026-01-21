@@ -101,11 +101,11 @@ export const getStudentProfile = async (req: Request, res: Response) => {
 export const updateStudentProfile = async (req: Request, res: Response) => {
   try {
     const authReq = req as unknown as AuthRequest;
-    if (!authReq.user) {
+    if (!req.user) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const userId = authReq.user.id;
+    const userId = req.user.id;
     const profileRepo = AppDataSource.getRepository(StudentProfile);
 
     const profile = await profileRepo.findOne({
@@ -123,20 +123,49 @@ export const updateStudentProfile = async (req: Request, res: Response) => {
       cvFile?: Express.Multer.File[];
     };
 
-    const updatedData: Partial<StudentProfile> = {
-      ...req.body,
-    };
+    const updatedData: Partial<StudentProfile> = {};
 
+    // --- Basic string fields ---
+    if (req.body.country !== undefined) {
+      updatedData.country = req.body.country;
+    }
+
+    if (req.body.academic_level !== undefined) {
+      updatedData.academic_level = req.body.academic_level;
+    }
+
+    if (req.body.field_of_study !== undefined) {
+      updatedData.field_of_study = req.body.field_of_study;
+    }
+
+    if (req.body.interest !== undefined) {
+      updatedData.interest = req.body.interest;
+    }
+
+    // --- New fields ---
+    if (req.body.date_of_birth) {
+      updatedData.date_of_birth = new Date(req.body.date_of_birth);
+    }
+
+    if (req.body.gender) {
+      updatedData.gender = req.body.gender; // "male" | "female" | "other"
+    }
+
+    if (req.body.income_level) {
+      updatedData.income_level = req.body.income_level; // "low" | "middle" | "any"
+    }
+
+    if (req.body.is_disabled !== undefined) {
+      updatedData.is_disabled = req.body.is_disabled === "true";
+    }
+
+    // --- File uploads ---
     if (files?.profileImage?.[0]) {
       updatedData.profile_image_url = files.profileImage[0].path;
     }
 
     if (files?.cvFile?.[0]) {
       updatedData.cv_url = files.cvFile[0].path;
-    }
-
-    if (req.body.financial_need !== undefined) {
-      updatedData.financial_need = req.body.financial_need === "true";
     }
 
     profileRepo.merge(profile, updatedData);
