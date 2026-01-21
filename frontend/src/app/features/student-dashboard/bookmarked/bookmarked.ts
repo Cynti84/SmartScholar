@@ -77,7 +77,7 @@ export class Bookmarked {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private userScholarshipService: UserScholarshipService
+    private userScholarshipService: UserScholarshipService,
   ) {}
 
   selectedScholarship: SavedScholarship | null = null;
@@ -140,8 +140,8 @@ export class Bookmarked {
               tags: Array.isArray(b.scholarship.fields_of_study)
                 ? b.scholarship.fields_of_study
                 : typeof b.scholarship.fields_of_study === 'string'
-                ? b.scholarship.fields_of_study.split(',')
-                : [],
+                  ? b.scholarship.fields_of_study.split(',')
+                  : [],
               eligibility:
                 typeof b.scholarship.eligibility_criteria === 'string'
                   ? b.scholarship.eligibility_criteria
@@ -153,11 +153,11 @@ export class Bookmarked {
               requiredDocuments: Array.isArray(b.scholarship.required_documents)
                 ? b.scholarship.required_documents
                 : typeof b.scholarship.required_documents === 'string'
-                ? b.scholarship.required_documents.split(',')
-                : undefined,
+                  ? b.scholarship.required_documents.split(',')
+                  : undefined,
 
               applicationUrl: b.scholarship.application_url ?? undefined,
-            })
+            }),
           );
 
         this.filteredScholarships = [...this.savedScholarships];
@@ -210,7 +210,7 @@ export class Bookmarked {
         (s) =>
           s.title.toLowerCase().includes(search) ||
           s.provider.toLowerCase().includes(search) ||
-          s.description.toLowerCase().includes(search)
+          s.description.toLowerCase().includes(search),
       );
     }
 
@@ -289,7 +289,7 @@ export class Bookmarked {
       next: () => {
         // 1️⃣ Remove from source list
         this.savedScholarships = this.savedScholarships.filter(
-          (s) => s.scholarshipId !== scholarship.scholarshipId
+          (s) => s.scholarshipId !== scholarship.scholarshipId,
         );
 
         // 2️⃣ Rebuild filtered list + stats
@@ -376,7 +376,7 @@ export class Bookmarked {
 
     if (confirm(`Remove ${this.selectedScholarshipIds.size} scholarships from saved?`)) {
       this.savedScholarships = this.savedScholarships.filter(
-        (s) => !this.selectedScholarshipIds.has(s.scholarshipId)
+        (s) => !this.selectedScholarshipIds.has(s.scholarshipId),
       );
       this.calculateStats();
       this.applyFilters();
