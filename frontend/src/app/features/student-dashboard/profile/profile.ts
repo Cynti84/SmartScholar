@@ -39,6 +39,58 @@ export class Profile implements OnInit {
     { label: 'Profile', route: '/student/profile' },
     { label: 'Logout', action: 'logout' },
   ];
+  countries = [
+    'Kenya',
+    'Uganda',
+    'Tanzania',
+    'Rwanda',
+    'Burundi',
+    'South Sudan',
+    'Ethiopia',
+    'Somalia',
+    'Djibouti',
+    'Eritrea',
+  ];
+
+  educationLevels = [
+    'High school student',
+    'High school graduate',
+    'Undergraduate student',
+    'Graduate student',
+    'Postgraduate student',
+  ];
+
+  fieldsOfStudy = [
+    'Engineering',
+    'Medicine',
+    'Computer Science',
+    'Business',
+    'Law',
+    'Education',
+    'Arts',
+    'Agriculture',
+    'Architecture',
+    'Nursing',
+    'Pharmacy',
+    'Veterinary',
+    'Economics',
+    'Psychology',
+  ];
+
+  interests = [
+    'Science',
+    'Technology',
+    'Arts',
+    'Sports',
+    'Music',
+    'Literature',
+    'Environment',
+    'Community Service',
+    'Research',
+    'Innovation',
+    'Leadership',
+    'Entrepreneurship',
+  ];
   isEditingProfile = false;
   isSaving = false;
   isDeleting = false;
@@ -106,7 +158,7 @@ export class Profile implements OnInit {
   constructor(
     private studentProfileService: StudentProfileService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
   ) {
     this.activeTab = 'profile';
   }

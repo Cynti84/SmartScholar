@@ -29,7 +29,7 @@
           </div>
         </div>
 
-        <div
+        <!-- <div
           class="stat-card active-card"
           (click)="filterScholarships('active')"
           [class.active]="selectedFilter === 'active'"
@@ -41,9 +41,9 @@
             <h3>{{ activeCount }}</h3>
             <p>Active</p>
           </div>
-        </div>
+        </div> -->
 
-        <div
+        <!-- <div
           class="stat-card pending-card"
           (click)="filterScholarships('pending')"
           [class.active]="selectedFilter === 'pending'"
@@ -55,7 +55,7 @@
             <h3>{{ pendingCount }}</h3>
             <p>Pending</p>
           </div>
-        </div>
+        </div> -->
 
         <div
           class="stat-card expired-card"
@@ -104,11 +104,11 @@
               </div>
               <div class="detail-item">
                 <span class="label">Applied:</span>
-                <span class="value">{{ scholarship.appliedDate | date : 'MMM dd, yyyy' }}</span>
+                <span class="value">{{ scholarship.appliedDate | date: 'MMM dd, yyyy' }}</span>
               </div>
               <div class="detail-item">
                 <span class="label">Deadline:</span>
-                <span class="value">{{ scholarship.deadline | date : 'MMM dd, yyyy' }}</span>
+                <span class="value">{{ scholarship.deadline | date: 'MMM dd, yyyy' }}</span>
               </div>
               <div class="detail-item" *ngIf="scholarship.status === 'active'">
                 <span class="label">Days Remaining:</span>
@@ -189,13 +189,13 @@
               <div class="info-card">
                 <span class="info-label">Application Date</span>
                 <span class="info-value">{{
-                  selectedScholarship.appliedDate | date : 'MMMM dd, yyyy'
+                  selectedScholarship.appliedDate | date: 'MMMM dd, yyyy'
                 }}</span>
               </div>
               <div class="info-card">
                 <span class="info-label">Deadline</span>
                 <span class="info-value">{{
-                  selectedScholarship.deadline | date : 'MMMM dd, yyyy'
+                  selectedScholarship.deadline | date: 'MMMM dd, yyyy'
                 }}</span>
               </div>
               <div class="info-card" *ngIf="selectedScholarship.status === 'active'">

@@ -16,7 +16,7 @@
             </h1>
             <p class="subtitle">Your bookmarked opportunities for later review</p>
           </div>
-          <div class="header-actions">
+          <!-- <div class="header-actions">
             <button
               class="btn btn-outline"
               (click)="exportSaved()"
@@ -33,7 +33,7 @@
               <span class="icon">{{ isSelectionMode ? '✕' : '☑' }}</span>
               {{ isSelectionMode ? 'Cancel' : 'Select' }}
             </button>
-          </div>
+          </div> -->
         </div>
 
         <!-- Stats Bar -->
@@ -46,10 +46,10 @@
             <span class="stat-value">{{ stats.active }}</span>
             <span class="stat-label">Active</span>
           </div>
-          <div class="stat-item applied">
+          <!-- <div class="stat-item applied">
             <span class="stat-value">{{ stats.applied }}</span>
             <span class="stat-label">Applied</span>
-          </div>
+          </div> -->
           <div class="stat-item expired">
             <span class="stat-value">{{ stats.expired }}</span>
             <span class="stat-label">Expired</span>
@@ -170,7 +170,7 @@
                 <div class="provider-info">
                   <div class="provider-name">{{ scholarship.provider }}</div>
                   <div class="saved-date">
-                    Saved {{ scholarship.savedDate | date : 'MMM d, yyyy' }}
+                    Saved {{ scholarship.savedDate | date: 'MMM d, yyyy' }}
                   </div>
                 </div>
               </div>
@@ -228,8 +228,8 @@
                   selectedScholarship?.status === 'applied'
                     ? 'Already Applied'
                     : selectedScholarship?.status === 'expired'
-                    ? 'Expired'
-                    : 'Apply Now'
+                      ? 'Expired'
+                      : 'Apply Now'
                 }}
               </button>
             </div>
@@ -384,7 +384,7 @@
           <div class="info-item">
             <span class="info-label">Saved Date:</span>
             <span class="info-value">{{
-              selectedScholarship.savedDate | date : 'MMM d, yyyy'
+              selectedScholarship.savedDate | date: 'MMM d, yyyy'
             }}</span>
           </div>
           <div class="info-item" *ngIf="selectedScholarship.applicationUrl">
@@ -414,8 +414,8 @@
           selectedScholarship?.status === 'applied'
             ? 'Already Applied'
             : selectedScholarship?.status === 'expired'
-            ? 'Expired'
-            : 'Apply Now'
+              ? 'Expired'
+              : 'Apply Now'
         }}
       </button>
     </div>
