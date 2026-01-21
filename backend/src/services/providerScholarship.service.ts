@@ -4,12 +4,19 @@ import { normalizeFieldOfStudy } from "../helpers/providerScholarship.helpers";
 
 export class ProviderScholarshipSerivice {
   async createScholarship(providerId: number, data: Partial<Scholarship>) {
-    const { status, provider_id, fields_of_study, ...safeData } = data;
+    const {
+      status,
+      provider_id,
+      fields_of_study,
+      eligibility_countries,
+      ...safeData
+    } = data;
 
     const scholarship = ScholarshipRepository.create({
       ...safeData,
       provider_id: providerId,
       status: "pending",
+      eligibility_countries: normalizeFieldOfStudy(eligibility_countries),
       fields_of_study: normalizeFieldOfStudy(fields_of_study),
     });
 

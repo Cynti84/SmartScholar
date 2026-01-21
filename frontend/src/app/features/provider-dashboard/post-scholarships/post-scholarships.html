@@ -1,24 +1,45 @@
-<app-dashboard-layout [title]="'Post New Scholarship'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
+<app-dashboard-layout
+  [title]="'Post New Scholarship'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
   <section class="post-scholarship-container">
     <div class="form-wrapper">
       <!-- Progress Indicator -->
       <div class="progress-indicator">
-        <div class="progress-step" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+        <div
+          class="progress-step"
+          [class.active]="currentStep === 1"
+          [class.completed]="currentStep > 1"
+        >
           <span class="step-number">1</span>
           <span class="step-label">Basic Info</span>
         </div>
         <div class="progress-line" [class.completed]="currentStep > 1"></div>
-        <div class="progress-step" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">
+        <div
+          class="progress-step"
+          [class.active]="currentStep === 2"
+          [class.completed]="currentStep > 2"
+        >
           <span class="step-number">2</span>
           <span class="step-label">Details</span>
         </div>
         <div class="progress-line" [class.completed]="currentStep > 2"></div>
-        <div class="progress-step" [class.active]="currentStep === 3" [class.completed]="currentStep > 3">
+        <div
+          class="progress-step"
+          [class.active]="currentStep === 3"
+          [class.completed]="currentStep > 3"
+        >
           <span class="step-number">3</span>
           <span class="step-label">Categories</span>
         </div>
         <div class="progress-line" [class.completed]="currentStep > 3"></div>
-        <div class="progress-step" [class.active]="currentStep === 4" [class.completed]="currentStep > 4">
+        <div
+          class="progress-step"
+          [class.active]="currentStep === 4"
+          [class.completed]="currentStep > 4"
+        >
           <span class="step-number">4</span>
           <span class="step-label">Application</span>
         </div>
@@ -31,7 +52,6 @@
 
       <!-- Form Container -->
       <form [formGroup]="scholarshipForm" (ngSubmit)="onSubmit()" class="scholarship-form">
-        
         <!-- Step 1: Basic Information -->
         <div class="form-step" *ngIf="currentStep === 1">
           <div class="step-header">
@@ -42,41 +62,63 @@
           <div class="form-grid">
             <div class="form-group full-width">
               <label for="title">Scholarship Title <span class="required">*</span></label>
-              <input 
-                type="text" 
-                id="title" 
+              <input
+                type="text"
+                id="title"
                 formControlName="title"
                 placeholder="e.g., Excellence Scholarship for Engineering Students"
-                class="form-control">
-              <div class="error-message" *ngIf="scholarshipForm.get('title')?.invalid && scholarshipForm.get('title')?.touched">
+                class="form-control"
+              />
+              <div
+                class="error-message"
+                *ngIf="
+                  scholarshipForm.get('title')?.invalid && scholarshipForm.get('title')?.touched
+                "
+              >
                 Scholarship title is required
               </div>
             </div>
 
             <div class="form-group full-width">
-              <label for="organization_name">Organization Name <span class="required">*</span></label>
-              <input 
-                type="text" 
-                id="organization_name" 
+              <label for="organization_name"
+                >Organization Name <span class="required">*</span></label
+              >
+              <input
+                type="text"
+                id="organization_name"
                 formControlName="organization_name"
                 placeholder="Your organization or company name"
-                class="form-control">
-              <div class="error-message" *ngIf="scholarshipForm.get('organization_name')?.invalid && scholarshipForm.get('organization_name')?.touched">
+                class="form-control"
+              />
+              <div
+                class="error-message"
+                *ngIf="
+                  scholarshipForm.get('organization_name')?.invalid &&
+                  scholarshipForm.get('organization_name')?.touched
+                "
+              >
                 Organization name is required
               </div>
             </div>
 
             <div class="form-group full-width">
               <label for="short_summary">Short Summary <span class="required">*</span></label>
-              <textarea 
-                id="short_summary" 
+              <textarea
+                id="short_summary"
                 formControlName="short_summary"
                 placeholder="Brief 1-2 sentence description that will appear in search results"
                 class="form-control"
                 rows="3"
-                maxlength="200"></textarea>
+                maxlength="200"
+              ></textarea>
               <div class="char-counter">{{ getCharacterCount('short_summary') }}/200</div>
-              <div class="error-message" *ngIf="scholarshipForm.get('short_summary')?.invalid && scholarshipForm.get('short_summary')?.touched">
+              <div
+                class="error-message"
+                *ngIf="
+                  scholarshipForm.get('short_summary')?.invalid &&
+                  scholarshipForm.get('short_summary')?.touched
+                "
+              >
                 Short summary is required
               </div>
             </div>
@@ -93,52 +135,84 @@
           <div class="form-grid">
             <div class="form-group full-width">
               <label for="description">Full Description <span class="required">*</span></label>
-              <textarea 
-                id="description" 
+              <textarea
+                id="description"
                 formControlName="description"
                 placeholder="Detailed description of the scholarship, its purpose, and what makes it unique"
                 class="form-control large-textarea"
-                rows="6"></textarea>
-              <div class="error-message" *ngIf="scholarshipForm.get('description')?.invalid && scholarshipForm.get('description')?.touched">
+                rows="6"
+              ></textarea>
+              <div
+                class="error-message"
+                *ngIf="
+                  scholarshipForm.get('description')?.invalid &&
+                  scholarshipForm.get('description')?.touched
+                "
+              >
                 Full description is required
               </div>
             </div>
 
             <div class="form-group full-width">
-              <label for="eligibility_criteria">Eligibility Criteria <span class="required">*</span></label>
-              <textarea 
-                id="eligibility_criteria" 
+              <label for="eligibility_criteria"
+                >Eligibility Criteria <span class="required">*</span></label
+              >
+              <textarea
+                id="eligibility_criteria"
                 formControlName="eligibility_criteria"
                 placeholder="Who can apply? Include academic requirements, age limits, nationality, etc."
                 class="form-control"
-                rows="4"></textarea>
-              <div class="error-message" *ngIf="scholarshipForm.get('eligibility_criteria')?.invalid && scholarshipForm.get('eligibility_criteria')?.touched">
+                rows="4"
+              ></textarea>
+              <div
+                class="error-message"
+                *ngIf="
+                  scholarshipForm.get('eligibility_criteria')?.invalid &&
+                  scholarshipForm.get('eligibility_criteria')?.touched
+                "
+              >
                 Eligibility criteria is required
               </div>
             </div>
 
             <div class="form-group full-width">
-              <label for="benefits">Benefits & Funding Coverage <span class="required">*</span></label>
-              <textarea 
-                id="benefits" 
+              <label for="benefits"
+                >Benefits & Funding Coverage <span class="required">*</span></label
+              >
+              <textarea
+                id="benefits"
                 formControlName="benefits"
                 placeholder="What does this scholarship cover? (tuition, living expenses, travel, stipend, etc.)"
                 class="form-control"
-                rows="4"></textarea>
-              <div class="error-message" *ngIf="scholarshipForm.get('benefits')?.invalid && scholarshipForm.get('benefits')?.touched">
+                rows="4"
+              ></textarea>
+              <div
+                class="error-message"
+                *ngIf="
+                  scholarshipForm.get('benefits')?.invalid &&
+                  scholarshipForm.get('benefits')?.touched
+                "
+              >
                 Benefits information is required
               </div>
             </div>
 
             <div class="form-group">
               <label for="deadline">Application Deadline <span class="required">*</span></label>
-              <input 
-                type="date" 
-                id="deadline" 
+              <input
+                type="date"
+                id="deadline"
                 formControlName="deadline"
                 class="form-control"
-                [min]="minDate">
-              <div class="error-message" *ngIf="scholarshipForm.get('deadline')?.invalid && scholarshipForm.get('deadline')?.touched">
+                [min]="minDate"
+              />
+              <div
+                class="error-message"
+                *ngIf="
+                  scholarshipForm.get('deadline')?.invalid &&
+                  scholarshipForm.get('deadline')?.touched
+                "
+              >
                 Please select a valid future date
               </div>
             </div>
@@ -159,7 +233,12 @@
                 <option value="">Select Country</option>
                 <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
               </select>
-              <div class="error-message" *ngIf="scholarshipForm.get('country')?.invalid && scholarshipForm.get('country')?.touched">
+              <div
+                class="error-message"
+                *ngIf="
+                  scholarshipForm.get('country')?.invalid && scholarshipForm.get('country')?.touched
+                "
+              >
                 Please select a country
               </div>
             </div>
@@ -170,7 +249,13 @@
                 <option value="">Select Education Level</option>
                 <option *ngFor="let level of educationLevels" [value]="level">{{ level }}</option>
               </select>
-              <div class="error-message" *ngIf="scholarshipForm.get('education_level')?.invalid && scholarshipForm.get('education_level')?.touched">
+              <div
+                class="error-message"
+                *ngIf="
+                  scholarshipForm.get('education_level')?.invalid &&
+                  scholarshipForm.get('education_level')?.touched
+                "
+              >
                 Please select an education level
               </div>
             </div>
@@ -181,7 +266,13 @@
                 <option value="">Select Scholarship Type</option>
                 <option *ngFor="let type of scholarshipTypes" [value]="type">{{ type }}</option>
               </select>
-              <div class="error-message" *ngIf="scholarshipForm.get('scholarship_type')?.invalid && scholarshipForm.get('scholarship_type')?.touched">
+              <div
+                class="error-message"
+                *ngIf="
+                  scholarshipForm.get('scholarship_type')?.invalid &&
+                  scholarshipForm.get('scholarship_type')?.touched
+                "
+              >
                 Please select a scholarship type
               </div>
             </div>
@@ -190,31 +281,132 @@
               <label>Fields of Study <span class="required">*</span></label>
               <div class="tags-container">
                 <div class="selected-tags">
-                  <span 
-                    *ngFor="let field of selectedFields" 
+                  <span
+                    *ngFor="let field of selectedFields"
                     class="tag selected"
-                    (click)="removeField(field)">
+                    (click)="removeField(field)"
+                  >
                     {{ field }} ×
                   </span>
                 </div>
                 <div class="available-tags">
-                  <span 
-                    *ngFor="let field of getAvailableFields()" 
+                  <span
+                    *ngFor="let field of getAvailableFields()"
                     class="tag available"
-                    (click)="addField(field)">
+                    (click)="addField(field)"
+                  >
                     {{ field }}
                   </span>
                 </div>
               </div>
-              <div class="error-message" *ngIf="selectedFields.length === 0 && scholarshipForm.get('fields_of_study')?.touched">
+              <div
+                class="error-message"
+                *ngIf="
+                  selectedFields.length === 0 && scholarshipForm.get('fields_of_study')?.touched
+                "
+              >
                 Please select at least one field of study
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Step 4: Application Information -->
+        <!-- Step 4: Enhanced Eligibility -->
         <div class="form-step" *ngIf="currentStep === 4">
+          <div class="step-header">
+            <h2>Eligibility Enhancements</h2>
+            <p>Specify additional eligibility criteria for students</p>
+          </div>
+
+          <div class="form-grid">
+            <!-- Age Range -->
+            <div class="form-group">
+              <label for="min_age">Minimum Age</label>
+              <input
+                type="number"
+                id="min_age"
+                formControlName="min_age"
+                class="form-control"
+                min="0"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="max_age">Maximum Age</label>
+              <input
+                type="number"
+                id="max_age"
+                formControlName="max_age"
+                class="form-control"
+                min="0"
+              />
+            </div>
+
+            <!-- Gender -->
+            <div class="form-group">
+              <label>Gender</label>
+              <div class="radio-group">
+                <label class="radio-option">
+                  <input type="radio" formControlName="gender" value="male" /> Male
+                </label>
+                <label class="radio-option">
+                  <input type="radio" formControlName="gender" value="female" /> Female
+                </label>
+                <label class="radio-option">
+                  <input type="radio" formControlName="gender" value="other" /> Other
+                </label>
+                <label class="radio-option">
+                  <input type="radio" formControlName="gender" value="any" /> Any
+                </label>
+              </div>
+            </div>
+
+            <!-- Income Level -->
+            <div class="form-group">
+              <label for="income_level">Income Level</label>
+              <select id="income_level" formControlName="income_level" class="form-control">
+                <option value="">Select Income Level</option>
+                <option *ngFor="let level of incomeLevels" [value]="level">{{ level }}</option>
+              </select>
+            </div>
+
+            <!-- Eligible Countries -->
+            <div class="form-group full-width">
+              <label>Eligible Countries</label>
+              <div class="tags-container">
+                <div class="selected-tags">
+                  <span
+                    *ngFor="let country of selectedEligibilityCountries"
+                    class="tag selected"
+                    (click)="removeEligibilityCountry(country)"
+                  >
+                    {{ country }} ×
+                  </span>
+                </div>
+                <div class="available-tags">
+                  <span
+                    *ngFor="let country of getAvailableEligibilityCountries()"
+                    class="tag available"
+                    (click)="addEligibilityCountry(country)"
+                  >
+                    {{ country }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Disability -->
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="is_disabled" /> Must be a student with a
+                disability
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: Application Information -->
+        <div class="form-step" *ngIf="currentStep === 5">
           <div class="step-header">
             <h2>Application Information</h2>
             <p>Provide details on how students can apply</p>
@@ -223,54 +415,72 @@
           <div class="form-grid">
             <div class="form-group full-width">
               <label for="applicationLink">Application Link <span class="required">*</span></label>
-              <input 
-                type="url" 
-                id="application_link" 
+              <input
+                type="url"
+                id="application_link"
                 formControlName="application_link"
                 placeholder="https://example.com/apply"
-                class="form-control">
-              <div class="error-message" *ngIf="scholarshipForm.get('application_link')?.invalid && scholarshipForm.get('application_link')?.touched">
+                class="form-control"
+              />
+              <div
+                class="error-message"
+                *ngIf="
+                  scholarshipForm.get('application_link')?.invalid &&
+                  scholarshipForm.get('application_link')?.touched
+                "
+              >
                 Please provide a valid application URL
               </div>
             </div>
 
             <div class="form-group full-width">
-              <label for="application_instructions">Application Instructions <span class="required">*</span></label>
-              <textarea 
-                id="application_instructions" 
+              <label for="application_instructions"
+                >Application Instructions <span class="required">*</span></label
+              >
+              <textarea
+                id="application_instructions"
                 formControlName="application_instructions"
                 placeholder="Step-by-step instructions and required documents for application"
                 class="form-control large-textarea"
-                rows="6"></textarea>
-              <div class="error-message" *ngIf="scholarshipForm.get('application_instructions')?.invalid && scholarshipForm.get('application_instructions')?.touched">
+                rows="6"
+              ></textarea>
+              <div
+                class="error-message"
+                *ngIf="
+                  scholarshipForm.get('application_instructions')?.invalid &&
+                  scholarshipForm.get('application_instructions')?.touched
+                "
+              >
                 Application instructions are required
               </div>
             </div>
 
             <div class="form-group">
               <label for="contact_email">Contact Email</label>
-              <input 
-                type="email" 
-                id="contact_email" 
+              <input
+                type="email"
+                id="contact_email"
                 formControlName="contact_email"
                 placeholder="contact@organization.com"
-                class="form-control">
+                class="form-control"
+              />
             </div>
 
             <div class="form-group">
               <label for="contact_phone">Contact Phone</label>
-              <input 
-                type="tel" 
-                id="contact_phone" 
+              <input
+                type="tel"
+                id="contact_phone"
                 formControlName="contact_phone"
                 placeholder="+1 (555) 123-4567"
-                class="form-control">
+                class="form-control"
+              />
             </div>
           </div>
         </div>
 
-        <!-- Step 5: Attachments & Final -->
-        <div class="form-step" *ngIf="currentStep === 5">
+        <!-- Step 6: Attachments & Final -->
+        <div class="form-step" *ngIf="currentStep === 6">
           <div class="step-header">
             <h2>Attachments & Final Details</h2>
             <p>Upload supporting documents and add any final details</p>
@@ -280,8 +490,18 @@
             <!-- File Uploads -->
             <div class="form-group full-width">
               <label>Upload Flyer / Brochure (PDF/Image)</label>
-              <div class="file-upload-area" (click)="flyerInput.click()" [class.has-file]="selectedFlyer">
-                <input #flyerInput type="file" (change)="onFileSelect($event, 'flyer')" accept=".pdf,.jpg,.jpeg,.png" hidden>
+              <div
+                class="file-upload-area"
+                (click)="flyerInput.click()"
+                [class.has-file]="selectedFlyer"
+              >
+                <input
+                  #flyerInput
+                  type="file"
+                  (change)="onFileSelect($event, 'flyer')"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  hidden
+                />
                 <div class="upload-content" *ngIf="!selectedFlyer">
                   <div class="upload-icon">📄</div>
                   <p>Click to upload flyer or brochure</p>
@@ -290,15 +510,31 @@
                 <div class="upload-content" *ngIf="selectedFlyer">
                   <div class="upload-icon success">✅</div>
                   <p>{{ selectedFlyer.name }}</p>
-                  <button type="button" class="remove-file" (click)="removeFile('flyer'); $event.stopPropagation()">Remove</button>
+                  <button
+                    type="button"
+                    class="remove-file"
+                    (click)="removeFile('flyer'); $event.stopPropagation()"
+                  >
+                    Remove
+                  </button>
                 </div>
               </div>
             </div>
 
             <div class="form-group full-width">
               <label>Upload Banner / Logo</label>
-              <div class="file-upload-area" (click)="bannerInput.click()" [class.has-file]="selectedBanner">
-                <input #bannerInput type="file" (change)="onFileSelect($event, 'banner')" accept=".jpg,.jpeg,.png" hidden>
+              <div
+                class="file-upload-area"
+                (click)="bannerInput.click()"
+                [class.has-file]="selectedBanner"
+              >
+                <input
+                  #bannerInput
+                  type="file"
+                  (change)="onFileSelect($event, 'banner')"
+                  accept=".jpg,.jpeg,.png"
+                  hidden
+                />
                 <div class="upload-content" *ngIf="!selectedBanner">
                   <div class="upload-icon">🖼️</div>
                   <p>Click to upload banner or logo</p>
@@ -307,15 +543,32 @@
                 <div class="upload-content" *ngIf="selectedBanner">
                   <div class="upload-icon success">✅</div>
                   <p>{{ selectedBanner.name }}</p>
-                  <button type="button" class="remove-file" (click)="removeFile('banner'); $event.stopPropagation()">Remove</button>
+                  <button
+                    type="button"
+                    class="remove-file"
+                    (click)="removeFile('banner'); $event.stopPropagation()"
+                  >
+                    Remove
+                  </button>
                 </div>
               </div>
             </div>
 
             <div class="form-group full-width">
               <label>Verification Documents</label>
-              <div class="file-upload-area" (click)="verificationInput.click()" [class.has-file]="selectedVerificationDocs.length > 0">
-                <input #verificationInput type="file" (change)="onFileSelect($event, 'verification')" accept=".pdf,.doc,.docx" multiple hidden>
+              <div
+                class="file-upload-area"
+                (click)="verificationInput.click()"
+                [class.has-file]="selectedVerificationDocs.length > 0"
+              >
+                <input
+                  #verificationInput
+                  type="file"
+                  (change)="onFileSelect($event, 'verification')"
+                  accept=".pdf,.doc,.docx"
+                  multiple
+                  hidden
+                />
                 <div class="upload-content" *ngIf="selectedVerificationDocs.length === 0">
                   <div class="upload-icon">📋</div>
                   <p>Click to upload verification documents</p>
@@ -324,19 +577,26 @@
                 <div class="upload-content" *ngIf="selectedVerificationDocs.length > 0">
                   <div class="upload-icon success">✅</div>
                   <p>{{ selectedVerificationDocs.length }} file(s) selected</p>
-                  <button type="button" class="remove-file" (click)="removeFile('verification'); $event.stopPropagation()">Remove All</button>
+                  <button
+                    type="button"
+                    class="remove-file"
+                    (click)="removeFile('verification'); $event.stopPropagation()"
+                  >
+                    Remove All
+                  </button>
                 </div>
               </div>
             </div>
 
             <div class="form-group full-width">
               <label for="admin_notes">Notes for Admin</label>
-              <textarea 
-                id="adminNotes" 
+              <textarea
+                id="adminNotes"
                 formControlName="admin_notes"
                 placeholder="Any special instructions or notes for the admin during verification"
                 class="form-control"
-                rows="4"></textarea>
+                rows="4"
+              ></textarea>
             </div>
           </div>
 
@@ -348,16 +608,19 @@
                 <strong>Title:</strong> {{ scholarshipForm.get('title')?.value || 'Not provided' }}
               </div>
               <div class="review-item">
-                <strong>Organization:</strong> {{ scholarshipForm.get('organization_name')?.value || 'Not provided' }}
+                <strong>Organization:</strong>
+                {{ scholarshipForm.get('organization_name')?.value || 'Not provided' }}
               </div>
               <div class="review-item">
                 <strong>Deadline:</strong> {{ scholarshipForm.get('deadline')?.value || 'Not set' }}
               </div>
               <div class="review-item">
-                <strong>Country:</strong> {{ scholarshipForm.get('country')?.value || 'Not selected' }}
+                <strong>Country:</strong>
+                {{ scholarshipForm.get('country')?.value || 'Not selected' }}
               </div>
               <div class="review-item">
-                <strong>Education Level:</strong> {{ scholarshipForm.get('education_level')?.value || 'Not selected' }}
+                <strong>Education Level:</strong>
+                {{ scholarshipForm.get('education_level')?.value || 'Not selected' }}
               </div>
               <div class="review-item">
                 <strong>Fields of Study:</strong> {{ selectedFields.join(', ') || 'None selected' }}
@@ -368,36 +631,40 @@
 
         <!-- Form Actions -->
         <div class="form-actions">
-          <button 
-            type="button" 
-            class="btn btn-secondary" 
-            (click)="previousStep()" 
-            *ngIf="currentStep > 1">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="previousStep()"
+            *ngIf="currentStep > 1"
+          >
             Previous
           </button>
-          
-          <button 
-            type="button" 
-            class="btn btn-outline" 
+
+          <button
+            type="button"
+            class="btn btn-outline"
             (click)="saveDraft()"
-            *ngIf="currentStep < 5">
+            *ngIf="currentStep < 6"
+          >
             Save as Draft
           </button>
-          
-          <button 
-            type="button" 
-            class="btn btn-primary" 
-            (click)="nextStep()" 
-            *ngIf="currentStep < 5"
-            [disabled]="!isCurrentStepValid()">
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="nextStep()"
+            *ngIf="currentStep < 6"
+            [disabled]="!isCurrentStepValid()"
+          >
             Next Step
           </button>
-          
-          <button 
-            type="submit" 
-            class="btn btn-success" 
-            *ngIf="currentStep === 5"
-            [disabled]="!scholarshipForm.valid">
+
+          <button
+            type="submit"
+            class="btn btn-success"
+            *ngIf="currentStep === 6"
+            [disabled]="!scholarshipForm.valid"
+          >
             <span *ngIf="!isSubmitting">Post Scholarship</span>
             <span *ngIf="isSubmitting">
               <div class="spinner"></div>
