@@ -72,26 +72,32 @@ export class MatchingService {
       }
 
       // Ignore weak matches
-      if (score < 50) continue;
+      if (score < 40) continue;
 
-      // ===== Stage 2: Eligibility filtering =====
+      // ===== Stage 2: Eligibility filtering + scoring =====
 
       // 1. Gender
       if (
         scholarship.eligibility_gender &&
-        scholarship.eligibility_gender !== "any" &&
-        scholarship.eligibility_gender !== profile.gender
+        scholarship.eligibility_gender !== "any"
       ) {
-        continue;
+        if (scholarship.eligibility_gender !== profile.gender) {
+          continue;
+        } else {
+          score += 10;
+        }
       }
 
       // 2. Countries
       if (
         scholarship.eligibility_countries &&
-        scholarship.eligibility_countries.length > 0 &&
-        !scholarship.eligibility_countries.includes(profile.country)
+        scholarship.eligibility_countries.length > 0
       ) {
-        continue;
+        if (!scholarship.eligibility_countries.includes(profile.country)) {
+          continue;
+        } else {
+          score += 10;
+        }
       }
 
       // 3. Age
@@ -99,32 +105,43 @@ export class MatchingService {
         if (scholarship.min_age && profile.age < scholarship.min_age) {
           continue;
         }
+
         if (scholarship.max_age && profile.age > scholarship.max_age) {
           continue;
         }
+
+        // Passed age constraint
+        score += 5;
       }
 
       // 4. Education level allowed
       if (
         scholarship.education_level &&
-        scholarship.education_level.length > 0 &&
-        !scholarship.education_level.includes(profile.academic_level)
+        scholarship.education_level.length > 0
       ) {
-        continue;
+        if (!scholarship.education_level.includes(profile.academic_level)) {
+          continue;
+        } else {
+          score += 10;
+        }
       }
 
       // 5. Disability requirement
-      if (scholarship.requires_disability && !profile.is_disabled) {
-        continue;
+      if (scholarship.requires_disability) {
+        if (!profile.is_disabled) {
+          continue;
+        } else {
+          score += 10;
+        }
       }
 
-      // 6. Income level (optional)
-      if (
-        scholarship.income_level &&
-        scholarship.income_level !== "any" &&
-        profile.income_level !== scholarship.income_level
-      ) {
-        continue;
+      // 6. Income level
+      if (scholarship.income_level && scholarship.income_level !== "any") {
+        if (profile.income_level !== scholarship.income_level) {
+          continue;
+        } else {
+          score += 10;
+        }
       }
 
       // ===== Passed all filters – create match =====
