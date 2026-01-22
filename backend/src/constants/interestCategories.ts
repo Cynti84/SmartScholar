@@ -14,17 +14,21 @@ export const INTEREST_CATEGORIES: Record<string, string[]> = {
     "Robotics",
     "Software Engineering",
     "UI/UX design",
+    "IoT",
+    "Technology",
   ],
 
   Engineering: [
     "Aerospace Engineering",
     "Biomedical Engineering",
     "Chemical Engineering",
+    "Computer Engineering",
     "Civil Engineering",
     "Electrical Engineering",
     "Engineering",
     "Environmental Engineering",
     "Mechanical Engineering",
+    "Robotics",
   ],
 
   Business_and_Economics: [
@@ -48,6 +52,7 @@ export const INTEREST_CATEGORIES: Record<string, string[]> = {
 
   Natural_Sciences: [
     "Agriculture",
+    "Science",
     "Astronomy",
     "Biology",
     "Chemistry",
@@ -88,6 +93,7 @@ export const INTEREST_CATEGORIES: Record<string, string[]> = {
     "Social Work",
     "Theology",
     "Urban Planning",
+    "Public Policy",
   ],
 
   General: ["Sports"],

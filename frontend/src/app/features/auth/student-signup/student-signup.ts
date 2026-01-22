@@ -276,6 +276,7 @@ export class StudentSignup {
       formData.append('country', this.profileData.country);
       formData.append('academic_level', this.profileData.academic_level);
       formData.append('field_of_study', this.profileData.field_of_study);
+      formData.append('gender', this.profileData.gender);
       if (this.profileData.interest) formData.append('interest', this.profileData.interest);
 
       if (this.profileData.date_of_birth) {

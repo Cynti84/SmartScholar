@@ -28,9 +28,16 @@ export class PostScholarships implements OnInit {
   maxStep = 6;
   isSubmitting = false;
   minDate: string;
-  genders = ['Any', 'Male', 'Female', 'Other'];
+  genders = ['any', 'male', 'female'];
   incomeLevels = ['low', 'middle', 'any'];
   //menu for navigation
+
+  selectedFields: string[] = [];
+
+  //file upload properties
+  selectedFlyer: FileUpload | null = null;
+  selectedBanner: FileUpload | null = null;
+  selectedVerificationDocs: FileUpload[] = [];
 
   // step 4 tag selections
   selectedEligibilityCountries: string[] = [];
@@ -125,91 +132,92 @@ export class PostScholarships implements OnInit {
     'Women in STEM',
     'International Students',
     'Exchange Program',
+    'Talent-based',
+    'Project-based',
+    'Contribution-based',
+    'Gender-based',
   ];
 
   fieldsOfStudy = [
-    'Engineering',
-    'Computer Science',
-    'Medicine',
-    'Business Administration',
-    'Business',
-    'Economics',
-    'Finance',
     'Accounting',
-    'Marketing',
-    'Management',
-    'Law',
-    'International Relations',
-    'Political Science',
-    'Psychology',
-    'Sociology',
-    'Anthropology',
-    'History',
-    'Literature',
-    'Linguistics',
-    'Education',
-    'Social Work',
-    'Public Health',
-    'Nursing',
-    'Pharmacy',
-    'Dentistry',
-    'Veterinary Science',
-    'Biology',
-    'Chemistry',
-    'Physics',
-    'Mathematics',
-    'Statistics',
-    'Environmental Science',
     'Agriculture',
+    'Animation',
+    'Anthropology',
     'Architecture',
-    'Urban Planning',
-    'Art',
-    'Design',
-    'Graphic design',
-    'UI/UX design',
-    'Music',
-    'Theatre',
-    'Film Studies',
-    'Journalism',
-    'Communications',
-    'Philosophy',
-    'Theology',
-    'Geography',
-    'Geology',
-    'Astronomy',
-    'Data Science',
-    'Artificial Intelligence',
-    'Machine Learning',
-    'Cybersecurity',
-    'Information Technology',
-    'Mechanical Engineering',
-    'Electrical Engineering',
-    'Civil Engineering',
-    'Chemical Engineering',
     'Aerospace Engineering',
+    'Artificial Intelligence',
+    'Art',
+    'Astronomy',
+    'Automation',
+    'Biology',
     'Biomedical Engineering',
+    'Blockchain',
+    'Business',
+    'Business Administration',
+    'Chemical Engineering',
+    'Chemistry',
+    'Civil Engineering',
+    'Cloud Computing',
+    'Communications',
+    'Computer Engineering',
+    'Computer Science',
+    'Cybersecurity',
+    'Data Science',
+    'Dentistry',
+    'Design',
+    'Economics',
+    'Education',
+    'Electrical Engineering',
+    'Engineering',
     'Environmental Engineering',
     'Environmental Science',
-    'Animation',
-    'Media Studies',
-    'Software Engineering',
-    'Renewable Energy',
     'Fashion Design',
+    'Film Studies',
+    'Finance',
     'Fintech',
+    'Geography',
+    'Geology',
+    'Graphic Design',
+    'History',
+    'Information Technology',
+    'International Relations',
+    'IoT',
+    'Journalism',
+    'Law',
+    'Linguistics',
+    'Literature',
+    'Machine Learning',
+    'Management',
+    'Marketing',
+    'Mathematics',
+    'Mechanical Engineering',
+    'Media Studies',
+    'Medicine',
+    'Mobile Development',
+    'Music',
+    'Nursing',
+    'Pharmacy',
+    'Philosophy',
+    'Physics',
+    'Political Science',
+    'Psychology',
+    'Public Health',
+    'Public Policy',
+    'Renewable Energy',
     'Robotics',
-    'Automation',
-    'Cloud Computing',
-    'Blockchain',
-    'Mobile development',
+    'Science',
+    'Social Work',
+    'Sociology',
+    'Software Engineering',
     'Sports',
+    'Statistics',
+    'Technology',
+    'Theatre',
+    'Theology',
+    'UI/UX Design',
+    'Urban Planning',
+    'Veterinary Science',
   ];
-
-  selectedFields: string[] = [];
-
-  //file upload properties
-  selectedFlyer: FileUpload | null = null;
-  selectedBanner: FileUpload | null = null;
-  selectedVerificationDocs: FileUpload[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -249,9 +257,9 @@ export class PostScholarships implements OnInit {
       // Step 4: Enhanced Eligibility
       min_age: [null, [Validators.min(0)]],
       max_age: [null, [Validators.min(0)]],
-      gender: ['any'], // default to any
-      is_disabled: [false],
-      financial_need: [''],
+      eligibility_gender: ['any'], // default to any
+      requires_disability: [false], //default to false
+      income_level: ['any'], //default to any
       eligibility_countries: [''],
 
       // Step 4
@@ -274,7 +282,9 @@ export class PostScholarships implements OnInit {
   addEligibilityCountry(country: string) {
     if (!this.selectedEligibilityCountries.includes(country)) {
       this.selectedEligibilityCountries.push(country);
-      this.scholarshipForm.patchValue({ eligibility_countries: this.selectedEligibilityCountries });
+      this.scholarshipForm.patchValue({
+        eligibility_countries: this.selectedEligibilityCountries.join(','),
+      });
     }
   }
 
@@ -282,7 +292,9 @@ export class PostScholarships implements OnInit {
     this.selectedEligibilityCountries = this.selectedEligibilityCountries.filter(
       (c) => c !== country
     );
-    this.scholarshipForm.patchValue({ eligibility_countries: this.selectedEligibilityCountries });
+    this.scholarshipForm.patchValue({
+      eligibility_countries: this.selectedEligibilityCountries.join(','),
+    });
   }
 
   getAvailableEligibilityCountries() {
@@ -452,6 +464,7 @@ export class PostScholarships implements OnInit {
     const draftData = {
       ...this.scholarshipForm.value,
       fields_of_study: this.selectedFields,
+      eligibility_countries: this.selectedEligibilityCountries,
       attachments: {
         flyer: this.selectedFlyer,
         banner: this.selectedBanner,
@@ -490,6 +503,9 @@ export class PostScholarships implements OnInit {
 
     // Fields of study
     formData.append('fields_of_study', this.selectedFields.join(','));
+
+    // eligibility countries
+    formData.append('eligibility_countries', this.selectedEligibilityCountries.join(','));
 
     // Files
     if (this.selectedFlyer) {
