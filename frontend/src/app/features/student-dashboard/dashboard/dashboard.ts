@@ -7,7 +7,10 @@ import { AuthService } from '../../../core/services/auth.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
-import { ScholarshipService, Scholarship } from '../../../core/services/scholarship.service';
+import {
+  ScholarshipService,
+  RecommendedScholarship,
+} from '../../../core/services/scholarship.service';
 import { UserScholarshipService } from '../../../core/services/user-scholarship.service';
 
 @Component({
@@ -45,7 +48,7 @@ export class DashboardComponent implements OnInit {
   // =========================
   // DATA
   // =========================
-  recommendedScholarships: Scholarship[] = [];
+  recommendedScholarships: RecommendedScholarship[] = [];
 
   loading = false;
   error = '';
@@ -75,13 +78,15 @@ export class DashboardComponent implements OnInit {
       bookmarked: this.userScholarshipService.getBookmarkedScholarships(),
       recommended: this.scholarshipService
         .getRecommendedScholarships()
-        .pipe(catchError(() => of({ success: true, data: [] }))),
+        .pipe(catchError(() => of([]))),
     }).subscribe({
       next: ({ activeScholarships, applied, bookmarked, recommended }) => {
         this.stats.activeScholarships = activeScholarships?.count ?? 0;
         this.stats.applied = applied?.data?.length ?? 0;
         this.stats.bookmarked = bookmarked?.data?.length ?? 0;
-        this.stats.recommended = recommended?.data?.length ?? 0;
+
+        this.recommendedScholarships = recommended;
+        this.stats.recommended = recommended.length;
       },
       error: (err) => console.error('Dashboard error:', err),
     });
@@ -102,7 +107,7 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['/student/profile']);
   }
 
-  onViewScholarship(id: string): void {
+  onViewScholarship(id: number): void {
     this.router.navigate(['/student/scholarships', id]);
   }
 
@@ -127,8 +132,9 @@ export class DashboardComponent implements OnInit {
   // =========================
   // HELPERS
   // =========================
-  getDaysRemaining(deadline: Date): number {
-    const diff = new Date(deadline).getTime() - Date.now();
+  getDaysRemaining(deadline: string | Date): number {
+    const date = typeof deadline === 'string' ? new Date(deadline) : deadline;
+    const diff = date.getTime() - Date.now();
     return Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0);
   }
 }
