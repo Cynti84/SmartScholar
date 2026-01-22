@@ -29,6 +29,10 @@ import {
   updateEmailPreferences,
 } from "../controllers/email-preference.controller";
 
+import { MatchingController } from "../controllers/matching.controller";
+
+const controller = new MatchingController();
+
 const router = Router();
 
 router.post(
@@ -94,6 +98,12 @@ router.get(
   "/scholarships/active-scholarship",
   AuthMiddleware.authenticate,
   getActiveScholarships
+);
+
+router.get(
+  "/scholarships/recommendations",
+  AuthMiddleware.authenticate,
+  controller.getRecommendations
 );
 
 router.post(

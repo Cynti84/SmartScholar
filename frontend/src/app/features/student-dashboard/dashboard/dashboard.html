@@ -161,7 +161,12 @@
           </span>
         </div>
 
-        <div class="scholarships-grid">
+        <!-- Empty state -->
+        <div *ngIf="recommendedScholarships.length === 0" class="empty-state">
+          <p>No recommendations yet. Complete your profile to get personalised scholarships.</p>
+        </div>
+
+        <div class="scholarships-grid" *ngIf="recommendedScholarships.length > 0">
           <div class="scholarship-card" *ngFor="let scholarship of recommendedScholarships">
             <div class="card-header">
               <div
@@ -171,11 +176,12 @@
               >
                 {{ scholarship.matchScore | number : '1.0-0' }}% Match
               </div>
-              <!-- <span class="category-tag">{{ scholarship.category }}</span> -->
             </div>
 
             <h3 class="scholarship-title">{{ scholarship.title }}</h3>
-            <p class="scholarship-provider">{{ scholarship.provider }}</p>
+            <p class="scholarship-provider">
+              {{ scholarship.organization_name }}
+            </p>
 
             <div class="scholarship-details">
               <div class="detail-item">
@@ -186,11 +192,12 @@
                   stroke="currentColor"
                   stroke-width="2"
                 >
-                  <line x1="12" y1="1" x2="12" y2="23" />
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
                 </svg>
-                <span class="amount">{{ scholarship.amount }}</span>
+                <span>{{ scholarship.country }}</span>
               </div>
+
               <div class="detail-item">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -204,11 +211,13 @@
                   <line x1="8" y1="2" x2="8" y2="6" />
                   <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
-                <span class="deadline">{{ getDaysRemaining(scholarship.deadline) }} days left</span>
+                <span class="deadline">
+                  {{ getDaysRemaining(scholarship.deadline) }} days left
+                </span>
               </div>
             </div>
 
-            <button class="view-btn" (click)="onViewScholarship(scholarship._id)">
+            <button class="view-btn" (click)="onViewScholarship(scholarship.scholarship_id)">
               View Details
               <svg
                 xmlns="http://www.w3.org/2000/svg"
