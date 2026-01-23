@@ -40,30 +40,76 @@ export class Profile implements OnInit {
     { label: 'Logout', action: 'logout' },
   ];
   countries = [
-    'Kenya',
-    'Uganda',
-    'Tanzania',
-    'Rwanda',
-    'Burundi',
-    'South Sudan',
+    'Algeria',
+    'Australia',
+    'Austria',
+    'Belgium',
+    'Botswana',
+    'Bulgaria',
+    'Cameroon',
+    'Canada',
+    'Croatia',
+    'Cyprus',
+    'Czech Republic',
+    'Denmark',
+    'Egypt',
+    'Estonia',
     'Ethiopia',
-    'Somalia',
-    'Djibouti',
-    'Eritrea',
+    'Finland',
+    'France',
+    'Germany',
+    'Ghana',
+    'Hungary',
+    'Ireland',
+    'Italy',
+    'Japan',
+    'Kenya',
+    'Latvia',
+    'Lithuania',
+    'Malawi',
+    'Malta',
+    'Morocco',
+    'Netherlands',
+    'New Zealand',
+    'Nigeria',
+    'Norway',
+    'Poland',
+    'Portugal',
+    'Romania',
+    'Rwanda',
+    'Senegal',
+    'Singapore',
+    'Slovakia',
+    'Slovenia',
+    'South Africa',
+    'South Korea',
+    'Spain',
+    'Sweden',
+    'Switzerland',
+    'Tanzania',
+    'Tunisia',
+    'Uganda',
+    'United Kingdom',
+    'United States',
+    'Zambia',
+    'Zimbabwe',
   ];
 
   educationLevels = [
-    'High school student',
-    'High school graduate',
-    'Undergraduate student',
-    'Graduate student',
-    'Postgraduate student',
+    'High School / Secondary',
+    "Undergraduate / Bachelor's",
+    "Graduate / Master's",
+    'Doctorate / PhD',
+    'Postdoctoral',
+    'Professional Certification',
+    'Vocational / Technical',
+    'Other',
   ];
 
   fieldsOfStudy = [
     'Engineering',
     'Medicine',
-    'Computer Science',
+    'Technology',
     'Business',
     'Law',
     'Education',
@@ -78,18 +124,14 @@ export class Profile implements OnInit {
   ];
 
   interests = [
-    'Science',
     'Technology',
-    'Arts',
-    'Sports',
-    'Music',
-    'Literature',
-    'Environment',
-    'Community Service',
-    'Research',
-    'Innovation',
-    'Leadership',
-    'Entrepreneurship',
+    'Engineering',
+    'Business_and_Economics',
+    'Health_and_Medicine',
+    'Natural_Sciences',
+    'Arts_and_Design',
+    'Social_Sciences_and_Humanities',
+    'General',
   ];
   isEditingProfile = false;
   isSaving = false;
@@ -120,18 +162,23 @@ export class Profile implements OnInit {
     }
 
     // 2️⃣ Student profile (35%)
-    if (
-      this.studentProfile?.country &&
-      this.studentProfile?.academic_level &&
-      this.studentProfile?.field_of_study
-    ) {
-      completion += 35;
-    }
+    const profileFields = [
+      'country',
+      'academic_level',
+      'field_of_study',
+      'interest',
+      'gender',
+      'date_of_birth',
+      'income_level',
+    ] as const;
 
+    const filledFields = profileFields.filter((field) => !!this.studentProfile[field]).length;
+
+    completion += Math.floor((filledFields / profileFields.length) * 45);
     // 3️⃣ Email preferences (20%)
     // 3️⃣ Email preferences (20%)
     if (this.emailPreferencesLoaded) {
-      completion += 20;
+      completion += 10;
     }
 
     // 4️⃣ Extras (20%)
@@ -150,7 +197,7 @@ export class Profile implements OnInit {
     interest: '',
     gender: undefined,
     date_of_birth: undefined,
-    financial_need: undefined,
+    income_level: undefined,
     profile_image_url: '',
     cv_url: '',
   };

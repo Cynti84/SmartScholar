@@ -130,7 +130,7 @@
               <td class="applications-cell">
                 <div class="application-stats">
                   <span class="total">{{ student.applicationsCount }} applied</span>
-                  <span class="accepted">{{ student.acceptedScholarships }} accepted</span>
+                  <!-- <span class="accepted">{{ student.acceptedScholarships }} accepted</span> -->
                 </div>
               </td>
               <td>{{ formatDate(student.registrationDate) }}</td>
@@ -178,6 +178,13 @@
                   title="Activate"
                 >
                   Activate
+                </button>
+                <button
+                  class="btn btn-delete"
+                  title="Delete"
+                  (click)="openConfirmModal('decline', student)"
+                >
+                  Delete
                 </button>
               </td>
             </tr>
@@ -503,26 +510,51 @@
       </div>
     </div>
 
-    <div class="modal-footer">
-      <button (click)="closeConfirmModal()" class="btn btn-secondary">Cancel</button>
+    <div
+      style="
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 1rem;
+        border-top: 1px solid #e2e8f0;
+      "
+    >
+      <!-- Cancel Button -->
+      <button
+        (click)="closeConfirmModal()"
+        style="
+          background-color: #e2e8f0;
+          color: #1a202c;
+          border: none;
+          padding: 0.5rem 1rem;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 500;
+          transition: background 0.2s;
+        "
+        onmouseover="this.style.backgroundColor = '#cbd5e0'"
+        onmouseout="this.style.backgroundColor = '#e2e8f0'"
+      >
+        Cancel
+      </button>
+
+      <!-- Confirm/Delete Button -->
       <button
         (click)="executeConfirmAction()"
-        [class]="
-          'btn ' +
-          (confirmAction === 'approve' || confirmAction === 'activate'
-            ? 'btn-success'
-            : 'btn-danger')
+        style="
+          background-color: #f56565;
+          color: white;
+          border: none;
+          padding: 0.5rem 1rem;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 500;
+          transition: background 0.2s;
         "
+        onmouseover="this.style.backgroundColor = '#e53e3e'"
+        onmouseout="this.style.backgroundColor = '#f56565'"
       >
-        {{
-          confirmAction === 'approve'
-            ? 'Approve'
-            : confirmAction === 'decline'
-              ? 'Decline'
-              : confirmAction === 'suspend'
-                ? 'Suspend'
-                : 'Activate'
-        }}
+        {{ confirmAction === 'decline' ? 'Delete' : (confirmAction | titlecase) }}
       </button>
     </div>
   </div>

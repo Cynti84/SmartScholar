@@ -242,14 +242,22 @@
               </div>
 
               <div class="form-group">
-                <label>
-                  <input
-                    type="checkbox"
-                    [(ngModel)]="studentProfile.financial_need"
+                <label> Income Level </label>
+                <div>
+                  <select
+                    required
+                    name="income_level"
+                    id="income_level"
                     [disabled]="!isEditingProfile"
-                  />
-                  Financial Assistance Needed
-                </label>
+                    class="form-input"
+                    [(ngModel)]="studentProfile.income_level"
+                  >
+                    <option value="" disabled>Select your income level</option>
+                    <option value="low">Low income</option>
+                    <option value="middle">Middle income</option>
+                    <option value="any">Any / Prefer not to say</option>
+                  </select>
+                </div>
               </div>
             </div>
             <!-- Actions -->

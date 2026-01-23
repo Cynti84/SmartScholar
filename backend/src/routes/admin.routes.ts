@@ -4,7 +4,12 @@ import {
   authenticateAdmin,
   adminRateLimiter,
 } from "../middleware/admin.Middleware";
+import { AdminProviderController } from "../controllers/adminProvider";
+
 import { AdminScholarship } from "../controllers/adminScholarship";
+import { AdminAnalyticsController } from "../controllers/admin-analytics.controller";
+import { AdminNotificationController } from "../controllers/admin-notification.controller";
+import { AdminReportsController } from "../controllers/admin-reports.controller";
 
 const router = Router();
 
@@ -20,11 +25,23 @@ router.get("/scholarships/pending", AdminController.getPendingScholarships);
 router.get("/students/total", AdminController.getTotalStudents);
 
 router.get("/students", AdminController.getAllStudents);
+// Suspend student
+router.patch("/students/:id/suspend", AdminController.suspendStudent);
+
+// Activate student
+router.patch("/students/:id/activate", AdminController.activateStudent);
+
+// Delete student (hard delete)
+router.delete("/students/:id", AdminController.deleteStudent);
 
 //Providers
 router.get("/providers", AdminController.getProviders);
 router.get("/providers/pending", AdminController.getPendingProviders);
-
+router.get(
+  "/providers/:id/scholarships",
+  AdminProviderController.getProviderScholarships,
+);
+router.delete("/providers/:id", AdminController.deleteProvider);
 // Provider management actions
 router.patch("/providers/:id/approve", AdminController.approveProvider);
 router.patch("/providers/:id/reject", AdminController.rejectProvider);
@@ -37,5 +54,16 @@ router.put("/scholarships/:id", AdminScholarship.updateScholarship);
 router.delete("/scholarships/:id", AdminScholarship.deleteScholarship);
 router.patch("/scholarships/:id/approve", AdminScholarship.approveScholarship);
 router.patch("/scholarships/:id/reject", AdminScholarship.rejectScholarship);
+
+//analytics
+router.get(
+  "/dashboard/analytics",
+  AdminAnalyticsController.getDashboardAnalytics,
+);
+//Notifications
+router.get("/notifications", AdminNotificationController.getNotifications);
+router.post("/notifications", AdminNotificationController.createNotification);
+//report analytics
+router.get("/dashboard/reports", AdminReportsController.getDashboardData);
 
 export default router;

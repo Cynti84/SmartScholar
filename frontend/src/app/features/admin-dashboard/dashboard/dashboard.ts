@@ -58,45 +58,13 @@ export class Dashboard implements OnInit {
     private cd: ChangeDetectorRef,
   ) {}
 
-  getMonthlySignupPoints(): string {
-    const max = this.getMaxValue(this.monthlySignups);
-    return this.monthlySignups
-      .map((d, i) => `${i * 100},${200 - this.getBarHeight(d.value, max) * 2}`)
-      .join(' ');
-  }
   // ✅ Summary cards
   pendingProviders = 0;
   pendingScholarships = 0;
   activeScholarships = 0;
   totalStudents = 0;
   activeProviders = 0;
-  // ✅ Lists
-  newProviders = ['Oxford Foundation', 'MIT Global Aid', 'Chevening Trust'];
-  newScholarships = ['STEM Excellence 2025', 'Women in Tech', 'Green Scholars'];
-  expiringScholarships = ['DeKUT STEM 2024', 'Kenya Global 2023'];
 
-  // ✅ Charts
-  lineChartData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-    datasets: [
-      { label: 'Applications', data: [10, 25, 18, 30, 22], fill: false, borderColor: '#4CAF50' },
-    ],
-  };
-
-  lineChartOptions = {
-    responsive: true,
-    plugins: { legend: { position: 'bottom' } },
-  };
-
-  pieChartData = {
-    labels: ['Approved', 'Pending', 'Rejected'],
-    datasets: [{ data: [45, 30, 25], backgroundColor: ['#4CAF50', '#FFC107', '#F44336'] }],
-  };
-
-  pieChartOptions = {
-    responsive: true,
-    plugins: { legend: { position: 'bottom' } },
-  };
   quickStats: QuickStat[] = [];
   notifications: Notification[] = [];
 
@@ -105,6 +73,11 @@ export class Dashboard implements OnInit {
   monthlySignups: ChartData[] = [];
   categoryDistribution: ChartData[] = [];
   providerActivity: ChartData[] = [];
+
+  mostAppliedChart!: ChartConfiguration<'bar'>;
+  monthlySignupChart!: ChartConfiguration<'line'>;
+  categoryChart!: ChartConfiguration<'pie'>;
+  providerChart!: ChartConfiguration<'bar'>;
 
   // View toggle
   showAllNotifications = false;
@@ -230,66 +203,127 @@ export class Dashboard implements OnInit {
         return 'notifications';
     }
   }
-
   loadNotifications(): void {
-    this.notifications = [
-      {
-        id: 1,
-        type: 'scholarship',
-        message: 'New scholarship "Tech Excellence Award" pending approval',
-        timestamp: new Date('2025-10-06T10:30:00'),
-        priority: 'high',
+    this.adminService.getNotifications().subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.notifications = res.data.map((n: any) => ({
+            ...n,
+            timestamp: new Date(n.createdAt), // convert string to Date
+          }));
+        }
       },
-      {
-        id: 2,
-        type: 'provider',
-        message: 'Provider "Global Education Foundation" awaiting verification',
-        timestamp: new Date('2025-10-06T09:15:00'),
-        priority: 'high',
+      error: () => {
+        this.notifications = [];
       },
-      {
-        id: 3,
-        type: 'scholarship',
-        message: '3 scholarships expiring this week',
-        timestamp: new Date('2025-10-05T16:45:00'),
-        priority: 'medium',
-      },
-      {
-        id: 4,
-        type: 'provider',
-        message: 'Provider "Healthcare Scholars Inc." updated their profile',
-        timestamp: new Date('2025-10-05T14:20:00'),
-        priority: 'low',
-      },
-      {
-        id: 5,
-        type: 'scholarship',
-        message: 'Scholarship "Medical Excellence Grant" has 50+ new applications',
-        timestamp: new Date('2025-10-05T11:00:00'),
-        priority: 'medium',
-      },
-      {
-        id: 6,
-        type: 'provider',
-        message: 'New provider registration from "Tech Innovation Hub"',
-        timestamp: new Date('2025-10-04T15:30:00'),
-        priority: 'high',
-      },
-      {
-        id: 7,
-        type: 'scholarship',
-        message: 'Scholarship "Arts & Culture Award" deadline extended',
-        timestamp: new Date('2025-10-04T10:15:00'),
-        priority: 'low',
-      },
-    ];
+    });
   }
 
   loadChartData(): void {
-    this.mostAppliedScholarships = [];
-    this.monthlySignups = [];
-    this.cd.detectChanges(); // ✅ force update after loading chart data
+    this.adminService.getDashboardAnalytics().subscribe({
+      next: (res) => {
+        const data = res.data;
+
+        this.mostAppliedScholarships = data.mostAppliedScholarships.map((d: any) => ({
+          label: d.label,
+          value: Number(d.value),
+        }));
+
+        this.monthlySignups = data.monthlySignups.map((d: any) => ({
+          label: d.label,
+          value: Number(d.value),
+        }));
+
+        this.categoryDistribution = data.categoryDistribution.map((d: any) => ({
+          label: d.label,
+          value: Number(d.value),
+        }));
+
+        this.providerActivity = data.providerActivity.map((d: any) => ({
+          label: d.label,
+          value: Number(d.value),
+        }));
+
+        this.cd.detectChanges();
+      },
+      error: (err) => console.error(err),
+    });
   }
+
+  getMonthlySignupPoints(): string {
+    if (!this.monthlySignups || this.monthlySignups.length === 0) {
+      return '';
+    }
+
+    const max = this.getMaxValue(this.monthlySignups);
+    const step = 700 / Math.max(this.monthlySignups.length - 1, 1);
+
+    return this.monthlySignups
+      .map((d, i) => `${i * step},${200 - this.getBarHeight(d.value, max) * 2}`)
+      .join(' ');
+  }
+
+  buildCharts(): void {
+    // Most Applied Scholarships (BAR)
+    this.mostAppliedChart = {
+      type: 'bar',
+      data: {
+        labels: this.mostAppliedScholarships.map((d) => d.label),
+        datasets: [
+          {
+            label: 'Applications',
+            data: this.mostAppliedScholarships.map((d) => d.value),
+          },
+        ],
+      },
+      options: { responsive: true },
+    };
+
+    // Monthly Signups (LINE)
+    this.monthlySignupChart = {
+      type: 'line',
+      data: {
+        labels: this.monthlySignups.map((d) => d.label),
+        datasets: [
+          {
+            label: 'New Users',
+            data: this.monthlySignups.map((d) => d.value),
+            fill: false,
+          },
+        ],
+      },
+      options: { responsive: true },
+    };
+
+    // Category Distribution (PIE)
+    this.categoryChart = {
+      type: 'pie',
+      data: {
+        labels: this.categoryDistribution.map((d) => d.label),
+        datasets: [
+          {
+            data: this.categoryDistribution.map((d) => d.value),
+          },
+        ],
+      },
+    };
+
+    // Provider Activity (BAR)
+    this.providerChart = {
+      type: 'bar',
+      data: {
+        labels: this.providerActivity.map((d) => d.label),
+        datasets: [
+          {
+            label: 'Scholarships Posted',
+            data: this.providerActivity.map((d) => d.value),
+          },
+        ],
+      },
+      options: { responsive: true },
+    };
+  }
+
   getVisibleNotifications(): Notification[] {
     return this.showAllNotifications
       ? this.notifications
@@ -304,9 +338,12 @@ export class Dashboard implements OnInit {
     return `priority-${priority}`;
   }
 
-  formatTimestamp(date: Date): string {
+  formatTimestamp(date: string | Date): string {
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return ''; // invalid date
+
     const now = new Date();
-    const diff = now.getTime() - new Date(date).getTime();
+    const diff = now.getTime() - d.getTime();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
@@ -317,6 +354,7 @@ export class Dashboard implements OnInit {
   }
 
   getMaxValue(data: ChartData[]): number {
+    if (!data || data.length === 0) return 1;
     return Math.max(...data.map((d) => d.value));
   }
 

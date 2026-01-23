@@ -18,6 +18,7 @@ export interface StudentProfile {
   date_of_birth?: Date;
   gender?: 'male' | 'female' | 'other';
   financial_need?: boolean;
+  income_level?: 'low' | 'middle' | 'any';
 }
 
 @Injectable({
@@ -26,7 +27,10 @@ export interface StudentProfile {
 export class StudentProfileService {
   private apiUrl = `${environment.apiUrl}/student`;
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService,
+  ) {}
 
   /**
    * Get authorization headers
@@ -102,7 +106,7 @@ export class StudentProfileService {
     return this.http.post<ApiResponse>(
       `${this.apiUrl}/2fa/enable`,
       {},
-      { headers: this.getHeaders() }
+      { headers: this.getHeaders() },
     );
   }
 
@@ -110,7 +114,7 @@ export class StudentProfileService {
     return this.http.post<ApiResponse>(
       `${this.apiUrl}/2fa/verify-2fa`,
       { token },
-      { headers: this.getHeaders() }
+      { headers: this.getHeaders() },
     );
   }
 
@@ -118,14 +122,14 @@ export class StudentProfileService {
     return this.http.post<ApiResponse>(
       `${this.apiUrl}/2fa/disable-2fa`,
       { token },
-      { headers: this.getHeaders() }
+      { headers: this.getHeaders() },
     );
   }
 
   get2FAStatus(): Observable<{ success: boolean; data: { enabled: boolean } }> {
     return this.http.get<{ success: boolean; data: { enabled: boolean } }>(
       `${this.apiUrl}/2fa/status`,
-      { headers: this.getHeaders() }
+      { headers: this.getHeaders() },
     );
   }
 

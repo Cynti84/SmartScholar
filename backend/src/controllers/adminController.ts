@@ -101,6 +101,92 @@ export class AdminController {
     }
   }
 
+  // PATCH /api/admin/students/:id/suspend
+  static async suspendStudent(req: Request, res: Response): Promise<void> {
+    try {
+      const studentId = Number(req.params.id);
+
+      const userRepo = AppDataSource.getRepository(User);
+
+      const student = await userRepo.findOne({
+        where: { id: studentId, role: UserRole.STUDENT },
+      });
+
+      if (!student) {
+        res.status(404).json({ success: false, message: "Student not found" });
+        return;
+      }
+
+      student.status = UserStatus.SUSPENDED;
+      await userRepo.save(student);
+
+      res.json({
+        success: true,
+        message: "Student suspended successfully",
+      });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ success: false, message: "Failed to suspend student" });
+    }
+  }
+  // DELETE /api/admin/students/:id
+  static async deleteStudent(req: Request, res: Response): Promise<void> {
+    try {
+      const studentId = Number(req.params.id);
+      const userRepo = AppDataSource.getRepository(User);
+
+      const student = await userRepo.findOne({
+        where: { id: studentId, role: UserRole.STUDENT },
+      });
+
+      if (!student) {
+        res.status(404).json({ success: false, message: "Student not found" });
+        return;
+      }
+
+      await userRepo.remove(student);
+
+      res.json({
+        success: true,
+        message: "Student deleted successfully",
+      });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ success: false, message: "Failed to delete student" });
+    }
+  }
+
+  // PATCH /api/admin/students/:id/activate
+  static async activateStudent(req: Request, res: Response): Promise<void> {
+    try {
+      const studentId = Number(req.params.id);
+      const userRepo = AppDataSource.getRepository(User);
+
+      const student = await userRepo.findOne({
+        where: { id: studentId, role: UserRole.STUDENT },
+      });
+
+      if (!student) {
+        res.status(404).json({ success: false, message: "Student not found" });
+        return;
+      }
+
+      student.status = UserStatus.ACTIVE;
+      await userRepo.save(student);
+
+      res.json({
+        success: true,
+        message: "Student activated successfully",
+      });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ success: false, message: "Failed to activate student" });
+    }
+  }
+
   //PROVIDERS
   //Getting providers
   static async getProviders(req: Request, res: Response): Promise<void> {
@@ -284,6 +370,36 @@ export class AdminController {
         success: false,
         message: "Failed to activate provider",
         error: error.message,
+      });
+    }
+  }
+
+  static async deleteProvider(req: Request, res: Response): Promise<void> {
+    try {
+      const providerId = Number(req.params.id);
+      const userRepo = AppDataSource.getRepository(User);
+
+      // Only delete users with provider role
+      const provider = await userRepo.findOne({
+        where: { id: providerId, role: UserRole.PROVIDER },
+      });
+
+      if (!provider) {
+        res.status(404).json({ success: false, message: "Provider not found" });
+        return;
+      }
+
+      await userRepo.remove(provider);
+
+      res.json({
+        success: true,
+        message: "Provider deleted successfully",
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete provider",
       });
     }
   }
