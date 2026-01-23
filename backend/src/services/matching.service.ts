@@ -71,9 +71,6 @@ export class MatchingService {
         }
       }
 
-      // Ignore weak matches
-      if (score < 40) continue;
-
       // ===== Stage 2: Eligibility filtering + scoring =====
 
       // 1. Gender
@@ -143,6 +140,9 @@ export class MatchingService {
           score += 10;
         }
       }
+
+      // Ignore weak matches
+      if (score < 50) continue;
 
       // ===== Passed all filters – create match =====
       const match = matchRepo.create({
