@@ -186,6 +186,20 @@
                 >
                   Activate
                 </button>
+                <button
+                  *ngIf="provider.status === 'active' || provider.status === 'suspended'"
+                  (click)="confirmDelete(provider)"
+                  style="
+                    background-color: #f56565;
+                    color: white;
+                    border: none;
+                    padding: 0.3rem 0.6rem;
+                    border-radius: 4px;
+                    cursor: pointer;
+                  "
+                >
+                  Delete
+                </button>
               </td>
             </tr>
           </tbody>
@@ -354,18 +368,24 @@
               >Verification Documents
             </h4>
             <div class="documents-list">
-              <div *ngFor="let doc of selectedProvider.verificationDocs" class="document-item">
-                <span class="doc-icon">
-                  <mat-icon style="color: #ffffff">description</mat-icon></span
-                >
-                <span class="doc-name">{{ doc }}</span>
-                <button class="btn-download" (click)="downloadDocument(doc)">Download</button>
+              <div *ngIf="selectedProvider?.verificationDocs?.length; else noDocs">
+                <div *ngFor="let doc of selectedProvider.verificationDocs" class="document-item">
+                  <span class="doc-icon">
+                    <mat-icon style="color: #ffffff">description</mat-icon>
+                  </span>
+                  <span class="doc-name">{{ doc }}</span>
+                  <button class="btn-download" (click)="downloadDocument(doc)">Download</button>
+                </div>
               </div>
+
+              <ng-template #noDocs>
+                <p>No verification documents available.</p>
+              </ng-template>
             </div>
           </div>
 
           <!-- Activity Logs -->
-          <div class="info-section">
+          <!-- <div class="info-section">
             <h4>
               <mat-icon style="color: #4299e1; vertical-align: middle">history</mat-icon>Recent
               Activity
@@ -382,7 +402,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
@@ -422,6 +442,7 @@
           <span *ngIf="confirmAction === 'decline'">✕</span>
           <span *ngIf="confirmAction === 'suspend'">🚫</span>
           <span *ngIf="confirmAction === 'activate'">✓</span>
+          <span *ngIf="confirmAction === 'delete'">🗑️</span>
         </div>
 
         <h3>
@@ -429,10 +450,14 @@
             confirmAction === 'approve'
               ? 'Approve Provider'
               : confirmAction === 'decline'
-              ? 'Decline Provider'
-              : confirmAction === 'suspend'
-              ? 'Suspend Provider'
-              : 'Activate Provider'
+                ? 'Decline Provider'
+                : confirmAction === 'suspend'
+                  ? 'Suspend Provider'
+                  : confirmAction === 'activate'
+                    ? 'Activate Provider'
+                    : confirmAction === 'delete'
+                      ? 'Delete Provider'
+                      : 'Confirm Action'
           }}
         </h3>
 
@@ -452,6 +477,10 @@
           Are you sure you want to activate <strong>{{ selectedProvider?.name }}</strong
           >? They will regain full access to the platform.
         </p>
+        <p *ngIf="confirmAction === 'delete'">
+          Are you sure you want to permanently delete <strong>{{ selectedProvider?.name }}</strong
+          >? This action cannot be undone.
+        </p>
 
         <div
           class="reason-input"
@@ -467,25 +496,54 @@
       </div>
     </div>
 
-    <div class="modal-footer">
-      <button (click)="closeConfirmModal()" class="btn btn-secondary">Cancel</button>
+    <div
+      class="modal-footer"
+      style="
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 1rem;
+        border-top: 1px solid #e2e8f0;
+      "
+    >
+      <!-- Cancel -->
+      <button
+        (click)="closeConfirmModal()"
+        style="
+          background-color: #e2e8f0;
+          color: #1a202c;
+          border: none;
+          padding: 0.5rem 1rem;
+          border-radius: 6px;
+          cursor: pointer;
+        "
+      >
+        Cancel
+      </button>
+
+      <!-- Confirm Action (Approve / Activate / Suspend / Delete) -->
       <button
         (click)="executeConfirmAction()"
-        [class]="
-          'btn ' +
-          (confirmAction === 'approve' || confirmAction === 'activate'
-            ? 'btn-success'
-            : 'btn-danger')
-        "
+        [ngStyle]="{
+          'background-color':
+            confirmAction === 'approve' || confirmAction === 'activate' ? '#10b981' : '#f56565',
+          color: 'white',
+          border: 'none',
+          padding: '0.5rem 1rem',
+          'border-radius': '6px',
+          cursor: 'pointer',
+        }"
       >
         {{
           confirmAction === 'approve'
             ? 'Approve'
-            : confirmAction === 'decline'
-            ? 'Decline'
             : confirmAction === 'suspend'
-            ? 'Suspend'
-            : 'Activate'
+              ? 'Suspend'
+              : confirmAction === 'activate'
+                ? 'Activate'
+                : confirmAction === 'delete'
+                  ? 'Delete'
+                  : 'Confirm'
         }}
       </button>
     </div>

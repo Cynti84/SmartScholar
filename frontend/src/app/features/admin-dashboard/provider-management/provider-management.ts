@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -60,6 +60,7 @@ export class ProviderManagement {
     { label: 'Reports', route: '/admin/reports' },
     { label: 'Logout', action: 'logout' },
   ];
+  @Input() providerId!: number;
 
   constructor(
     private router: Router,
@@ -83,7 +84,7 @@ export class ProviderManagement {
   showDetailsModal: boolean = false;
   showConfirmModal: boolean = false;
   selectedProvider: AdminProvider | null = null;
-  confirmAction: 'approve' | 'decline' | 'suspend' | 'activate' | null = null;
+  confirmAction: 'approve' | 'decline' | 'suspend' | 'activate' | 'delete' | null = null;
   confirmReason: string = '';
 
   // Activity logs
@@ -110,6 +111,9 @@ export class ProviderManagement {
       this.providers = res.data.map((user: any) => this.mapProvider(user));
       this.updateStatistics();
       this.applyFilters();
+      this.providers.forEach((provider) => {
+        this.loadProviderScholarships(provider.id, provider);
+      });
     });
   }
 
@@ -186,6 +190,22 @@ export class ProviderManagement {
     this.selectedProvider = provider;
     this.loadActivityLogs(provider.id);
     this.showDetailsModal = true;
+    this.loadProviderScholarships(provider.id, provider);
+  }
+
+  loadProviderScholarships(providerId: number, provider: AdminProvider): void {
+    this.adminService.getProviderScholarships(providerId).subscribe({
+      next: (res: any) => {
+        const scholarships = res.data || [];
+        provider.postedScholarship = scholarships.length;
+        provider.activeScholarships = scholarships.filter((s: any) => s.status === 'active').length;
+      },
+      error: (err) => {
+        console.error('Failed to fetch provider scholarships', err);
+        provider.postedScholarship = 0;
+        provider.activeScholarships = 0;
+      },
+    });
   }
 
   loadActivityLogs(providerId: number): void {
@@ -249,6 +269,11 @@ export class ProviderManagement {
     this.confirmAction = 'activate';
     this.showConfirmModal = true;
   }
+  confirmDelete(provider: any) {
+    this.selectedProvider = provider;
+    this.confirmAction = 'delete'; // this now matches the type exactly
+    this.showConfirmModal = true;
+  }
 
   onSearchChange(): void {
     this.applyFilters();
@@ -261,7 +286,6 @@ export class ProviderManagement {
     if (!this.selectedProvider || !this.confirmAction) return;
 
     const id = this.selectedProvider.id;
-
     let request$;
 
     switch (this.confirmAction) {
@@ -277,12 +301,17 @@ export class ProviderManagement {
       case 'activate':
         request$ = this.adminService.activateProvider(id);
         break;
+      case 'delete':
+        request$ = this.adminService.deleteProvider(id);
+        break;
       default:
         return;
     }
 
     request$.subscribe({
-      next: () => this.loadProviders(),
+      next: () => {
+        this.loadProviders(); // refresh provider list
+      },
       error: (err) => console.error('Action failed', err),
       complete: () => this.closeConfirmModal(),
     });
@@ -335,17 +364,22 @@ export class ProviderManagement {
     }
   }
   //added
-  getTimeSinceActive(date?: string | Date): string {
-    if (!date) return 'Never';
+  getTimeSinceActive(lastActive?: string | Date): string {
+    if (!lastActive) return '—';
 
-    const d = typeof date === 'string' ? new Date(date) : date;
+    const last = new Date(lastActive);
+    const now = new Date();
+    const diff = now.getTime() - last.getTime();
 
-    const diffMs = Date.now() - d.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
 
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return '1 day ago';
-    return `${diffDays} days ago`;
+    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    return 'Just now';
   }
 
   downloadDocument(docName: string): void {

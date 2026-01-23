@@ -79,7 +79,9 @@
       align-items: center;
       gap: 1rem;
       border-left: 4px solid;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition:
+        transform 0.2s,
+        box-shadow 0.2s;
 
       &:hover {
         transform: translateY(-2px);
@@ -841,10 +843,10 @@
         }
 
         .stat-number {
-          font-size: 2.5rem;
+          // font-size: 2rem;
           font-weight: 700;
           color: #1a202c;
-          margin-bottom: 0.5rem;
+          margin-bottom: 0.1rem;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;

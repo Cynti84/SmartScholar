@@ -57,7 +57,7 @@ export class StudentManagement {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private adminService: AdminService
+    private adminService: AdminService,
   ) {}
 
   students: Student[] = [];
@@ -236,21 +236,42 @@ export class StudentManagement {
 
   confirmSuspend(student: Student | null) {
     if (!student) return;
-    console.log(`Suspending student: ${student.firstName} ${student.lastName}`);
-    // Example service call
-    // this.studentService.suspend(student.id).subscribe(...)
+
+    this.adminService.suspendStudent(student.id).subscribe({
+      next: () => {
+        student.status = 'suspended';
+        this.updateStatistics();
+        this.applyFilters();
+      },
+      error: (err) => console.error('Suspend failed', err),
+    });
   }
 
   confirmActivate(student: Student | null) {
     if (!student) return;
-    console.log(`Activating student: ${student.firstName} ${student.lastName}`);
-    // this.studentService.activate(student.id).subscribe(...)
+
+    this.adminService.activateStudent(student.id).subscribe({
+      next: () => {
+        student.status = 'active';
+        this.updateStatistics();
+        this.applyFilters();
+      },
+      error: (err) => console.error('Activate failed', err),
+    });
   }
 
   confirmApprove(student: Student | null) {
     if (!student) return;
-    console.log(`Approving student: ${student.firstName} ${student.lastName}`);
-    // this.studentService.approve(student.id).subscribe(...)
+
+    // Approve = Activate in your backend
+    this.adminService.activateStudent(student.id).subscribe({
+      next: () => {
+        student.status = 'active';
+        this.updateStatistics();
+        this.applyFilters();
+      },
+      error: (err) => console.error('Approve failed', err),
+    });
   }
 
   executeConfirmAction(): void {
@@ -264,7 +285,15 @@ export class StudentManagement {
         this.students[index].status = 'active';
         break;
       case 'decline':
-        this.students.splice(index, 1);
+        this.adminService.deleteStudent(this.selectedStudent.id).subscribe({
+          next: () => {
+            this.students.splice(index, 1);
+            this.updateStatistics();
+            this.applyFilters();
+          },
+          error: (err) => console.error('Delete failed', err),
+        });
+        break;
         break;
       case 'suspend':
         this.students[index].status = 'suspended';

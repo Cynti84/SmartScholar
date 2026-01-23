@@ -11,6 +11,7 @@ import { Application } from "../models/applications";
 import { StudentProfile } from "../models/student_profiles";
 import { Bookmark } from "../models/Bookmark";
 import { EmailPreference } from "../models/email_preferences";
+import { Notification } from "../models/notifications";
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ export const AppDataSource = new DataSource({
     StudentProfile,
     Bookmark,
     EmailPreference,
+    Notification,
   ],
   synchronize: false,
   logging: false,
@@ -46,7 +48,7 @@ export const connectDB = async () => {
     UserRepository.initialize(AppDataSource.getRepository(User));
 
     ProviderProfileRepository.initialize(
-      AppDataSource.getRepository(ProviderProfile)
+      AppDataSource.getRepository(ProviderProfile),
     );
     console.log(" Repositories initialized");
   } catch (error) {
