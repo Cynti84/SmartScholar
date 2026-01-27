@@ -170,7 +170,7 @@
                 <div class="provider-info">
                   <div class="provider-name">{{ scholarship.provider }}</div>
                   <div class="saved-date">
-                    Saved {{ scholarship.savedDate | date: 'MMM d, yyyy' }}
+                    Saved {{ scholarship.savedDate | date : 'MMM d, yyyy' }}
                   </div>
                 </div>
               </div>
@@ -228,8 +228,8 @@
                   selectedScholarship?.status === 'applied'
                     ? 'Already Applied'
                     : selectedScholarship?.status === 'expired'
-                      ? 'Expired'
-                      : 'Apply Now'
+                    ? 'Expired'
+                    : 'Apply Now'
                 }}
               </button>
             </div>
@@ -384,7 +384,7 @@
           <div class="info-item">
             <span class="info-label">Saved Date:</span>
             <span class="info-value">{{
-              selectedScholarship.savedDate | date: 'MMM d, yyyy'
+              selectedScholarship.savedDate | date : 'MMM d, yyyy'
             }}</span>
           </div>
           <div class="info-item" *ngIf="selectedScholarship.applicationUrl">

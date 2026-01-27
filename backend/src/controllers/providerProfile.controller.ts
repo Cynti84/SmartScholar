@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { providerProfileService } from "../services/providerProfile.service";
+import { UpdatedAt } from "sequelize-typescript";
 
 export const createProviderProfile = async (req: Request, res: Response) => {
   const userId = req.user!.id;
@@ -40,11 +41,25 @@ export const updateProviderProfile = async (req: Request, res: Response) => {
     ? files.verificationDocument.map((file) => file.path)
     : undefined;
 
-  const result = await providerProfileService.updateProfile(userId, {
+  const updateData: any = {
     ...data,
-    ...(logoUrl && { logo_url: logoUrl }),
-    ...(verificationDocs && { verification_docs: verificationDocs }),
-  });
+  };
+  // replace logo
+  if (logoUrl) {
+    updateData.logo_url = logoUrl;
+  }
+
+  // remove logo
+  if (req.body.remove_logo === "true") {
+    updateData.logo_url = null;
+  }
+
+  // update verification docs
+  if (verificationDocs) {
+    updateData.verification_docs = verificationDocs;
+  }
+
+  const result = await providerProfileService.updateProfile(userId, updateData);
 
   return res.status(200).json(result);
 };

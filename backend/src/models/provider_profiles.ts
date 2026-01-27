@@ -33,8 +33,8 @@ export class ProviderProfile {
   @Column({ type: "text", nullable: true })
   logo_url?: string;
 
-  @Column({ type: "text", nullable: true })
-  verification_document_url?: string;
+  @Column({ type: "text", array: true, nullable: true })
+  verification_docs?: string[];
 
   @Column({ type: "boolean", default: false })
   verified!: boolean;
