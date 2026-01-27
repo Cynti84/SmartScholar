@@ -55,6 +55,10 @@ export class Profile implements OnInit {
   logoPreview: string | null = null;
   uploadedDocuments: UploadedDocument[] = [];
 
+  selectedLogoFile: File | null = null;
+
+  removeLogoRequested = false;
+
   // Modal states
   showPasswordModal = false;
   showDeactivateModal = false;
@@ -65,53 +69,59 @@ export class Profile implements OnInit {
 
   // Countries list (sample - you can replace with your actual list)
   countries: Country[] = [
-    { name: 'United States' },
-    { name: 'Canada' },
-    { name: 'United Kingdom' },
-    { name: 'Germany' },
-    { name: 'France' },
+    { name: 'Algeria' },
     { name: 'Australia' },
-    { name: 'Kenya' },
-    { name: 'South Africa' },
-    { name: 'Nigeria' },
-    { name: 'Ghana' },
-    { name: 'Japan' },
-    { name: 'South Korea' },
-    { name: 'Singapore' },
-    { name: 'India' },
-    { name: 'Brazil' },
-    { name: 'Mexico' },
-    { name: 'Argentina' },
-    { name: 'Chile' },
-    { name: 'Netherlands' },
-    { name: 'Sweden' },
-    { name: 'Norway' },
-    { name: 'Denmark' },
-    { name: 'Finland' },
-    { name: 'Switzerland' },
     { name: 'Austria' },
     { name: 'Belgium' },
-    { name: 'Italy' },
-    { name: 'Spain' },
-    { name: 'Portugal' },
-    { name: 'Ireland' },
-    { name: 'New Zealand' },
-    { name: 'China' },
-    { name: 'Thailand' },
-    { name: 'Malaysia' },
-    { name: 'Indonesia' },
-    { name: 'Philippines' },
-    { name: 'Vietnam' },
-    { name: 'Egypt' },
-    { name: 'Morocco' },
-    { name: 'Tunisia' },
-    { name: 'Ethiopia' },
-    { name: 'Uganda' },
-    { name: 'Tanzania' },
-    { name: 'Rwanda' },
-    { name: 'Zambia' },
     { name: 'Botswana' },
-    { name: 'Namibia' },
+    { name: 'Bulgaria' },
+    { name: 'Cameroon' },
+    { name: 'Canada' },
+    { name: 'Croatia' },
+    { name: 'Cyprus' },
+    { name: 'Czech Republic' },
+    { name: 'Denmark' },
+    { name: 'Egypt' },
+    { name: 'Ethiopia' },
+    { name: 'Estonia' },
+    { name: 'Finland' },
+    { name: 'France' },
+    { name: 'Germany' },
+    { name: 'Ghana' },
+    { name: 'Hungary' },
+    { name: 'Ireland' },
+    { name: 'Italy' },
+    { name: 'Japan' },
+    { name: 'Kenya' },
+    { name: 'Latvia' },
+    { name: 'Lithuania' },
+    { name: 'Malta' },
+    { name: 'Malawi' },
+    { name: 'Morocco' },
+    { name: 'Netherlands' },
+    { name: 'New Zealand' },
+    { name: 'Nigeria' },
+    { name: 'Norway' },
+    { name: 'Poland' },
+    { name: 'Portugal' },
+    { name: 'Romania' },
+    { name: 'Rwanda' },
+    { name: 'Senegal' },
+    { name: 'Singapore' },
+    { name: 'Slovakia' },
+    { name: 'Slovenia' },
+    { name: 'South Africa' },
+    { name: 'South Korea' },
+    { name: 'Spain' },
+    { name: 'Sweden' },
+    { name: 'Switzerland' },
+    { name: 'Tanzania' },
+    { name: 'Tunisia' },
+    { name: 'Uganda' },
+    { name: 'United Kingdom' },
+    { name: 'United States' },
+    { name: 'Zambia' },
+    { name: 'Zimbabwe' },
   ];
 
   private originalFormData: any;
@@ -159,24 +169,6 @@ export class Profile implements OnInit {
 
     // Store original form data for reset functionality
     this.originalFormData = this.profileForm.value;
-  }
-
-  private mapProviderTypeToValue(type: string): string {
-    const map: Record<string, string> = {
-      'University/Educational Institution': 'university',
-      NGO: 'ngo',
-      'Government Agency': 'government',
-      Foundation: 'foundation',
-      'Private Company/Corporation': 'corporation',
-      'Religious Organization': 'religious',
-      'Community-Based Organization': 'community-based',
-      'International Organization': 'international',
-      'Research Institute': 'research-institute',
-      'Healthcare Organization': 'healthcare',
-      Other: 'other',
-    };
-
-    return map[type] || '';
   }
 
   private passwordMatchValidator(group: AbstractControl): { [key: string]: any } | null {
@@ -256,6 +248,9 @@ export class Profile implements OnInit {
       return;
     }
 
+    // Store the file
+    this.selectedLogoFile = file;
+
     // Show immediate preview
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -266,23 +261,17 @@ export class Profile implements OnInit {
 
   removeLogo() {
     this.logoPreview = null;
-    // Reset file input by finding it with a more specific selector
-    const logoInput = document.querySelector(
-      'input[type="file"][accept="image/*"]'
-    ) as HTMLInputElement;
-    if (logoInput) {
-      logoInput.value = '';
+    this.selectedLogoFile = null;
+    this.removeLogoRequested = true;
+
+    if (this.logoInput?.nativeElement) {
+      this.logoInput.nativeElement.value = '';
     }
   }
 
   // Method to trigger logo file input click
   triggerLogoUpload() {
-    const logoInput = document.querySelector(
-      'input[type="file"][accept="image/*"]'
-    ) as HTMLInputElement;
-    if (logoInput) {
-      logoInput.click();
-    }
+    this.logoInput?.nativeElement.click();
   }
 
   // Method to trigger document file input click
@@ -395,17 +384,20 @@ export class Profile implements OnInit {
     formData.append('phone', value.phone || '');
     formData.append('email', value.email || '');
 
-    if (this.logoInput?.nativeElement.files?.[0]) {
-      formData.append('logo', this.logoInput.nativeElement.files[0]);
+    if (this.selectedLogoFile) {
+      formData.append('logoFile', this.selectedLogoFile); //replace logo
+    } else if (this.removeLogoRequested) {
+      formData.append('remove_logo', 'true'); // delete logo
     }
 
     this.uploadedDocuments.forEach((doc) => {
-      formData.append('verification_documents', doc.file);
+      formData.append('verificationDocument', doc.file);
     });
 
     this.providerService.updateProvider(formData).subscribe({
       next: () => {
         this.saving = false;
+        this.removeLogoRequested = false; //reset
         this.originalFormData = { ...this.profileForm.value };
         this.originalEmail = value.email;
         this.emailChanged = false;

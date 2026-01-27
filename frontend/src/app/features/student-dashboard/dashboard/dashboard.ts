@@ -12,7 +12,34 @@ import {
   RecommendedScholarship,
 } from '../../../core/services/scholarship.service';
 import { UserScholarshipService } from '../../../core/services/user-scholarship.service';
+import { Scholarship } from '../../../core/services/scholarship.service';
+interface ScholarshipUI {
+  id: number;
+  scholarshipId: number;
+  title: string;
+  provider: string;
+  providerLogo?: string;
+  status: 'active' | 'expired' | 'applied';
+  tags?: string[];
+  matchScore?: number;
+  category: string;
+  requiredDocuments?: string[];
+  notes?: string;
+  savedDate: Date;
+  applicationUrl?: string;
 
+  country: string;
+  level: string;
+  fundingType: string;
+  fieldOfStudy: string;
+  amount: string;
+  deadline: string; // ✅ CHANGE THIS
+  description: string;
+  eligibility: string[];
+  fundingDetails: string;
+  requirements: string[];
+  isSaved: boolean;
+}
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -34,6 +61,14 @@ export class DashboardComponent implements OnInit {
     { label: 'Profile', route: '/student/profile' },
     { label: 'Logout', action: 'logout' },
   ];
+
+  scholarships: RecommendedScholarship[] = [];
+  selectedScholarship: ScholarshipUI | null = null;
+  relatedScholarships: RecommendedScholarship[] = [];
+
+  selectedScholarshipIds: Set<number> = new Set();
+
+  isSelectionMode = false;
 
   // =========================
   // DASHBOARD STATS
@@ -107,8 +142,88 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['/student/profile']);
   }
 
-  onViewScholarship(id: number): void {
-    this.router.navigate(['/student/scholarships', id]);
+  private mapScholarshipToUI(s: Scholarship): ScholarshipUI {
+    return {
+      id: s.scholarship_id,
+      scholarshipId: s.scholarship_id,
+
+      title: s.title,
+      provider: s.organization_name,
+      providerLogo: undefined, // add later if backend supports it
+
+      status: new Date(s.deadline) < new Date() ? 'expired' : 'active',
+
+      category: s.scholarship_type,
+      country: s.country,
+      level: s.education_level,
+      fundingType: s.scholarship_type,
+      fieldOfStudy: s.fields_of_study.join(', '),
+
+      amount: s.benefits,
+      deadline: s.deadline,
+
+      description: s.description,
+      eligibility: s.eligibility_criteria.split('\n'),
+      fundingDetails: s.benefits,
+      requirements: s.application_instructions.split('\n'),
+
+      requiredDocuments: s.verification_docs,
+      applicationUrl: s.application_link,
+
+      savedDate: new Date(s.created_at),
+      isSaved: false,
+      matchScore: s.matchScore,
+    };
+  }
+
+  openScholarshipDetails(rec: RecommendedScholarship, event?: Event): void {
+    if (event) event.stopPropagation();
+
+    this.scholarshipService.getScholarshipById(rec.scholarship_id.toString()).subscribe({
+      next: (res) => {
+        this.selectedScholarship = this.mapScholarshipToUI(res.data);
+        // document.body.style.overflow = 'hidden';
+      },
+      error: (err) => {
+        console.error('Failed to load scholarship details', err);
+      },
+    });
+  }
+
+  closeScholarshipDetails(): void {
+    this.selectedScholarship = null;
+    document.body.style.overflow = 'auto';
+  }
+
+  onViewScholarship(s: any): void {
+    if (this.isSelectionMode) {
+      this.toggleScholarshipSelection(s.scholarshipId);
+    } else {
+      this.openScholarshipDetails(s);
+    }
+  }
+
+  toggleSelectionMode(): void {
+    this.isSelectionMode = !this.isSelectionMode;
+    if (!this.isSelectionMode) {
+      this.selectedScholarshipIds.clear();
+    }
+  }
+
+  toggleScholarshipSelection(scholarshipId: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    if (this.selectedScholarshipIds.has(scholarshipId)) {
+      this.selectedScholarshipIds.delete(scholarshipId);
+    } else {
+      this.selectedScholarshipIds.add(scholarshipId);
+    }
+  }
+
+  goToApplyPage(scholarshipId: number): void {
+    this.router.navigate(['/student/apply', scholarshipId]);
   }
 
   onSidebarAction(item: NavItem) {
