@@ -39,39 +39,53 @@ export class MatchingService {
 
     for (const scholarship of scholarships) {
       let score = 0;
+      const matchedCriteria: string[] = [];
+      const unmatchedCriteria: string[] = [];
 
       // ===== Stage 1: Academic & interest matching =====
 
-      // 1. Academic level match (strong)
+      // 1. Academic level
       if (
         scholarship.education_level.toLowerCase() ===
         profile.academic_level.toLowerCase()
       ) {
         score += 40;
+        matchedCriteria.push("Academic level matches your profile");
+      } else {
+        unmatchedCriteria.push("Academic level does not match");
       }
 
       const scholarshipFields =
         scholarship.fields_of_study?.map((f) => f.toLowerCase()) || [];
 
-      // 2. Field of study match (strong)
+      // 2. Field of study
       if (
         profile.field_of_study &&
         scholarshipFields.includes(profile.field_of_study.toLowerCase())
       ) {
         score += 40;
+        matchedCriteria.push(
+          `Field of study matches (${profile.field_of_study})`
+        );
+      } else {
+        unmatchedCriteria.push("Field of study does not match");
       }
 
-      // 3. Interest category match (supporting)
+      // 3. Interest category
       if (interestFields.length > 0) {
         const hasInterestOverlap = scholarshipFields.some((f) =>
           interestFields.includes(f)
         );
+
         if (hasInterestOverlap) {
           score += 20;
+          matchedCriteria.push("Matches your interest category");
+        } else {
+          unmatchedCriteria.push("Does not match your interest category");
         }
       }
 
-      // ===== Stage 2: Eligibility filtering + scoring =====
+      // ===== Stage 2: Eligibility filtering =====
 
       // 1. Gender
       if (
@@ -79,36 +93,42 @@ export class MatchingService {
         scholarship.eligibility_gender !== "any"
       ) {
         if (scholarship.eligibility_gender !== profile.gender) {
+          unmatchedCriteria.push("Gender requirement not met");
           continue;
         } else {
           score += 10;
+          matchedCriteria.push("Gender requirement met");
         }
       }
 
-      // 2. Countries
+      // 2. Country
       if (
         scholarship.eligibility_countries &&
         scholarship.eligibility_countries.length > 0
       ) {
         if (!scholarship.eligibility_countries.includes(profile.country)) {
+          unmatchedCriteria.push("Country requirement not met");
           continue;
         } else {
           score += 10;
+          matchedCriteria.push(`Eligible country: ${profile.country}`);
         }
       }
 
       // 3. Age
       if (profile.age) {
         if (scholarship.min_age && profile.age < scholarship.min_age) {
+          unmatchedCriteria.push("Minimum age requirement not met");
           continue;
         }
 
         if (scholarship.max_age && profile.age > scholarship.max_age) {
+          unmatchedCriteria.push("Maximum age requirement exceeded");
           continue;
         }
 
-        // Passed age constraint
         score += 5;
+        matchedCriteria.push("Age requirement met");
       }
 
       // 4. Education level allowed
@@ -117,38 +137,45 @@ export class MatchingService {
         scholarship.education_level.length > 0
       ) {
         if (!scholarship.education_level.includes(profile.academic_level)) {
+          unmatchedCriteria.push("Education level not eligible");
           continue;
         } else {
           score += 10;
+          matchedCriteria.push("Education level eligible");
         }
       }
 
-      // 5. Disability requirement
+      // 5. Disability
       if (scholarship.requires_disability) {
         if (!profile.is_disabled) {
+          unmatchedCriteria.push("Disability requirement not met");
           continue;
         } else {
           score += 10;
+          matchedCriteria.push("Disability requirement met");
         }
       }
 
       // 6. Income level
       if (scholarship.income_level && scholarship.income_level !== "any") {
         if (profile.income_level !== scholarship.income_level) {
+          unmatchedCriteria.push("Income level requirement not met");
           continue;
         } else {
           score += 10;
+          matchedCriteria.push("Income level matches eligibility");
         }
       }
 
       // Ignore weak matches
       if (score < 50) continue;
 
-      // ===== Passed all filters – create match =====
       const match = matchRepo.create({
         student: { id: studentId } as any,
         scholarship: { scholarship_id: scholarship.scholarship_id } as any,
         match_score: score,
+        matched_criteria: matchedCriteria,
+        unmatched_criteria: unmatchedCriteria,
       });
 
       results.push(match);

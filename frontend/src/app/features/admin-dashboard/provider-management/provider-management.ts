@@ -65,7 +65,7 @@ export class ProviderManagement {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private adminService: AdminService,
+    private adminService: AdminService
   ) {}
   Math = Math;
   providers: AdminProvider[] = [];

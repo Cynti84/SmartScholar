@@ -224,39 +224,54 @@
           <div class="detail-header">
             <h3>{{ selectedScholarship.title }}</h3>
             <p class="provider">by {{ selectedScholarship.provider }}</p>
-            <span [class]="'status-badge ' + getStatusClass(selectedScholarship.status)">
+            <p [class]="'status-badge ' + getStatusClass(selectedScholarship.status)">
               {{ selectedScholarship.status | titlecase }}
-            </span>
+            </p>
           </div>
 
           <!-- Grid for main details -->
           <div class="detail-grid">
             <div class="detail-item">
-              <label>Scholarship Type:</label>
-              <span>{{ selectedScholarship.scholarshipType }}</span>
+              <label>Scholarship Type: </label>
+              <p>{{ selectedScholarship.scholarshipType }}</p>
             </div>
             <div class="detail-item">
-              <label>Category:</label>
-              <span>{{ selectedScholarship.category }}</span>
+              <label>Country:</label>
+              <p>{{ selectedScholarship.country }}</p>
             </div>
             <div class="detail-item">
               <label>Deadline:</label>
-              <span>{{ formatDate(selectedScholarship.deadline) }}</span>
+              <p>{{ formatDate(selectedScholarship.deadline) }}</p>
             </div>
             <div class="detail-item">
               <label>Created:</label>
-              <span>{{ formatDate(selectedScholarship.createdDate) }}</span>
+              <p>{{ formatDate(selectedScholarship.createdDate) }}</p>
             </div>
             <div class="detail-item" *ngIf="selectedScholarship.benefits">
               <label>Benefits:</label>
-              <span>{{ selectedScholarship.benefits }}</span>
+              <ul>
+                <li *ngFor="let item of selectedScholarship.benefits.split(',')">
+                  {{ item.trim() }}
+                </li>
+              </ul>
             </div>
+          </div>
+
+          <!-- Short Description -->
+          <div class="detail-section">
+            <label>Short Summary:</label>
+            <p>{{ selectedScholarship.shortSummary }}</p>
           </div>
 
           <!-- Description -->
           <div class="detail-section">
             <label>Description:</label>
             <p>{{ selectedScholarship.description }}</p>
+          </div>
+
+          <div class="detail-section">
+            <label>Fields of Study:</label>
+            <p>{{ selectedScholarship.fieldOfStudy }}</p>
           </div>
 
           <!-- Eligibility -->
@@ -267,12 +282,8 @@
 
           <!-- Requirements -->
           <div class="detail-section">
-            <label>Requirements:</label>
-            <ul>
-              <li *ngFor="let req of selectedScholarship.requirements">
-                {{ selectedScholarship.requirements }}
-              </li>
-            </ul>
+            <label>Instructions:</label>
+            <p>{{ selectedScholarship.requirements }}</p>
           </div>
 
           <!-- Application URL -->
@@ -283,6 +294,18 @@
             </a>
           </div>
 
+          <!-- Admin Notes -->
+          <div class="detail-section" *ngIf="selectedScholarship.adminNotes">
+            <label for="">Admin Notes:</label>
+            <p>{{ selectedScholarship.adminNotes }}</p>
+          </div>
+
+          <!-- Logo -->
+          <div class="detail-section" *ngIf="selectedScholarship.logoUrl">
+            <label>Logo:</label>
+            <img [src]="selectedScholarship.logoUrl" alt="Logo" class="scholarship-logo" />
+          </div>
+
           <!-- Verification Documents -->
           <div class="detail-section" *ngIf="selectedScholarship.verificationDocs?.length">
             <label>Verification Documents:</label>
@@ -291,12 +314,6 @@
                 <a [href]="doc.url" target="_blank">{{ doc.name }}</a>
               </li>
             </ul>
-          </div>
-
-          <!-- Logo -->
-          <div class="detail-section" *ngIf="selectedScholarship.logoUrl">
-            <label>Logo:</label>
-            <img [src]="selectedScholarship.logoUrl" alt="Logo" class="scholarship-logo" />
           </div>
         </div>
       </div>
