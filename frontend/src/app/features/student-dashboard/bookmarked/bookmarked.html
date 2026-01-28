@@ -170,7 +170,7 @@
                 <div class="provider-info">
                   <div class="provider-name">{{ scholarship.provider }}</div>
                   <div class="saved-date">
-                    Saved {{ scholarship.savedDate | date : 'MMM d, yyyy' }}
+                    Saved {{ scholarship.savedDate | date: 'MMM d, yyyy' }}
                   </div>
                 </div>
               </div>
@@ -228,8 +228,8 @@
                   selectedScholarship?.status === 'applied'
                     ? 'Already Applied'
                     : selectedScholarship?.status === 'expired'
-                    ? 'Expired'
-                    : 'Apply Now'
+                      ? 'Expired'
+                      : 'Apply Now'
                 }}
               </button>
             </div>
@@ -363,7 +363,7 @@
         class="detail-section"
         *ngIf="selectedScholarship.tags && selectedScholarship.tags.length > 0"
       >
-        <h3 class="section-title">Tags</h3>
+        <h3 class="section-title">Field of Study</h3>
         <div class="tags">
           <span *ngFor="let tag of selectedScholarship.tags" class="tag">{{ tag }}</span>
         </div>
@@ -384,7 +384,7 @@
           <div class="info-item">
             <span class="info-label">Saved Date:</span>
             <span class="info-value">{{
-              selectedScholarship.savedDate | date : 'MMM d, yyyy'
+              selectedScholarship.savedDate | date: 'MMM d, yyyy'
             }}</span>
           </div>
           <div class="info-item" *ngIf="selectedScholarship.applicationUrl">
@@ -414,8 +414,8 @@
           selectedScholarship.status === 'applied'
             ? 'Already Applied'
             : selectedScholarship.status === 'expired'
-            ? 'Expired'
-            : 'Apply Now'
+              ? 'Expired'
+              : 'Apply Now'
         }}
       </button>
     </div>

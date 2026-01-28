@@ -170,6 +170,7 @@ export class Profile implements OnInit {
       'gender',
       'date_of_birth',
       'income_level',
+      'is_disabled',
     ] as const;
 
     const filledFields = profileFields.filter((field) => !!this.studentProfile[field]).length;
@@ -200,6 +201,7 @@ export class Profile implements OnInit {
     income_level: undefined,
     profile_image_url: '',
     cv_url: '',
+    is_disabled: false,
   };
   activeTab: ProfileTab;
   constructor(
@@ -364,22 +366,47 @@ export class Profile implements OnInit {
   // PROFILE IMAGE
   // =========================
   imagePreview: string | null = null;
-
   onFileSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement)?.files?.[0];
-    if (!file) return;
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
 
+    const file = input.files[0];
+
+    // Preview (keep this)
     const reader = new FileReader();
     reader.onload = () => {
       this.imagePreview = reader.result as string;
-      this.studentProfile.profile_image_url = this.imagePreview!;
     };
     reader.readAsDataURL(file);
+
+    // 🔑 FormData
+    const formData = new FormData();
+
+    // IMPORTANT: name MUST match backend -> profileImage
+    formData.append('profileImage', file);
+
+    // append other fields if needed
+    formData.append('country', this.studentProfile.country ?? '');
+    formData.append('academic_level', this.studentProfile.academic_level ?? '');
+
+    this.studentProfileService.updateProfile(formData).subscribe((res) => {
+      this.studentProfile = res.data;
+    });
   }
 
   removeProfileImage(): void {
-    this.imagePreview = null;
-    this.studentProfile.profile_image_url = '';
+    const formData = new FormData();
+    formData.append('removeProfileImage', 'true');
+
+    this.studentProfileService.updateProfile(formData).subscribe({
+      next: (res) => {
+        this.studentProfile = res.data;
+        this.imagePreview = null;
+      },
+      error: (err) => {
+        console.error('Failed to remove profile image', err);
+      },
+    });
   }
 
   // =========================

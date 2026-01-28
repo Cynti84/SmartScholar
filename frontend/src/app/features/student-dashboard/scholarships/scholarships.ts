@@ -26,6 +26,7 @@ interface ScholarshipUI {
   fundingDetails: string;
   requirements: string[];
   isSaved: boolean;
+  tags?: string[];
 }
 
 interface Filters {
@@ -177,8 +178,7 @@ export class Scholarships {
       country: s.country ?? 'Any',
       level: s.education_level ?? 'Any',
       fundingType: s.scholarship_type ?? 'Partial Funding',
-
-      fieldOfStudy: fields[0] ?? 'Any',
+      fieldOfStudy: fields.length ? fields.join(', ') : 'Any',
 
       amount: s.scholarship_type ?? 'Varies',
 

@@ -156,7 +156,8 @@ export const updateStudentProfile = async (req: Request, res: Response) => {
     }
 
     if (req.body.is_disabled !== undefined) {
-      updatedData.is_disabled = req.body.is_disabled === "true";
+      updatedData.is_disabled =
+        req.body.is_disabled === true || req.body.is_disabled === "true";
     }
 
     // --- File uploads ---
@@ -166,6 +167,9 @@ export const updateStudentProfile = async (req: Request, res: Response) => {
 
     if (files?.cvFile?.[0]) {
       updatedData.cv_url = files.cvFile[0].path;
+    }
+    if (req.body.removeProfileImage === "true") {
+      updatedData.profile_image_url = undefined;
     }
 
     profileRepo.merge(profile, updatedData);
@@ -427,7 +431,7 @@ export const disable2FA = async (req: Request, res: Response) => {
 //getting all scholarship
 export const getScholarshipsForStudent = async (
   req: Request,
-  res: Response
+  res: Response,
 ) => {
   try {
     const page = Number(req.query.page) || 1;
@@ -607,7 +611,7 @@ export const bookmarkScholarship = async (req: Request, res: Response) => {
 //Get bookmarkScholarship
 export const getBookmarkedScholarships = async (
   req: Request,
-  res: Response
+  res: Response,
 ) => {
   try {
     // Get user from request (after authentication middleware)
@@ -799,7 +803,7 @@ export const getExpiredApplied = async (req: Request, res: Response) => {
     // Filter applications where scholarship deadline is in the past
     const expired = applied.filter(
       (app) =>
-        app.scholarship?.deadline && app.scholarship.deadline < new Date()
+        app.scholarship?.deadline && app.scholarship.deadline < new Date(),
     );
 
     return res.status(200).json({
@@ -892,7 +896,7 @@ export const downloadStudentProfile = async (req: Request, res: Response) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=student_profile_${student.id}.pdf`
+      `attachment; filename=student_profile_${student.id}.pdf`,
     );
 
     doc.pipe(res);

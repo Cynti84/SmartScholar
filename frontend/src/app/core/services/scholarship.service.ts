@@ -62,6 +62,7 @@ export interface RecommendedScholarship {
   country: string;
   deadline: string;
   matchScore: number;
+  fieldOfStudy?: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -81,7 +82,10 @@ export interface PaginatedResponse<T> {
 export class ScholarshipService {
   private apiUrl = `${environment.apiUrl}/student/scholarships`;
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService,
+  ) {}
 
   private getHeaders(): HttpHeaders {
     const token = this.authService.getAccessToken();
@@ -95,7 +99,7 @@ export class ScholarshipService {
   getScholarships(
     page: number = 1,
     search?: string,
-    sort?: string
+    sort?: string,
   ): Observable<PaginatedResponse<Scholarship>> {
     const VERY_LARGE_LIMIT = 1000;
 
@@ -120,7 +124,6 @@ export class ScholarshipService {
   }
 
   // Get recommended scholarships
-
   getRecommendedScholarships(): Observable<RecommendedScholarship[]> {
     return this.http
       .get<any[]>(`${this.apiUrl}/recommendations`, {
@@ -128,15 +131,19 @@ export class ScholarshipService {
       })
       .pipe(
         map((res) =>
-          res.map((s) => ({
-            scholarship_id: s.scholarship_id,
-            title: s.title,
-            organization_name: s.organization_name,
-            country: s.country,
-            deadline: s.deadline,
-            matchScore: Number(s.match_score), // convert "85.00" → 85
-          }))
-        )
+          res.map((s) => {
+            const fields = s.fields_of_study ?? []; // assume array or null
+            return {
+              scholarship_id: s.scholarship_id,
+              title: s.title,
+              organization_name: s.organization_name,
+              country: s.country,
+              deadline: s.deadline,
+              matchScore: Number(s.match_score),
+              fieldOfStudy: s.fields_of_study ? s.fields_of_study.join(', ') : 'Any',
+            };
+          }),
+        ),
       );
   }
 

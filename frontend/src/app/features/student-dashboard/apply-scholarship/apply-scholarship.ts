@@ -27,7 +27,7 @@ export class ApplyScholarship implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private userScholarshipService: UserScholarshipService,
-    private location: Location
+    private location: Location,
   ) {}
 
   alreadyApplied = false;
@@ -39,15 +39,28 @@ export class ApplyScholarship implements OnInit {
     this.scholarshipId = Number(this.route.snapshot.paramMap.get('id'));
     this.userScholarshipService.getAppliedScholarships().subscribe((res) => {
       this.alreadyApplied = res.data.some(
-        (app: any) => app.scholarship.scholarship_id === this.scholarshipId
+        (app: any) => app.scholarship.scholarship_id === this.scholarshipId,
       );
     });
     this.loadScholarship();
   }
-
   loadScholarship(): void {
     this.userScholarshipService.getScholarshipDetails(this.scholarshipId).subscribe((res) => {
-      this.scholarship = res.data;
+      console.log('Scholarship response:', res.data); // <--- check this!
+      if (!res?.data) {
+        console.error('Scholarship data is missing');
+        return;
+      }
+
+      const data = res.data;
+
+      // Normalize fields to strings
+      data.eligibility_criteria = data.eligibility_criteria || '';
+      data.required_documents = data.required_documents || '';
+      data.application_steps = data.application_steps || '';
+      data.application_url = data.application_url || '';
+
+      this.scholarship = data;
     });
   }
 
