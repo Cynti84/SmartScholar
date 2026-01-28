@@ -392,6 +392,26 @@ export class Dashboard implements OnInit {
     this.router.navigate(['/admin/students']);
   }
 
+  downloadReport() {
+    this.adminService.getAdminReports().subscribe({
+      next: (blob: Blob) => {
+        const link = document.createElement('a');
+        const url = window.URL.createObjectURL(blob);
+        link.href = url;
+
+        // Set a file name
+        link.download = 'admin_report.xlsx'; // or .pdf/.csv depending on backend
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Report download failed', err);
+      },
+    });
+  }
+
   showLogoutModal = false;
 
   onSidebarAction(item: NavItem) {

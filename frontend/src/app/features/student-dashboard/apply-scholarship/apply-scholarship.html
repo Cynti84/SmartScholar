@@ -31,48 +31,45 @@
     </div>
 
     <!-- Eligibility -->
-    <div class="card" *ngIf="scholarship.eligibility_criteria?.length">
+    <div class="card" *ngIf="scholarship.eligibility_criteria">
       <h2>Eligibility Criteria</h2>
       <ul class="check-list">
-        <li *ngFor="let item of scholarship.eligibility_criteria">
-          <span class="check">✔</span>
-          {{ item }}
+        <li *ngFor="let item of scholarship.eligibility_criteria.split(',')">
+          ✔ {{ item.trim() }}
         </li>
       </ul>
     </div>
 
     <!-- Required Documents -->
-    <div class="card" *ngIf="scholarship.required_documents?.length">
+    <div class="card" *ngIf="scholarship.required_documents?.trim()">
       <h2>Required Documents</h2>
-      <ul class="doc-list">
-        <li *ngFor="let doc of scholarship.required_documents">📄 {{ doc }}</li>
-      </ul>
+      <p>📄 {{ scholarship.required_documents }}</p>
     </div>
 
-    <!-- Application Steps -->
-    <div class="card">
+    <!-- How to Apply -->
+    <div class="card" *ngIf="scholarship.application_instructions?.trim()">
       <h2>How to Apply</h2>
+      <p>{{ scholarship.application_instructions }}</p>
+    </div>
 
-      <ol class="steps" *ngIf="scholarship.application_steps?.length">
-        <li *ngFor="let step of scholarship.application_steps">
-          {{ step }}
-        </li>
-      </ol>
-
-      <a
-        *ngIf="scholarship.application_url"
-        [href]="scholarship.application_url"
-        target="_blank"
-        class="external-link"
-      >
-        Visit Application Website →
-      </a>
+    <!-- Application URL -->
+    <div class="card" *ngIf="scholarship.application_link?.trim()">
+      <h2>Application URL</h2>
+      <p>
+        <a
+          [href]="scholarship.application_link"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="info-link"
+        >
+          Visit Application Page →
+        </a>
+      </p>
     </div>
 
     <!-- Action Bar -->
     <div class="action-bar">
       <button class="btn-outline" (click)="goBack()">← Back</button>
-
       <button class="apply-btn" [disabled]="alreadyApplied" (click)="applyScholarship()">
         {{ alreadyApplied ? 'Already Applied' : 'Mark as Applied' }}
       </button>

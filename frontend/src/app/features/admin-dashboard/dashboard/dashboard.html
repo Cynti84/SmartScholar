@@ -13,24 +13,17 @@
           <p class="subtitle">Welcome back! Here's what's happening today.</p>
         </div>
         <div class="header-actions">
-          <button class="btn btn-secondary">
+          <!-- <button class="btn btn-secondary" (click)="downloadReport()">
             <span class="icon">
-              <svg
-                class="h-6 w-6"
-                style="color: #4299e1"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M3 3v18h18" />
-              </svg>
+              <mat-icon style="color: #4299e1">download</mat-icon>
             </span>
             Generate Report
-          </button>
-          <button class="btn btn-primary">
+          </button> -->
+
+          <!-- <button class="btn btn-primary">
             <span class="icon" style="color: #4299e1"> </span>
             Quick Actions
-          </button>
+          </button> -->
         </div>
       </div>
 
@@ -52,10 +45,10 @@
               stat.label === 'Total Scholarships'
                 ? viewAllScholarships()
                 : stat.label === 'Pending Approvals'
-                ? viewPendingApprovals()
-                : stat.label === 'Active Providers'
-                ? viewProviders()
-                : viewStudents()
+                  ? viewPendingApprovals()
+                  : stat.label === 'Active Providers'
+                    ? viewProviders()
+                    : viewStudents()
             "
           >
             <div class="stat-icon" [style.background]="stat.color + '20'">
@@ -147,7 +140,7 @@
                     ></div>
                   </div>
                   <div class="bar-label">{{ item.label }}</div>
-                  <div class="bar-value">{{ item.value }}</div>
+                  <!-- <div class="bar-value">{{ item.value }}</div> -->
                 </div>
               </div>
             </div>

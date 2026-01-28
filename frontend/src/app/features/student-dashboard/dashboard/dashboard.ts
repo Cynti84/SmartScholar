@@ -94,7 +94,7 @@ export class DashboardComponent implements OnInit {
     private scholarshipService: ScholarshipService,
     private userScholarshipService: UserScholarshipService,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
@@ -106,6 +106,7 @@ export class DashboardComponent implements OnInit {
   // =========================
   private loadDashboardData(): void {
     this.loading = true;
+
     this.error = '';
     forkJoin({
       activeScholarships: this.scholarshipService.getActiveScholarships(),

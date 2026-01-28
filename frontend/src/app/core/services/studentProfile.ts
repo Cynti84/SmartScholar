@@ -19,6 +19,7 @@ export interface StudentProfile {
   gender?: 'male' | 'female' | 'other';
   financial_need?: boolean;
   income_level?: 'low' | 'middle' | 'any';
+  is_disabled?: boolean;
 }
 
 @Injectable({

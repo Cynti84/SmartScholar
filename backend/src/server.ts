@@ -26,8 +26,8 @@ app.use(cors());
 connectDB();
 
 //6. Middleware (parse JSON)
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "5gb" }));
+app.use(express.urlencoded({ limit: "5gb", extended: true }));
 
 // Simple Test
 app.get("/", (req: Request, res: Response) => {
@@ -55,14 +55,14 @@ app.use(
     err: Error,
     req: express.Request,
     res: express.Response,
-    next: express.NextFunction
+    next: express.NextFunction,
   ) => {
     console.error("Error:", err);
     res.status(500).json({
       success: false,
       message: "Internal server error",
     });
-  }
+  },
 );
 
 // Start server
