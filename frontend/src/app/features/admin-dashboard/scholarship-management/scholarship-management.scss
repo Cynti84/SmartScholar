@@ -481,6 +481,11 @@ $transition: all 0.2s ease-in-out;
           color: $text-primary;
         }
 
+        .scholarship-logo {
+          max-width: 5rem;
+          border-radius: 10%;
+        }
+
         .provider {
           color: $text-secondary;
           margin: 0 0 12px 0;

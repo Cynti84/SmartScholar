@@ -65,7 +65,7 @@ export class ProviderManagement {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private adminService: AdminService,
+    private adminService: AdminService
   ) {}
   Math = Math;
   providers: AdminProvider[] = [];
@@ -137,9 +137,7 @@ export class ProviderManagement {
       website: profile?.website,
       address: profile?.country,
       contactPerson: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(),
-      verificationDocs: profile?.verification_document_url
-        ? [profile.verification_document_url]
-        : [],
+      verificationDocs: profile?.verification_docs ? [profile.verification_docs] : [],
     };
   }
 

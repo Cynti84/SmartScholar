@@ -17,6 +17,13 @@ export class MatchResult {
   @Column({ type: "numeric", precision: 5, scale: 2, nullable: true })
   match_score?: number;
 
+  // ✅ NEW: Explainability fields
+  @Column({ type: "jsonb", nullable: true })
+  matched_criteria?: string[];
+
+  @Column({ type: "jsonb", nullable: true })
+  unmatched_criteria?: string[];
+
   // --- Associations ---
 
   @ManyToOne(() => User, (user) => user.matchResults, {

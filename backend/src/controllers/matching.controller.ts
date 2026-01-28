@@ -17,6 +17,8 @@ export class MatchingController {
           country: r.scholarship?.country,
           deadline: r.scholarship?.deadline,
           match_score: r.match_score,
+          matchedCriteria: r.matched_criteria,
+          unmatchedCriteria: r.unmatched_criteria,
         }))
       );
     } catch (error: any) {

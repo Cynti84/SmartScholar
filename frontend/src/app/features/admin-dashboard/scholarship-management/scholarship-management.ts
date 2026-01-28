@@ -20,17 +20,21 @@ export interface Scholarship {
   title: string;
   description: string;
   provider: string;
+  shortSummary: string;
   category: string;
+  fieldOfStudy: string[];
+  country: string;
   scholarshipType: string;
   deadline: Date;
   status: 'pending' | 'approved' | 'rejected';
   createdDate: Date;
   eligibility: string;
-  requirements: string[];
+  requirements: string;
   applicationUrl?: string;
   email: string;
   logoUrl?: string;
   benefits?: string;
+  adminNotes?: string;
   verificationDocs?: {
     name: string;
     url: string;
@@ -102,7 +106,7 @@ export class ScholarshipManagement implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private authService: AuthService,
-    private adminService: AdminService,
+    private adminService: AdminService
   ) {
     this.filterForm = this.fb.group({
       provider: [''],
@@ -136,18 +140,25 @@ export class ScholarshipManagement implements OnInit {
           id: s.scholarship_id,
           title: s.title,
           description: s.description,
-          provider: s.provider?.providerProfile?.organization_name || 'Unknown',
-          category: s.category,
+          shortSummary: s.short_summary,
+          provider:
+            s.organization_name || s.provider?.providerProfile?.organization_name || 'Unknown',
+          country: s.country,
+          fieldOfStudy: s.fields_of_study || [],
           scholarshipType: s.scholarship_type,
           deadline: new Date(s.deadline),
           createdDate: new Date(s.created_at),
-          eligibility: s.eligibility || [], // ✅ include eligibility
-          requirements: s.requirements || [], // ✅ include requirements
-          applicationUrl: s.application_url,
+          eligibility: s.eligibility_criteria || '', // ✅ include eligibility
+          requirements: s.application_instructions || '', // ✅ include requirements
+          applicationUrl: s.application_link,
           email: s.contact_email,
-          logoUrl: s.logo_url, // ✅ include logo
+          logoUrl: s.flyer_url || s.banner_url || null, // ✅ include logo
           benefits: s.benefits || '', // ✅ include benefits
-          verificationDocs: s.verification_docs || [], // ✅ include verification documents
+          verificationDocs: (s.verification_docs || []).map((doc: string) => ({
+            name: doc.split('/').pop(),
+            url: doc,
+          })),
+          adminNotes: s.admin_notes,
           status: this.mapStatus(s.status),
         }));
 
@@ -260,12 +271,14 @@ export class ScholarshipManagement implements OnInit {
       title: scholarship.title,
       description: scholarship.description,
       provider: scholarship.provider,
-      category: scholarship.category,
+      benefits: scholarship.benefits,
+      country: scholarship.category,
       scholarship_type: scholarship.scholarshipType,
       deadline: this.formatDateForInput(scholarship.deadline),
       eligibility: scholarship.eligibility,
-      requirements: scholarship.requirements.join(', '),
+      requirements: scholarship.requirements,
       applicationUrl: scholarship.applicationUrl || '',
+      adminNotes: scholarship.adminNotes,
     });
     this.isEditModalOpen = true;
   }
@@ -292,7 +305,7 @@ export class ScholarshipManagement implements OnInit {
     const payload = {
       ...this.editForm.value,
       deadline: new Date(this.editForm.value.deadline),
-      requirements: this.editForm.value.requirements?.split(',').map((r: string) => r.trim()),
+      application_instructions: this.editForm.value.requirements,
     };
 
     this.adminService.updateScholarship(this.selectedScholarship.id, payload).subscribe({
