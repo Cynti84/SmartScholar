@@ -10,6 +10,19 @@ export class AdminReportsController {
     try {
       const userRepo = AppDataSource.getRepository(User);
       const scholarshipRepo = AppDataSource.getRepository(Scholarship);
+      const providerRepo = AppDataSource.getRepository(User);
+
+      // Totals
+      const totalStudents = await userRepo.count({
+        where: { role: UserRole.STUDENT },
+      });
+      const totalProviders = await providerRepo.count({
+        where: { role: UserRole.PROVIDER },
+      });
+      const totalScholarships = await scholarshipRepo.count();
+      const activeScholarships = await scholarshipRepo.count({
+        where: { status: "approved" },
+      });
 
       // 1️⃣ Students growth by month
       const monthlySignups = await userRepo
@@ -61,6 +74,11 @@ export class AdminReportsController {
       return res.json({
         success: true,
         data: {
+          totalStudents,
+          totalProviders,
+          totalScholarships,
+          activeScholarships,
+
           monthlySignups: monthlySignups || [],
           scholarshipsByStatus: scholarshipsByStatus || [],
           scholarshipsByCountry: scholarshipsByCountry || [],

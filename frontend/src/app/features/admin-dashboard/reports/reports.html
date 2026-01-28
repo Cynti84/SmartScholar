@@ -1,4 +1,9 @@
-<app-dashboard-layout [title]="'Reports'" [menu]="menu" logoUrl="logo.png" (action)="onSidebarAction($event)">
+<app-dashboard-layout
+  [title]="'Reports'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
   <section>
     <div class="reports-dashboard">
       <h1>Reports & Analytics</h1>
@@ -11,25 +16,24 @@
           <option>Last 6 months</option>
           <option>Last year</option>
         </select>
-        <button class="export-btn">Export</button>
+        <button class="export-btn" (click)="downloadReport()">Export</button>
       </div>
-
-      <!-- Stats Cards -->
+      <!-- stats -->
       <div class="stats">
         <div class="stat-card">
-          <h2>1,430</h2>
+          <h2>{{ stats.totalStudents }}</h2>
           <p>Total Students Registered</p>
         </div>
         <div class="stat-card">
-          <h2>120</h2>
+          <h2>{{ stats.totalProviders }}</h2>
           <p>Total Providers Verified</p>
         </div>
         <div class="stat-card">
-          <h2>245</h2>
+          <h2>{{ stats.totalScholarships }}</h2>
           <p>Total Scholarships Approved</p>
         </div>
         <div class="stat-card">
-          <h2>215 / 30</h2>
+          <h2>{{ stats.activeScholarships }}</h2>
           <p>Active vs Expired</p>
         </div>
       </div>

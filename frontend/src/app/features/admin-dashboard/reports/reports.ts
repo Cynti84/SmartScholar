@@ -8,6 +8,8 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { AdminService } from '../../../core/services/admin.service';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 // ✅ Define proper interfaces for type safety
 interface MonthlySignup {
@@ -30,6 +32,13 @@ interface ProviderData {
   provider: string;
   count: string;
 }
+interface DashboardStats {
+  totalStudents: number;
+  totalProviders: number;
+  totalScholarships: number;
+  activeScholarships: number;
+  expiredScholarships: number;
+}
 
 @Component({
   selector: 'app-reports',
@@ -47,6 +56,14 @@ export class Reports {
     { label: 'Reports', route: '/admin/reports' },
     { label: 'Logout', action: 'logout' },
   ];
+
+  stats: DashboardStats = {
+    totalStudents: 0,
+    totalProviders: 0,
+    totalScholarships: 0,
+    activeScholarships: 0,
+    expiredScholarships: 0,
+  };
 
   showLogoutModal = false;
 
@@ -118,6 +135,13 @@ export class Reports {
         if (res.success) {
           const data = res.data;
 
+          // --- Dashboard Stats ---
+          this.stats.totalStudents = data.totalStudents || 0;
+          this.stats.totalProviders = data.totalProviders || 0;
+          this.stats.totalScholarships = data.totalScholarships || 0;
+          this.stats.activeScholarships = data.activeScholarships || 0;
+          this.stats.expiredScholarships = data.expiredScholarships || 0;
+
           // --- Students Growth Line Chart ---
           const studentGrowth: MonthlySignup[] = data.monthlySignups || [];
           this.lineChartData.datasets[0].data = studentGrowth.map((d) => +d.count);
@@ -150,6 +174,88 @@ export class Reports {
         }
       },
       error: (err) => console.error('Failed to load reports:', err),
+    });
+  }
+
+  downloadReport() {
+    this.adminService.getAdminReports().subscribe({
+      next: (res) => {
+        if (!res.success) return;
+
+        const data = res.data;
+
+        // 1️⃣ Prepare a flat structure for Excel
+        const exportData: any[] = [];
+
+        // Add total stats
+        exportData.push({
+          Metric: 'Total Students',
+          Value: data.totalStudents,
+        });
+        exportData.push({
+          Metric: 'Total Providers',
+          Value: data.totalProviders,
+        });
+        exportData.push({
+          Metric: 'Total Scholarships',
+          Value: data.totalScholarships,
+        });
+        exportData.push({
+          Metric: 'Active Scholarships',
+          Value: data.activeScholarships,
+        });
+        exportData.push({
+          Metric: 'Expired Scholarships',
+          Value: data.expiredScholarships,
+        });
+
+        // Add charts data
+        data.monthlySignups.forEach((d: any) => {
+          exportData.push({
+            Metric: `Students Signed Up - ${d.month}`,
+            Value: d.count,
+          });
+        });
+
+        data.scholarshipsByStatus.forEach((d: any) => {
+          exportData.push({
+            Metric: `Scholarships Status - ${d.status}`,
+            Value: d.count,
+          });
+        });
+
+        data.scholarshipsByCountry.forEach((d: any) => {
+          exportData.push({
+            Metric: `Scholarships Country - ${d.country}`,
+            Value: d.count,
+          });
+        });
+
+        data.fieldsData.forEach((d: any) => {
+          exportData.push({
+            Metric: `Field of Study - ${d.field}`,
+            Value: d.count,
+          });
+        });
+
+        data.topProviders.forEach((d: any) => {
+          exportData.push({
+            Metric: `Provider - ${d.provider}`,
+            Value: d.count,
+          });
+        });
+
+        // 2️⃣ Create worksheet and workbook
+        const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
+        const wb: XLSX.WorkBook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Dashboard Report');
+
+        // 3️⃣ Save as Excel file
+        const excelBuffer: any = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+        saveAs(blob, `Dashboard_Report_${new Date().toISOString()}.xlsx`);
+      },
+      error: (err) => console.error('Export failed', err),
     });
   }
 
