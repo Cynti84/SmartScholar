@@ -19,6 +19,7 @@ export class MatchingController {
           match_score: r.match_score,
           matchedCriteria: r.matched_criteria,
           unmatchedCriteria: r.unmatched_criteria,
+          match_id: r.match_id,
         }))
       );
     } catch (error: any) {

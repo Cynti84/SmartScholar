@@ -56,6 +56,7 @@ export interface Scholarship {
 }
 
 export interface RecommendedScholarship {
+  match_id?: number;
   scholarship_id: number;
   title: string;
   organization_name: string;
@@ -82,10 +83,7 @@ export interface PaginatedResponse<T> {
 export class ScholarshipService {
   private apiUrl = `${environment.apiUrl}/student/scholarships`;
 
-  constructor(
-    private http: HttpClient,
-    private authService: AuthService,
-  ) {}
+  constructor(private http: HttpClient, private authService: AuthService) {}
 
   private getHeaders(): HttpHeaders {
     const token = this.authService.getAccessToken();
@@ -99,7 +97,7 @@ export class ScholarshipService {
   getScholarships(
     page: number = 1,
     search?: string,
-    sort?: string,
+    sort?: string
   ): Observable<PaginatedResponse<Scholarship>> {
     const VERY_LARGE_LIMIT = 1000;
 
@@ -142,8 +140,8 @@ export class ScholarshipService {
               matchScore: Number(s.match_score),
               fieldOfStudy: s.fields_of_study ? s.fields_of_study.join(', ') : 'Any',
             };
-          }),
-        ),
+          })
+        )
       );
   }
 

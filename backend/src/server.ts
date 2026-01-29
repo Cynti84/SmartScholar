@@ -9,6 +9,7 @@ import adminRoutes from "./routes/admin.routes";
 import providerScholarshipRoutes from "./routes/providerScholarship.routes";
 import scholarshipAnalyticsRoutes from "./routes/scholarshipAnalytics.routes";
 import studentRoutes from "./routes/student.routes";
+import recommendationExplanationRoutes from "./routes/recommendationExplanation.routes";
 
 //1. configure dotenv
 dotenv.config();
@@ -39,7 +40,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/provider", providerRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/provider", providerScholarshipRoutes, scholarshipAnalyticsRoutes);
-app.use("/api/student", studentRoutes);
+app.use("/api/student", studentRoutes, recommendationExplanationRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -55,14 +56,14 @@ app.use(
     err: Error,
     req: express.Request,
     res: express.Response,
-    next: express.NextFunction,
+    next: express.NextFunction
   ) => {
     console.error("Error:", err);
     res.status(500).json({
       success: false,
       message: "Internal server error",
     });
-  },
+  }
 );
 
 // Start server
