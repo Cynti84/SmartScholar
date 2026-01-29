@@ -7,6 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ProviderService } from '../../../core/services/provider.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { MatIconModule } from '@angular/material/icon';
 
 interface ScholarshipAnalytics {
   views: number;
@@ -34,7 +35,7 @@ type SortOption = 'dateCreated' | 'title' | 'applications' | 'views';
 
 @Component({
   selector: 'app-manage-scholaships',
-  imports: [CommonModule, DashboardLayout, FormsModule, ConfirmModal],
+  imports: [CommonModule, DashboardLayout, FormsModule, ConfirmModal, MatIconModule],
   templateUrl: './manage-scholaships.html',
   styleUrl: './manage-scholaships.scss',
 })
@@ -83,7 +84,7 @@ export class ManageScholaships implements OnInit {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private providerService: ProviderService
+    private providerService: ProviderService,
   ) {}
 
   // =========================
@@ -138,11 +139,11 @@ export class ManageScholaships implements OnInit {
       scholarshipType: api.scholarship_type ?? '',
       fieldsOfStudy: Array.isArray(api.fields_of_study)
         ? api.fields_of_study.flatMap((f: string) =>
-            typeof f === 'string' ? f.split(',').map((v) => v.trim()) : []
+            typeof f === 'string' ? f.split(',').map((v) => v.trim()) : [],
           )
         : typeof api.fields_of_study === 'string'
-        ? api.fields_of_study.split(',').map((v: string) => v.trim())
-        : [],
+          ? api.fields_of_study.split(',').map((v: string) => v.trim())
+          : [],
       status: api.status ?? 'draft',
       applicationDeadline: new Date(api.deadline),
       dateCreated: new Date(api.created_at),
@@ -168,7 +169,7 @@ export class ManageScholaships implements OnInit {
           s.shortSummary.toLowerCase().includes(q) ||
           s.organizationName.toLowerCase().includes(q) ||
           s.country.toLowerCase().includes(q) ||
-          s.fieldsOfStudy.some((f) => f.toLowerCase().includes(q))
+          s.fieldsOfStudy.some((f) => f.toLowerCase().includes(q)),
       );
     }
 
@@ -278,7 +279,9 @@ export class ManageScholaships implements OnInit {
     if (!confirm(`Delete ${this.selectedScholarships.length} scholarships?`)) return;
 
     Promise.all(
-      this.selectedScholarships.map((id) => this.providerService.deleteScholarship(+id).toPromise())
+      this.selectedScholarships.map((id) =>
+        this.providerService.deleteScholarship(+id).toPromise(),
+      ),
     ).then(() => {
       this.clearSelection();
       this.loadScholarships();
@@ -368,7 +371,7 @@ export class ManageScholaships implements OnInit {
   isDeadlineSoon(deadline: Date): boolean {
     const now = new Date();
     const daysUntilDeadline = Math.ceil(
-      (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
     );
     return daysUntilDeadline <= 30 && daysUntilDeadline > 0;
   }
@@ -417,7 +420,7 @@ export class ManageScholaships implements OnInit {
           scholarship.analytics.views,
           scholarship.analytics.applications,
           scholarship.dateCreated.toISOString().split('T')[0],
-        ].join(',')
+        ].join(','),
       ),
     ].join('\n');
     return csvContent;
