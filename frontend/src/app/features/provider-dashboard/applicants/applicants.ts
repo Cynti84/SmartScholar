@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { ProviderService } from '../../../core/services/provider.service';
+import { MatIconModule } from '@angular/material/icon';
 
 Chart.register(...registerables);
 
@@ -45,7 +46,7 @@ interface ScholarshipTableData {
 @Component({
   selector: 'app-applicants',
   standalone: true,
-  imports: [CommonModule, DashboardLayout, FormsModule, ConfirmModal],
+  imports: [CommonModule, DashboardLayout, FormsModule, ConfirmModal, MatIconModule],
   templateUrl: './applicants.html',
   styleUrl: './applicants.scss',
 })
@@ -88,7 +89,7 @@ export class Applicants implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private providerService: ProviderService
+    private providerService: ProviderService,
   ) {}
 
   ngOnInit(): void {

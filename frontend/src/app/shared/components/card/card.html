@@ -1,6 +1,10 @@
 <div class="card">
   <div class="card-content">
-    <div class="card-icon">{{ icon }}</div>
+    <div class="icon">
+      <mat-icon [style.fontSize.px]="24" [style.color]="iconColor">
+        {{ icon }}
+      </mat-icon>
+    </div>
     <div class="card-data">
       <h4 class="title">{{ title }}</h4>
       <div class="value">{{ value }}</div>

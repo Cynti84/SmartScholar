@@ -1,4 +1,9 @@
-<app-dashboard-layout [title]="'Applicants'" [menu]="menu" logoUrl="logo.png"  (action)="onSidebarAction($event)">
+<app-dashboard-layout
+  [title]="'Applicants'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
   <!-- Applicants Insights Component Template -->
   <div class="applicants-insights">
     <!-- Header Section -->
@@ -27,7 +32,7 @@
       <div class="card-container">
         <div class="summary-card total-applied">
           <div class="card-icon">
-            <i class="icon-users"></i>
+            <mat-icon style="font-size: 25px; color: #ffffff"> groups </mat-icon>
           </div>
           <div class="card-content">
             <h3 class="card-title">Total Applied</h3>
@@ -38,7 +43,7 @@
 
         <div class="summary-card popular-scholarship">
           <div class="card-icon">
-            <i class="icon-trophy"></i>
+            <mat-icon style="font-size: 25px; color: #000000"> emoji_events </mat-icon>
           </div>
           <div class="card-content">
             <h3 class="card-title">Most Popular</h3>
@@ -49,7 +54,7 @@
 
         <div class="summary-card deadline-soon">
           <div class="card-icon">
-            <i class="icon-clock"></i>
+            <mat-icon style="font-size: 25px; color: #0288d1"> access_time </mat-icon>
           </div>
           <div class="card-content">
             <h3 class="card-title">Deadline Soonest</h3>
@@ -146,4 +151,3 @@
   (confirm)="confirmLogout()"
   (cancel)="cancelLogout()"
 ></app-confirm-modal>
-
