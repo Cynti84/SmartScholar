@@ -500,12 +500,16 @@
                   hidden
                 />
                 <div class="upload-content" *ngIf="!selectedFlyer">
-                  <div class="upload-icon">📄</div>
+                  <div class="upload-icon">
+                    <mat-icon style="font-size: 30px; color: #0288d1"> description </mat-icon>
+                  </div>
                   <p>Click to upload flyer or brochure</p>
                   <small>PDF, JPG, PNG (Max 5MB)</small>
                 </div>
                 <div class="upload-content" *ngIf="selectedFlyer">
-                  <div class="upload-icon success">✅</div>
+                  <div class="upload-icon success">
+                    <mat-icon style="font-size: 30px; color: #2e7d32"> check_circle </mat-icon>
+                  </div>
                   <p>{{ selectedFlyer.name }}</p>
                   <button
                     type="button"
@@ -533,12 +537,16 @@
                   hidden
                 />
                 <div class="upload-content" *ngIf="!selectedBanner">
-                  <div class="upload-icon">🖼️</div>
+                  <div class="upload-icon">
+                    <mat-icon style="font-size: 30px; color: #6a1b9a"> image </mat-icon>
+                  </div>
                   <p>Click to upload banner or logo</p>
                   <small>JPG, PNG (Max 2MB)</small>
                 </div>
                 <div class="upload-content" *ngIf="selectedBanner">
-                  <div class="upload-icon success">✅</div>
+                  <div class="upload-icon success">
+                    <mat-icon style="font-size: 30px; color: #2e7d32"> check_circle </mat-icon>
+                  </div>
                   <p>{{ selectedBanner.name }}</p>
                   <button
                     type="button"
@@ -567,12 +575,16 @@
                   hidden
                 />
                 <div class="upload-content" *ngIf="selectedVerificationDocs.length === 0">
-                  <div class="upload-icon">📋</div>
+                  <div class="upload-icon">
+                    <mat-icon style="font-size: 30px; color: #0288d1"> description </mat-icon>
+                  </div>
                   <p>Click to upload verification documents</p>
                   <small>PDF, DOC, DOCX (Multiple files allowed)</small>
                 </div>
                 <div class="upload-content" *ngIf="selectedVerificationDocs.length > 0">
-                  <div class="upload-icon success">✅</div>
+                  <div class="upload-icon success">
+                    <mat-icon style="font-size: 30px; color: #2e7d32"> check_circle </mat-icon>
+                  </div>
                   <p>{{ selectedVerificationDocs.length }} file(s) selected</p>
                   <button
                     type="button"

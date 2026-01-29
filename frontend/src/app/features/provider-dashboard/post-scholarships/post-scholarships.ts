@@ -7,6 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { ProviderService } from '../../../core/services/provider.service';
+import { MatIconModule } from '@angular/material/icon';
 
 interface FileUpload {
   name: string;
@@ -16,7 +17,7 @@ interface FileUpload {
 }
 @Component({
   selector: 'app-post-scholarships',
-  imports: [CommonModule, DashboardLayout, ReactiveFormsModule, ConfirmModal],
+  imports: [CommonModule, DashboardLayout, ReactiveFormsModule, ConfirmModal, MatIconModule],
   templateUrl: './post-scholarships.html',
   styleUrl: './post-scholarships.scss',
 })
@@ -223,7 +224,7 @@ export class PostScholarships implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private authService: AuthService,
-    private providerScholarshipService: ProviderService
+    private providerScholarshipService: ProviderService,
   ) {
     //set minimum date to today
     const today = new Date();
@@ -290,7 +291,7 @@ export class PostScholarships implements OnInit {
 
   removeEligibilityCountry(country: string) {
     this.selectedEligibilityCountries = this.selectedEligibilityCountries.filter(
-      (c) => c !== country
+      (c) => c !== country,
     );
     this.scholarshipForm.patchValue({
       eligibility_countries: this.selectedEligibilityCountries.join(','),
@@ -404,7 +405,7 @@ export class PostScholarships implements OnInit {
         break;
       case 'verification':
         const validFiles = files.filter((file) =>
-          this.validateFile(file, ['pdf', 'doc', 'docx'], 10)
+          this.validateFile(file, ['pdf', 'doc', 'docx'], 10),
         );
         this.selectedVerificationDocs = validFiles.map((file) => this.createFileUpload(file));
         break;

@@ -8,6 +8,7 @@ import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { ProviderScholarshipDto, ProviderService } from '../../../core/services/provider.service';
+import { MatIconModule } from '@angular/material/icon';
 
 Chart.register(...registerables);
 
@@ -26,7 +27,7 @@ interface ScholarshipTableRow {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, DashboardLayout, Card, ConfirmModal],
+  imports: [CommonModule, DashboardLayout, Card, ConfirmModal, MatIconModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -69,7 +70,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private providerService: ProviderService
+    private providerService: ProviderService,
   ) {}
 
   // ----------------------------------
@@ -129,7 +130,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
 
     const totalApplications = apiScholarships.reduce(
       (sum, s) => sum + (s.application_count ?? 0),
-      0
+      0,
     );
 
     this.totalScholarships = {

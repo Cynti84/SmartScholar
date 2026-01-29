@@ -3,6 +3,7 @@ import { Component, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Navbar } from '../../../shared/components/navbar/navbar';
 import { Footer } from '../../../shared/components/footer/footer';
+import { MatIconModule } from '@angular/material/icon';
 
 interface Statistic {
   number: string;
@@ -14,6 +15,7 @@ interface CoreValue {
   icon: string;
   title: string;
   description: string;
+  class: string;
 }
 
 interface TeamMember {
@@ -25,7 +27,7 @@ interface TeamMember {
 
 @Component({
   selector: 'app-about-us',
-  imports: [CommonModule, RouterModule, Navbar, Footer],
+  imports: [CommonModule, RouterModule, Navbar, Footer, MatIconModule],
   templateUrl: './about-us.html',
   styleUrl: './about-us.scss',
 })
@@ -59,38 +61,44 @@ export class AboutUs {
   // Core values data
   coreValues: CoreValue[] = [
     {
-      icon: '🤝',
+      icon: 'handshake', // 🤝
       title: 'Accessibility',
+      class: 'accessibility',
       description:
         'Making quality education accessible to students from all backgrounds and financial situations.',
     },
     {
-      icon: '✨',
+      icon: 'emoji_events', // ✨
       title: 'Excellence',
+      class: 'excellence',
       description:
         'Maintaining the highest standards in matching students with the right educational opportunities.',
     },
     {
-      icon: '🔍',
+      icon: 'visibility', // 🔍
       title: 'Transparency',
+      class: 'transparency',
       description:
         'Providing clear, honest information about scholarship opportunities and application processes.',
     },
     {
-      icon: '🌱',
+      icon: 'trending_up', // 🌱
       title: 'Growth',
+      class: 'growth',
       description:
         'Supporting student growth and development throughout their educational journey.',
     },
     {
-      icon: '🤖',
+      icon: 'psychology', // 🤖
       title: 'Innovation',
+      class: 'innovation',
       description:
         'Leveraging cutting-edge technology to improve the scholarship matching process.',
     },
     {
-      icon: '🌟',
+      icon: 'public', // 🌟
       title: 'Impact',
+      class: 'impact',
       description: "Creating lasting positive change in students' lives through education access.",
     },
   ];
@@ -136,7 +144,7 @@ export class AboutUs {
   // Helper method for team member placeholder images
   getTeamPlaceholder(name: string): string {
     return `this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(
-      name
+      name,
     )}&size=300&background=3b82f6&color=ffffff'`;
   }
 }
