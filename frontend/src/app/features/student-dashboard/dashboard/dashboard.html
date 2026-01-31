@@ -141,7 +141,7 @@
         </div>
       </div>
 
-      <!-- Recommended Scholarships -->
+      <!-- Recommended Scholarships header-->
       <div class="recommended-section">
         <div class="section-header">
           <h2 class="section-title">Recommended For You</h2>
@@ -233,7 +233,23 @@
                 </span>
               </div>
             </div>
+            <button class="why-btn" (click)="loadExplanation(scholarship.match_id, $event)">
+              ✨ Why recommended?
+            </button>
 
+            <div class="ai-explanation" *ngIf="activeMatchId === scholarship.match_id">
+              <div class="loading" *ngIf="explanationLoading">Generating explanation...</div>
+
+              <div class="error" *ngIf="explanationError">
+                {{ explanationError }}
+              </div>
+
+              <ul *ngIf="activeExplanation && !explanationLoading">
+                <li *ngFor="let line of activeExplanation.split('\n')">
+                  {{ line.replace('•', '') }}
+                </li>
+              </ul>
+            </div>
             <button class="view-btn" (click)="openScholarshipDetails(scholarship, $event)">
               View Details
               <svg

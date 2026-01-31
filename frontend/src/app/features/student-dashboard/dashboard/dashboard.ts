@@ -13,6 +13,7 @@ import {
 } from '../../../core/services/scholarship.service';
 import { UserScholarshipService } from '../../../core/services/user-scholarship.service';
 import { Scholarship } from '../../../core/services/scholarship.service';
+import { RecommendationExplanationService } from '../../../core/services/recommendation-explanation.service';
 interface ScholarshipUI {
   id: number;
   scholarshipId: number;
@@ -70,6 +71,12 @@ export class DashboardComponent implements OnInit {
 
   isSelectionMode = false;
 
+  // Explanation Variables
+  explanationLoading = false;
+  explanationError = '';
+  activeExplanation: string | null = null;
+  activeMatchId: number | null = null;
+
   // =========================
   // DASHBOARD STATS
   // =========================
@@ -95,6 +102,7 @@ export class DashboardComponent implements OnInit {
     private userScholarshipService: UserScholarshipService,
     private router: Router,
     private authService: AuthService,
+    private explanationService: RecommendationExplanationService
   ) {}
 
   ngOnInit(): void {
@@ -231,6 +239,32 @@ export class DashboardComponent implements OnInit {
     if (item.action === 'logout') {
       this.showLogoutModal = true;
     }
+  }
+
+  loadExplanation(matchId: number, event?: Event): void {
+    if (event) event.stopPropagation();
+
+    // Toggle behavior
+    if (this.activeMatchId === matchId) {
+      this.activeMatchId = null;
+      this.activeExplanation = null;
+      return;
+    }
+
+    this.explanationLoading = true;
+    this.explanationError = '';
+    this.activeMatchId = matchId;
+
+    this.explanationService.getExplanation(matchId).subscribe({
+      next: (res) => {
+        this.activeExplanation = res.explanation;
+        this.explanationLoading = false;
+      },
+      error: () => {
+        this.explanationError = 'Failed to load explanation.';
+        this.explanationLoading = false;
+      },
+    });
   }
 
   confirmLogout() {

@@ -56,7 +56,7 @@ export interface Scholarship {
 }
 
 export interface RecommendedScholarship {
-  match_id?: number;
+  match_id: number;
   scholarship_id: number;
   title: string;
   organization_name: string;
@@ -139,6 +139,7 @@ export class ScholarshipService {
               deadline: s.deadline,
               matchScore: Number(s.match_score),
               fieldOfStudy: s.fields_of_study ? s.fields_of_study.join(', ') : 'Any',
+              match_id: s.match_id,
             };
           })
         )
