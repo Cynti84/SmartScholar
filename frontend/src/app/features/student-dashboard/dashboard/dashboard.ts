@@ -14,6 +14,7 @@ import {
 import { UserScholarshipService } from '../../../core/services/user-scholarship.service';
 import { Scholarship } from '../../../core/services/scholarship.service';
 import { RecommendationExplanationService } from '../../../core/services/recommendation-explanation.service';
+import { RecommendationExplanation } from '../../../core/services/recommendation-explanation.service';
 interface ScholarshipUI {
   id: number;
   scholarshipId: number;
@@ -34,7 +35,7 @@ interface ScholarshipUI {
   fundingType: string;
   fieldOfStudy: string;
   amount: string;
-  deadline: string; // ✅ CHANGE THIS
+  deadline: string;
   description: string;
   eligibility: string[];
   fundingDetails: string;
@@ -46,7 +47,7 @@ interface ScholarshipUI {
   standalone: true,
   imports: [CommonModule, DashboardLayout, ConfirmModal],
   templateUrl: './dashboard.html',
-  styleUrls: ['./dashboard.scss'], // ✅ fixed typo
+  styleUrls: ['./dashboard.scss'],
 })
 export class DashboardComponent implements OnInit {
   // =========================
@@ -72,10 +73,16 @@ export class DashboardComponent implements OnInit {
   isSelectionMode = false;
 
   // Explanation Variables
-  explanationLoading = false;
+  // explanationLoading = false;
+  // activeExplanation: string | null = null;
+  // activeMatchId: number | null = null;
+
+  // AI explanation state
+  aiExplanation: RecommendationExplanation | null = null;
+  loadingExplanation = false;
   explanationError = '';
-  activeExplanation: string | null = null;
-  activeMatchId: number | null = null;
+  selectedMatchId: number | null = null;
+  showImproveTips = false;
 
   // =========================
   // DASHBOARD STATS
@@ -158,7 +165,7 @@ export class DashboardComponent implements OnInit {
 
       title: s.title,
       provider: s.organization_name,
-      providerLogo: undefined, // add later if backend supports it
+      providerLogo: s.banner_url,
 
       status: new Date(s.deadline) < new Date() ? 'expired' : 'active',
 
@@ -167,6 +174,8 @@ export class DashboardComponent implements OnInit {
       level: s.education_level,
       fundingType: s.scholarship_type,
       fieldOfStudy: s.fields_of_study.join(', '),
+
+      tags: s.fields_of_study,
 
       amount: s.benefits,
       deadline: s.deadline,
@@ -188,10 +197,17 @@ export class DashboardComponent implements OnInit {
   openScholarshipDetails(rec: RecommendedScholarship, event?: Event): void {
     if (event) event.stopPropagation();
 
+    // reset AI state (important!)
+    this.aiExplanation = null;
+    this.loadingExplanation = false;
+    this.explanationError = '';
+    this.showImproveTips = false;
+
+    this.selectedMatchId = rec.match_id;
+
     this.scholarshipService.getScholarshipById(rec.scholarship_id.toString()).subscribe({
       next: (res) => {
         this.selectedScholarship = this.mapScholarshipToUI(res.data);
-        // document.body.style.overflow = 'hidden';
       },
       error: (err) => {
         console.error('Failed to load scholarship details', err);
@@ -241,30 +257,28 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  loadExplanation(matchId: number, event?: Event): void {
-    if (event) event.stopPropagation();
-
-    // Toggle behavior
-    if (this.activeMatchId === matchId) {
-      this.activeMatchId = null;
-      this.activeExplanation = null;
+  loadModalExplanation(matchId: number): void {
+    if (!matchId || this.loadingExplanation || this.aiExplanation) {
       return;
     }
 
-    this.explanationLoading = true;
+    this.loadingExplanation = true;
     this.explanationError = '';
-    this.activeMatchId = matchId;
 
     this.explanationService.getExplanation(matchId).subscribe({
       next: (res) => {
-        this.activeExplanation = res.explanation;
-        this.explanationLoading = false;
+        this.aiExplanation = res;
+        this.loadingExplanation = false;
       },
       error: () => {
-        this.explanationError = 'Failed to load explanation.';
-        this.explanationLoading = false;
+        this.explanationError = 'Failed to load AI explanation.';
+        this.loadingExplanation = false;
       },
     });
+  }
+
+  toggleImproveTips(): void {
+    this.showImproveTips = !this.showImproveTips;
   }
 
   confirmLogout() {

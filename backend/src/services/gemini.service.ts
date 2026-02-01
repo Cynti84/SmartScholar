@@ -1,8 +1,12 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const apiKey = process.env.GEMINI_API_KEY;
-
 const genAI = new GoogleGenerativeAI(apiKey!);
+
+export interface RecommendationExplanation {
+  whyRecommended: string;
+  improvementTips: string[];
+}
 
 export class GeminiService {
   private model = genAI.getGenerativeModel({
@@ -11,27 +15,72 @@ export class GeminiService {
 
   async generateRecommendationExplanation(
     scholarshipName: string,
-    matchedCriteria: string[]
-  ): Promise<string> {
+    matchedCriteria: string[],
+    unmatchedCriteria: string[]
+  ): Promise<RecommendationExplanation> {
     const prompt = `
-You are helping a student understand why a scholarship was recommended.
+You are assisting a scholarship recommendation system.
 
 Strict rules:
-- Use ONLY the matched criteria provided
+- Use ONLY the criteria provided
 - Do NOT invent or infer new eligibility conditions
-- Do NOT mention unmatched criteria
-- Do NOT include a title or introduction
 - Do NOT make guarantees
-- Respond with 3–5 concise bullet points
-- Each bullet should start with "•"
+- Do NOT mention exact scores or probabilities
+- Be supportive and neutral
 
-Scholarship name: ${scholarshipName}
+Task A — Why recommended:
+- Use ONLY matched criteria
+- Return 3–5 concise bullet points
+- Each bullet must start with "•"
+
+Task B — How to improve chances:
+- Use ONLY unmatched criteria
+- Convert them into general, future-oriented suggestions
+- Do NOT imply guaranteed eligibility
+- Return 2–4 short suggestions
+- Suggestions should NOT mention the scholarship name
+
+Return the response in the following format EXACTLY:
+
+WHY_RECOMMENDED:
+• bullet point
+• bullet point
+
+IMPROVEMENT_TIPS:
+- suggestion
+- suggestion
+
+Scholarship name:
+${scholarshipName}
 
 Matched criteria:
 ${matchedCriteria.map((c) => `- ${c}`).join("\n")}
+
+Unmatched criteria:
+${unmatchedCriteria.map((c) => `- ${c}`).join("\n")}
 `;
 
     const result = await this.model.generateContent(prompt);
-    return result.response.text();
+    const text = result.response.text();
+
+    // ---------- Parse response ----------
+    const whyMatch = text.match(
+      /WHY_RECOMMENDED:\s*([\s\S]*?)IMPROVEMENT_TIPS:/
+    );
+    const improveMatch = text.match(/IMPROVEMENT_TIPS:\s*([\s\S]*)$/);
+
+    const whyRecommended = whyMatch ? whyMatch[1].trim() : "";
+
+    const improvementTips = improveMatch
+      ? improveMatch[1]
+          .split("\n")
+          .map((l) => l.replace(/^-\s*/, "").trim())
+          .filter(Boolean)
+      : [];
+
+    return {
+      whyRecommended,
+      improvementTips,
+    };
   }
 }
