@@ -72,17 +72,37 @@ export class DashboardComponent implements OnInit {
 
   isSelectionMode = false;
 
-  // Explanation Variables
-  // explanationLoading = false;
-  // activeExplanation: string | null = null;
-  // activeMatchId: number | null = null;
-
   // AI explanation state
   aiExplanation: RecommendationExplanation | null = null;
   loadingExplanation = false;
   explanationError = '';
   selectedMatchId: number | null = null;
   showImproveTips = false;
+
+  // =========================
+  // RECOMMENDED — SHOW MORE
+  // =========================
+  /** How many cards are visible before the user expands */
+  initialDisplayCount = 3;
+
+  /** Flips to true when the user clicks "Show More" */
+  showAllRecommended = false;
+
+  /**
+   * Computed slice of the full recommendations array.
+   * Returns the first `initialDisplayCount` items while collapsed,
+   * or the entire array once expanded.
+   */
+  get visibleRecommendedScholarships(): RecommendedScholarship[] {
+    return this.showAllRecommended
+      ? this.recommendedScholarships
+      : this.recommendedScholarships.slice(0, this.initialDisplayCount);
+  }
+
+  /** Toggles the expanded / collapsed state */
+  toggleShowMore(): void {
+    this.showAllRecommended = !this.showAllRecommended;
+  }
 
   // =========================
   // DASHBOARD STATS

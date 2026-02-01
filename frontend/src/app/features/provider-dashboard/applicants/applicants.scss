@@ -1,5 +1,5 @@
 // Import Sass color module
-@use "sass:color";
+@use 'sass:color';
 
 // Variables
 $primary-color: #2563eb;
@@ -25,7 +25,7 @@ $card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 
 @mixin responsive-grid($cols) {
   display: grid;
   gap: 1.5rem;
-  
+
   @media (min-width: 768px) {
     grid-template-columns: repeat($cols, 1fr);
   }
@@ -117,7 +117,7 @@ $card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 
 
   .card-container {
     @include responsive-grid(3);
-    
+
     & {
       grid-template-columns: 1fr;
     }
@@ -142,10 +142,24 @@ $card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 
     gap: 1rem;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: $card-shadow-hover;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    &.total-applied {
+      border-left: 4px solid #4f46e5;
+    }
+
+    &.popular-scholarship {
+      border-left: 4px solid #10b981;
+    }
+
+    &.deadline-soon {
+      border-left: 4px solid #f59e0b;
     }
 
     .card-icon {
@@ -192,15 +206,27 @@ $card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 
     }
 
     &.total-applied .card-icon {
-      background: linear-gradient(135deg, $primary-color, color.adjust($primary-color, $lightness: 10%));
+      background: linear-gradient(
+        135deg,
+        $primary-color,
+        color.adjust($primary-color, $lightness: 10%)
+      );
     }
 
     &.popular-scholarship .card-icon {
-      background: linear-gradient(135deg, $success-color, color.adjust($success-color, $lightness: 10%));
+      background: linear-gradient(
+        135deg,
+        $success-color,
+        color.adjust($success-color, $lightness: 10%)
+      );
     }
 
     &.deadline-soon .card-icon {
-      background: linear-gradient(135deg, $warning-color, color.adjust($warning-color, $lightness: 10%));
+      background: linear-gradient(
+        135deg,
+        $warning-color,
+        color.adjust($warning-color, $lightness: 10%)
+      );
     }
   }
 }
@@ -211,7 +237,7 @@ $card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 
 
   .charts-grid {
     @include responsive-grid(3);
-    
+
     & {
       grid-template-columns: 1fr;
     }
@@ -415,19 +441,19 @@ $card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 
 
 // Icons (using simple CSS icons as placeholders)
 .icon-users::before {
-  content: "👥";
+  content: '👥';
 }
 
 .icon-trophy::before {
-  content: "🏆";
+  content: '🏆';
 }
 
 .icon-clock::before {
-  content: "⏰";
+  content: '⏰';
 }
 
 .icon-info::before {
-  content: "ℹ️";
+  content: 'ℹ️';
 }
 
 // Responsive adjustments
@@ -455,6 +481,68 @@ $card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 
   .table-container {
     & {
       font-size: 0.875rem;
+    }
+  }
+}
+
+// ─────────────────────────────────────────
+// Visibility toggle utility
+// Used by chart containers so the <canvas>
+// stays in the DOM (keeping @ViewChild valid)
+// while being invisible until data arrives.
+// ─────────────────────────────────────────
+.hidden {
+  display: none !important;
+}
+
+// ─────────────────────────────────────────
+// Empty State — shared base
+// ─────────────────────────────────────────
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 24px;
+  min-height: 180px;
+  gap: 10px;
+
+  &__icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 4px;
+
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  }
+
+  &__title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #475569;
+    margin: 0;
+    letter-spacing: 0.01em;
+  }
+
+  &__subtitle {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin: 0;
+    max-width: 220px;
+    line-height: 1.45;
+  }
+
+  // Variant: wider layout for the table empty state
+  &--table {
+    min-height: 200px;
+    padding: 40px 24px;
+
+    .empty-state__subtitle {
+      max-width: 300px;
     }
   }
 }
