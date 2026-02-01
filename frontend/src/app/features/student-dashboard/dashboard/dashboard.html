@@ -141,7 +141,7 @@
         </div>
       </div>
 
-      <!-- Recommended Scholarships -->
+      <!-- Recommended Scholarships header-->
       <div class="recommended-section">
         <div class="section-header">
           <h2 class="section-title">Recommended For You</h2>
@@ -166,6 +166,8 @@
           <p>No recommendations yet. Complete your profile to get personalised scholarships.</p>
         </div>
 
+        <!-- Recommended scholarships -->
+
         <div class="scholarships-grid" *ngIf="recommendedScholarships.length > 0">
           <div class="scholarship-card" *ngFor="let scholarship of recommendedScholarships">
             <div class="card-header">
@@ -174,7 +176,7 @@
                 class="match-badge"
                 [class.high-match]="scholarship.matchScore >= 85"
               >
-                {{ scholarship.matchScore | number: '1.0-0' }}% Match
+                {{ scholarship.matchScore | number : '1.0-0' }}% Match
               </div>
             </div>
 
@@ -231,7 +233,23 @@
                 </span>
               </div>
             </div>
+            <button class="why-btn" (click)="loadExplanation(scholarship.match_id, $event)">
+              ✨ Why recommended?
+            </button>
 
+            <div class="ai-explanation" *ngIf="activeMatchId === scholarship.match_id">
+              <div class="loading" *ngIf="explanationLoading">Generating explanation...</div>
+
+              <div class="error" *ngIf="explanationError">
+                {{ explanationError }}
+              </div>
+
+              <ul *ngIf="activeExplanation && !explanationLoading">
+                <li *ngFor="let line of activeExplanation.split('\n')">
+                  {{ line.replace('•', '') }}
+                </li>
+              </ul>
+            </div>
             <button class="view-btn" (click)="openScholarshipDetails(scholarship, $event)">
               View Details
               <svg
@@ -352,7 +370,7 @@
                 <div class="info-item">
                   <span class="info-label">Saved Date:</span>
                   <span class="info-value">{{
-                    selectedScholarship.savedDate | date: 'MMM d, yyyy'
+                    selectedScholarship.savedDate | date : 'MMM d, yyyy'
                   }}</span>
                 </div>
                 <div class="info-item" *ngIf="selectedScholarship.applicationUrl">
@@ -378,8 +396,8 @@
                 selectedScholarship.status === 'applied'
                   ? 'Already Applied'
                   : selectedScholarship.status === 'expired'
-                    ? 'Expired'
-                    : 'Apply Now'
+                  ? 'Expired'
+                  : 'Apply Now'
               }}
             </button>
           </div>

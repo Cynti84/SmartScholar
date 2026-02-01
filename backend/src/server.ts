@@ -10,6 +10,7 @@ import providerScholarshipRoutes from "./routes/providerScholarship.routes";
 import scholarshipAnalyticsRoutes from "./routes/scholarshipAnalytics.routes";
 import studentRoutes from "./routes/student.routes";
 import { getLandingScholarships } from "./controllers/scholarship.controller";
+import recommendationExplanationRoutes from "./routes/recommendationExplanation.routes";
 
 //1. configure dotenv
 dotenv.config();
@@ -40,8 +41,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/provider", providerRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/provider", providerScholarshipRoutes, scholarshipAnalyticsRoutes);
-app.use("/api/student", studentRoutes);
+// app.use("/api/student", studentRoutes);
 app.use("/api/scholarships", getLandingScholarships);
+app.use("/api/student", studentRoutes, recommendationExplanationRoutes);
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
@@ -56,14 +59,14 @@ app.use(
     err: Error,
     req: express.Request,
     res: express.Response,
-    next: express.NextFunction,
+    next: express.NextFunction
   ) => {
     console.error("Error:", err);
     res.status(500).json({
       success: false,
       message: "Internal server error",
     });
-  },
+  }
 );
 
 // Start server

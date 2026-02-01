@@ -8,6 +8,7 @@ import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { ProviderScholarshipDto, ProviderService } from '../../../core/services/provider.service';
+import { count, forkJoin } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 
 Chart.register(...registerables);
@@ -70,7 +71,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private providerService: ProviderService,
+    private providerService: ProviderService
   ) {}
 
   // ----------------------------------
@@ -115,9 +116,20 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     this.scholarships = apiScholarships.map((s) => ({
       name: s.title,
       datePosted: new Date(s.created_at),
-      applicationCount: s.application_count ?? 0,
+      applicationCount: 0, // temporary
       status: s.status === 'approved' ? 'Active' : 'Inactive',
     }));
+
+    // fetch provider total ONCE
+    this.providerService.getScholarshipApplicationsCount(0).subscribe((res) => {
+      const total = res.count ?? 0;
+
+      // distribute or just show same value (optional design choice)
+      this.scholarships = this.scholarships.map((s) => ({
+        ...s,
+        applicationCount: total,
+      }));
+    });
   }
 
   // ----------------------------------
@@ -127,11 +139,6 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     const total = apiScholarships.length;
     const approved = apiScholarships.filter((s) => s.status === 'approved').length;
     const pending = apiScholarships.filter((s) => s.status === 'pending').length;
-
-    const totalApplications = apiScholarships.reduce(
-      (sum, s) => sum + (s.application_count ?? 0),
-      0,
-    );
 
     this.totalScholarships = {
       count: total,
@@ -151,11 +158,14 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
       trend: 'down',
     };
 
-    this.studentsApplied = {
-      count: totalApplications,
-      percentage: '',
-      trend: 'up',
-    };
+    // ✅ Fetch provider total ONCE
+    this.providerService.getScholarshipApplicationsCount(0).subscribe((res) => {
+      this.studentsApplied = {
+        count: res.count ?? 0,
+        percentage: '',
+        trend: 'up',
+      };
+    });
   }
 
   private getPercentage(part: number, total: number): string {
