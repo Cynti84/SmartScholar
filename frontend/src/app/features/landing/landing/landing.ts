@@ -3,6 +3,11 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Navbar } from '../../../shared/components/navbar/navbar';
 import { Footer } from '../../../shared/components/footer/footer';
+import { Router } from '@angular/router';
+import {
+  PublicScholarshipService,
+  PublicScholarship,
+} from '../../../core/services/PublicScholarship.Service';
 
 export interface Scholarship {
   id: number;
@@ -20,81 +25,48 @@ export interface Scholarship {
   styleUrl: './landing.scss',
 })
 export class Landing implements OnInit {
+  heroLoaded: boolean = false;
+  scholarshipsLoaded: boolean = false;
 
-  //state for loading
-  heroLoaded: boolean = false
-  scholarshipsLoaded: boolean = false
-  
-
-  // Mock Scholarship data
   scholarships: Scholarship[] = [];
 
+  constructor(
+    private scholarshipService: PublicScholarshipService,
+    private router: Router,
+  ) {}
+
   ngOnInit(): void {
-    //simulate api call delay for scholarship
-    setTimeout(() => {
-      this.scholarships = [
-        {
-          id: 1,
-          country: 'Kenya',
-          title: 'Kenya Scholarship Program',
-          description:
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ut tellus ut felis tempor.',
-          image: 'scholarship-image.jpg',
-          category: 'Education',
-        },
-        {
-          id: 2,
-          country: 'Spain',
-          title: 'Spain Study Abroad',
-          description:
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ut tellus ut felis tempor.',
-          image: 'scholarship-image.jpg',
-          category: 'Education',
-        },
-        {
-          id: 3,
-          country: 'Canada',
-          title: 'Canadian Excellence Award',
-          description:
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ut tellus ut felis tempor.',
-          image: 'scholarship-image.jpg',
-          category: 'Education',
-        },
-        {
-          id: 4,
-          country: 'Dubai',
-          title: 'Dubai Future Leaders',
-          description:
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ut tellus ut felis tempor.',
-          image: 'scholarship-image.jpg',
-          category: 'Education',
-        },
-        {
-          id: 5,
-          country: 'Canada',
-          title: 'Innovation Scholarship',
-          description:
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ut tellus ut felis tempor.',
-          image: 'scholarship-image.jpg',
-          category: 'Innovation',
-        },
-        {
-          id: 6,
-          country: 'Dubai',
-          title: 'Technology Leaders Program',
-          description:
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ut tellus ut felis tempor.',
-          image: 'scholarship-image.jpg',
-          category: 'Technology',
-        },
-      ];
-      this.scholarshipsLoaded = true
-      
-    }, 2000)
+    this.fetchLandingScholarships();
+  }
+
+  fetchLandingScholarships(): void {
+    this.scholarshipService.getLandingScholarships().subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.scholarships = res.data.map((s) => ({
+            id: s.scholarship_id,
+            country: s.country,
+            title: s.title,
+            description: s.short_summary,
+            image: s.banner_url || s.flyer_url || 'default-image.jpg',
+            category: s.scholarship_type,
+          }));
+        }
+        this.scholarshipsLoaded = true;
+      },
+      error: (err) => {
+        console.error('Failed to fetch scholarships', err);
+        this.scholarshipsLoaded = true;
+      },
+    });
   }
 
   onScholarshipClick(scholarship: Scholarship): void {
-    // Navigate to scholarship details
     console.log('Scholarship clicked:', scholarship);
+  }
+
+  onGetStarted(): void {
+    this.router.navigate(['/auth/signup']);
+    console.log('Get Started clicked');
   }
 }

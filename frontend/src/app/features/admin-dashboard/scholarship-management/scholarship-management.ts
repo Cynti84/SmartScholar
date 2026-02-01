@@ -87,8 +87,64 @@ export class ScholarshipManagement implements OnInit {
 
   // Filter options
   providers: string[] = [];
-  categories: string[] = [];
-  statusOptions = ['all', 'approved', 'expired', 'pending'];
+  country: string[] = [];
+  statusOptions = ['all', 'approved', 'pending', 'rejected'];
+
+  countries = [
+    'Algeria',
+    'Australia',
+    'Austria',
+    'Belgium',
+    'Botswana',
+    'Bulgaria',
+    'Cameroon',
+    'Canada',
+    'Croatia',
+    'Cyprus',
+    'Czech Republic',
+    'Denmark',
+    'Egypt',
+    'Estonia',
+    'Ethiopia',
+    'Finland',
+    'France',
+    'Germany',
+    'Ghana',
+    'Hungary',
+    'Ireland',
+    'Italy',
+    'Japan',
+    'Kenya',
+    'Latvia',
+    'Lithuania',
+    'Malawi',
+    'Malta',
+    'Morocco',
+    'Netherlands',
+    'New Zealand',
+    'Nigeria',
+    'Norway',
+    'Poland',
+    'Portugal',
+    'Romania',
+    'Rwanda',
+    'Senegal',
+    'Singapore',
+    'Slovakia',
+    'Slovenia',
+    'South Africa',
+    'South Korea',
+    'Spain',
+    'Sweden',
+    'Switzerland',
+    'Tanzania',
+    'Tunisia',
+    'Uganda',
+    'United Kingdom',
+    'United States',
+    'Zambia',
+    'Zimbabwe',
+  ];
 
   stats = {
     totalScholarships: 0,
@@ -106,11 +162,11 @@ export class ScholarshipManagement implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private authService: AuthService,
-    private adminService: AdminService
+    private adminService: AdminService,
   ) {
     this.filterForm = this.fb.group({
       provider: [''],
-      category: [''],
+      country: [''],
       status: ['all'],
       searchTerm: [''],
     });
@@ -188,7 +244,7 @@ export class ScholarshipManagement implements OnInit {
 
   extractFilterOptions(): void {
     this.providers = [...new Set(this.scholarships.map((s) => s.provider))];
-    this.categories = [...new Set(this.scholarships.map((s) => s.category))];
+    this.country = [...new Set(this.scholarships.map((s) => s.category))];
   }
 
   setupFilterSubscription(): void {
@@ -202,7 +258,7 @@ export class ScholarshipManagement implements OnInit {
 
     this.filteredScholarships = this.scholarships.filter((scholarship) => {
       const matchesProvider = !filters.provider || scholarship.provider === filters.provider;
-      const matchesCategory = !filters.category || scholarship.category === filters.category;
+      const matchesCountry = !filters.country || scholarship.country === filters.country;
       const matchesStatus = filters.status === 'all' || scholarship.status === filters.status;
       const matchesSearch =
         !filters.searchTerm ||
@@ -210,7 +266,7 @@ export class ScholarshipManagement implements OnInit {
         scholarship.description.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
         scholarship.provider.toLowerCase().includes(filters.searchTerm.toLowerCase());
 
-      return matchesProvider && matchesCategory && matchesStatus && matchesSearch;
+      return matchesProvider && matchesCountry && matchesStatus && matchesSearch;
     });
 
     this.totalItems = this.filteredScholarships.length;

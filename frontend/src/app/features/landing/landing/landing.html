@@ -11,8 +11,10 @@
       <div class="hero-content fade-in">
         <h1 class="hero-title">Welcome To SmartScholar</h1>
         <p class="hero-description">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ut tellus vulputate ut
-          pharetra lorem nec feugiat mauris vitae eleifend elit, sed nulla aliquet risus quis.
+          SmartScholar is an intelligent scholarship matching platform that combines verified
+          listings with personalized recommendations. Using profile-based filtering and AI-powered
+          insights, SmartScholar guides students toward relevant opportunities they can trust,
+          simplifying the scholarship search process.
         </p>
       </div>
 
@@ -70,7 +72,7 @@
             <h3 class="card-country">{{ scholarship.country }}</h3>
             <p class="card-description">{{ scholarship.description }}</p>
 
-            <button class="card-btn">View more</button>
+            <button class="card-btn" (click)="onGetStarted()">View more</button>
           </div>
         </div>
       </div>

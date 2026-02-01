@@ -9,6 +9,7 @@ import adminRoutes from "./routes/admin.routes";
 import providerScholarshipRoutes from "./routes/providerScholarship.routes";
 import scholarshipAnalyticsRoutes from "./routes/scholarshipAnalytics.routes";
 import studentRoutes from "./routes/student.routes";
+import { getLandingScholarships } from "./controllers/scholarship.controller";
 import recommendationExplanationRoutes from "./routes/recommendationExplanation.routes";
 
 //1. configure dotenv
@@ -40,6 +41,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/provider", providerRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/provider", providerScholarshipRoutes, scholarshipAnalyticsRoutes);
+// app.use("/api/student", studentRoutes);
+app.use("/api/scholarships", getLandingScholarships);
 app.use("/api/student", studentRoutes, recommendationExplanationRoutes);
 
 // 404 handler

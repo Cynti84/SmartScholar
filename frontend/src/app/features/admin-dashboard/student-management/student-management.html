@@ -5,7 +5,7 @@
   (action)="onSidebarAction($event)"
 >
   <section>
-    <div class="student-management">
+    <div class="student-management" id="students-export">
       <!-- Header -->
       <div class="header">
         <div class="header-content">
@@ -13,10 +13,15 @@
           <p class="subtitle">Manage student accounts and track their scholarship applications</p>
         </div>
         <div class="header-actions">
-          <!-- <button class="btn btn-secondary" (click)="exportStudents()">
-            <span class="icon"> <mat-icon style="color: #4299e1">file_download</mat-icon></span>
-            Export Data
-          </button> -->
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [disabled]="isExporting"
+            (click)="exportStudents()"
+          >
+            <mat-icon *ngIf="!isExporting">file_download</mat-icon>
+            {{ isExporting ? 'Exporting…' : 'Export Data' }}
+          </button>
         </div>
       </div>
 
@@ -68,7 +73,7 @@
           <select [(ngModel)]="selectedStatus" (change)="onFilterChange()" class="filter-select">
             <option value="all">All Status</option>
             <option value="active">Active</option>
-            <option value="pending">Pending</option>
+            <!-- <option value="pending">Pending</option> -->
             <option value="suspended">Suspended</option>
           </select>
 
@@ -331,10 +336,10 @@
               {{ selectedStudent.gpa.toFixed(2) }}
             </span>
           </div>
-          <div class="info-item">
+          <!-- <div class="info-item">
             <label>Expected Graduation</label>
             <span>{{ selectedStudent.graduationYear }}</span>
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -373,21 +378,21 @@
             <div class="stat-number">{{ selectedStudent.applicationsCount }}</div>
             <div class="stat-label">Total Applications</div>
           </div>
-          <div class="stat-box">
+          <!-- <div class="stat-box">
             <div class="stat-number">{{ selectedStudent.acceptedScholarships }}</div>
             <div class="stat-label">Accepted</div>
-          </div>
-          <div class="stat-box">
+          </div> -->
+          <!-- <div class="stat-box">
             <div class="stat-number">
               {{ selectedStudent.applicationsCount - selectedStudent.acceptedScholarships }}
             </div>
             <div class="stat-label">Pending/Rejected</div>
-          </div>
+          </div> -->
         </div>
       </div>
 
       <!-- Recent Applications -->
-      <div class="info-section">
+      <!-- <div class="info-section">
         <h4>
           <mat-icon style="color: #4299e1; vertical-align: middle">description</mat-icon>Recent
           Applications
@@ -410,26 +415,57 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <div class="modal-footer">
-      <button (click)="closeDetailsModal()" class="btn btn-secondary">Close</button>
+      <button
+        (click)="closeDetailsModal()"
+        style="
+          background-color: #6c757d;
+          color: #ffffff;
+          border: none;
+          padding: 10px 18px;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-left: 24px;
+          transition: background-color 0.2s ease;
+        "
+        onmouseover="this.style.backgroundColor = '#5a6268'"
+        onmouseout="this.style.backgroundColor = '#6c757d'"
+      >
+        Close
+      </button>
 
       <!-- Approve -->
-      <button
+      <!-- <button
         *ngIf="selectedStudent?.status === 'pending'"
         (click)="openConfirmModal('approve', selectedStudent!)"
         class="btn btn-success"
       >
         Approve Student
-      </button>
+      </button> -->
 
       <!-- Suspend -->
       <button
         *ngIf="selectedStudent?.status === 'active'"
         (click)="openConfirmModal('suspend', selectedStudent!)"
-        class="btn btn-danger"
+        style="
+          background-color: #dc3545;
+          color: #ffffff;
+          border: none;
+          padding: 10px 18px;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-left: 24px;
+          transition: background-color 0.2s ease;
+        "
+        onmouseover="this.style.backgroundColor = '#b02a37'"
+        onmouseout="this.style.backgroundColor = '#dc3545'"
       >
         Suspend Account
       </button>

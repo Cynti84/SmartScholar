@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../../../shared/components/navbar/navbar';
 import { Footer } from '../../../shared/components/footer/footer';
+import { MatIconModule } from '@angular/material/icon';
 
 interface FAQ {
   id: number;
@@ -22,7 +23,7 @@ interface Category {
 
 @Component({
   selector: 'app-faq',
-  imports: [CommonModule, RouterModule, FormsModule, Navbar, Footer],
+  imports: [CommonModule, RouterModule, FormsModule, Navbar, Footer, MatIconModule],
   templateUrl: './faq.html',
   styleUrl: './faq.scss',
 })
@@ -32,13 +33,13 @@ export class Faq implements OnInit {
   filteredFAQs: FAQ[] = [];
 
   categories: Category[] = [
-    { id: 'all', name: 'All Questions', icon: '📋' },
-    { id: 'getting-started', name: 'Getting Started', icon: '🚀' },
-    { id: 'scholarships', name: 'Scholarships', icon: '🎓' },
-    { id: 'profile', name: 'Profile & Matching', icon: '👤' },
-    { id: 'applications', name: 'Applications', icon: '📝' },
-    { id: 'technical', name: 'Technical Support', icon: '🛠️' },
-    { id: 'account', name: 'Account & Billing', icon: '⚙️' },
+    { id: 'all', name: 'All Questions', icon: 'list' },
+    { id: 'getting-started', name: 'Getting Started', icon: 'rocket_launch' },
+    { id: 'scholarships', name: 'Scholarships', icon: 'school' },
+    { id: 'profile', name: 'Profile & Matching', icon: 'person' },
+    { id: 'applications', name: 'Applications', icon: 'assignment' },
+    { id: 'technical', name: 'Technical Support', icon: 'build' },
+    { id: 'account', name: 'Account & Billing', icon: 'settings' },
   ];
 
   faqs: FAQ[] = [
@@ -383,7 +384,7 @@ export class Faq implements OnInit {
         (faq) =>
           faq.question.toLowerCase().includes(query) ||
           faq.answer.toLowerCase().includes(query) ||
-          faq.keywords.some((keyword) => keyword.toLowerCase().includes(query))
+          faq.keywords.some((keyword) => keyword.toLowerCase().includes(query)),
       );
     }
 
