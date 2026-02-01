@@ -141,7 +141,7 @@
         </div>
       </div>
 
-      <!-- Recommended Scholarships header-->
+      <!-- Recommended Scholarships -->
       <div class="recommended-section">
         <div class="section-header">
           <h2 class="section-title">Recommended For You</h2>
@@ -166,10 +166,16 @@
           <p>No recommendations yet. Complete your profile to get personalised scholarships.</p>
         </div>
 
-        <!-- Recommended scholarships -->
-
+        <!-- Scholarship cards grid -->
         <div class="scholarships-grid" *ngIf="recommendedScholarships.length > 0">
-          <div class="scholarship-card" *ngFor="let scholarship of recommendedScholarships">
+          <div
+            class="scholarship-card"
+            *ngFor="let scholarship of visibleRecommendedScholarships; let i = index"
+            [style.animationDelay]="
+              i >= initialDisplayCount ? (i - initialDisplayCount) * 80 + 'ms' : '0ms'
+            "
+            [class.card-reveal]="showAllRecommended && i >= initialDisplayCount"
+          >
             <div class="card-header">
               <div
                 *ngIf="scholarship.matchScore !== undefined"
@@ -200,7 +206,7 @@
                 <span>{{ scholarship.country }}</span>
               </div>
 
-              <!-- Field of Study (Own Div) -->
+              <!-- Field of Study -->
               <div class="detail-item" *ngIf="scholarship.fieldOfStudy">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -247,6 +253,34 @@
               </svg>
             </button>
           </div>
+        </div>
+
+        <!-- Show More / Show Less button -->
+        <div class="show-more-wrapper" *ngIf="recommendedScholarships.length > initialDisplayCount">
+          <button
+            class="show-more-btn"
+            [class.expanded]="showAllRecommended"
+            (click)="toggleShowMore()"
+          >
+            <span class="show-more-btn__label">
+              {{ showAllRecommended ? 'Show Less' : 'Show More' }}
+            </span>
+            <span class="show-more-btn__remaining" *ngIf="!showAllRecommended">
+              +{{ recommendedScholarships.length - initialDisplayCount }} more
+            </span>
+            <svg
+              class="show-more-btn__arrow"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -350,7 +384,7 @@
               </div>
             </div>
 
-            <!-- Deadline -->
+            <!-- Eligibility -->
             <div class="detail-section" *ngIf="selectedScholarship.eligibility?.length">
               <h2>Eligibility Criteria</h2>
               <ul class="criteria-list">
@@ -382,7 +416,6 @@
 
             <!-- Additional Info -->
             <div class="detail-section">
-              <!-- <h3 class="section-title">Additional Information</h3> -->
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">Saved Date:</span>

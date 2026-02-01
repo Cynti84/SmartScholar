@@ -381,36 +381,6 @@
       background: rgba(102, 126, 234, 0.08);
     }
   }
-
-  // .ai-explanation {
-  //   background: #f7f9ff;
-  //   border-left: 4px solid #667eea;
-  //   border-radius: 8px;
-  //   padding: 0.75rem 1rem;
-  //   margin-bottom: 1rem;
-  //   font-size: 0.85rem;
-  //   color: #374151;
-
-  //   ul {
-  //     padding-left: 1.2rem;
-  //     margin: 0;
-
-  //     li {
-  //       margin-bottom: 0.4rem;
-  //       line-height: 1.4;
-  //     }
-  //   }
-
-  //   .loading {
-  //     font-style: italic;
-  //     color: #6b7280;
-  //   }
-
-  //   .error {
-  //     color: #dc2626;
-  //     font-weight: 500;
-  //   }
-  // }
 }
 
 .scholarship-details-modal {
@@ -1136,5 +1106,120 @@ li svg {
 
   .scholarships-grid {
     grid-template-columns: 1fr;
+  }
+}
+// ─────────────────────────────────────────
+// Staggered reveal animation for newly
+// visible cards after "Show More" is clicked.
+// Applied via the [class.card-reveal] binding
+// on cards whose index >= initialDisplayCount.
+// ─────────────────────────────────────────
+@keyframes cardReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.scholarship-card.card-reveal {
+  animation: cardReveal 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  // animationDelay is set inline via [style.animationDelay] in the template
+}
+
+// ─────────────────────────────────────────
+// Show More / Show Less button
+// ─────────────────────────────────────────
+.show-more-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.show-more-btn {
+  // Layout
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1.75rem;
+  border-radius: 999px; // pill shape
+
+  // Colors — outlined variant matching the app palette
+  background: transparent;
+  border: 1.5px solid #667eea;
+  color: #667eea;
+
+  // Type
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+
+  // Transition covers color, shadow, and the arrow rotation
+  transition: background 0.22s ease, color 0.22s ease, border-color 0.22s ease,
+    box-shadow 0.22s ease, transform 0.15s ease;
+
+  // ── Child layout ──
+  // &__label {
+  //   // The main verb text
+  // }
+
+  &__remaining {
+    // The "+N more" badge
+    font-size: 0.775rem;
+    font-weight: 700;
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    transition: background 0.22s ease, color 0.22s ease;
+  }
+
+  &__arrow {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    flex-shrink: 0;
+  }
+
+  // ── Hover ──
+  &:hover {
+    background: rgba(102, 126, 234, 0.08);
+    box-shadow: 0 4px 14px rgba(102, 126, 234, 0.2);
+    transform: translateY(-1px);
+  }
+
+  // ── Active / pressed ──
+  &:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  // ── Focus ring (keyboard nav) ──
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+  }
+
+  // ── Expanded state — arrow flips, badge disappears ──
+  &.expanded {
+    .show-more-btn__arrow {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+// ── Responsive: full-width pill on small screens ──
+@media (max-width: 768px) {
+  .show-more-wrapper {
+    margin-top: 1.5rem;
+  }
+
+  .show-more-btn {
+    width: 100%;
+    justify-content: center;
   }
 }

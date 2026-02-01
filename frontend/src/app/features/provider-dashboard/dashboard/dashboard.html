@@ -7,13 +7,29 @@
   <section class="dashboard-container">
     <!-- Hero Section -->
     <div class="hero-section">
+      <!-- Decorative background layers -->
+      <div class="hero-bg-ring hero-bg-ring--1"></div>
+      <div class="hero-bg-ring hero-bg-ring--2"></div>
+      <div class="hero-bg-ring hero-bg-ring--3"></div>
+
       <div class="hero-text">
-        <h1>Welcome back, Provider 🎉</h1>
-        <p>Here’s an overview of your scholarships and applications today.</p>
-        <span class="date">{{ today | date: 'fullDate' }}</span>
+        <span class="hero-eyebrow">Dashboard Overview</span>
+        <h1>Welcome back, Provider</h1>
+        <p>Here's an overview of your scholarships and applications today.</p>
+        <span class="date">{{ today | date : 'fullDate' }}</span>
       </div>
-      <div class="hero-image">
-        <img src="provider-hero.png" alt="Dashboard Illustration" />
+
+      <!-- Animated visual cluster -->
+      <div class="hero-visuals" aria-hidden="true">
+        <div class="orb orb--primary"></div>
+        <div class="orb orb--secondary"></div>
+        <div class="orb orb--accent"></div>
+        <div class="ring ring--1"></div>
+        <div class="ring ring--2"></div>
+        <div class="particle particle--1"></div>
+        <div class="particle particle--2"></div>
+        <div class="particle particle--3"></div>
+        <div class="particle particle--4"></div>
       </div>
     </div>
 
@@ -70,10 +86,12 @@
 
         <!-- EMPTY STATE -->
         <div class="empty-state" *ngIf="showEmptyState">
-          <div class="empty-icon">📊</div>
+          <div class="empty-icon">
+            <mat-icon style="font-size: 40px; color: #6a1b9a"> menu_book </mat-icon>
+          </div>
           <h4>No data yet</h4>
           <p>
-            You haven’t posted any scholarships yet. Once you do, you’ll start seeing application
+            You haven't posted any scholarships yet. Once you do, you'll start seeing application
             insights here.
           </p>
           <button class="primary-btn" (click)="onPost()">Post your first scholarship</button>
@@ -138,7 +156,7 @@
               <tr *ngFor="let scholarship of filteredScholarships">
                 <td class="scholarship-name">{{ scholarship.name }}</td>
                 <td class="date-posted">
-                  {{ scholarship.datePosted | date: 'dd-M-yyyy' }}
+                  {{ scholarship.datePosted | date : 'dd-M-yyyy' }}
                 </td>
                 <td class="application-count">
                   {{ scholarship.applicationCount }}
