@@ -233,23 +233,6 @@
                 </span>
               </div>
             </div>
-            <button class="why-btn" (click)="loadExplanation(scholarship.match_id, $event)">
-              ✨ Why recommended?
-            </button>
-
-            <div class="ai-explanation" *ngIf="activeMatchId === scholarship.match_id">
-              <div class="loading" *ngIf="explanationLoading">Generating explanation...</div>
-
-              <div class="error" *ngIf="explanationError">
-                {{ explanationError }}
-              </div>
-
-              <ul *ngIf="activeExplanation && !explanationLoading">
-                <li *ngFor="let line of activeExplanation.split('\n')">
-                  {{ line.replace('•', '') }}
-                </li>
-              </ul>
-            </div>
             <button class="view-btn" (click)="openScholarshipDetails(scholarship, $event)">
               View Details
               <svg
@@ -317,6 +300,56 @@
               <p class="section-content">{{ selectedScholarship.description }}</p>
             </div>
 
+            <!-- AI Trigger -->
+            <div class="ai-trigger">
+              <button
+                class="ai-btn"
+                *ngIf="!aiExplanation && !loadingExplanation && selectedMatchId"
+                (click)="loadModalExplanation(selectedMatchId)"
+              >
+                <span class="icon">✨</span>
+                <span class="label">Why was this recommended?</span>
+              </button>
+
+              <button class="ai-btn loading" *ngIf="loadingExplanation" disabled>
+                <span class="spinner"></span>
+                <span class="label">Generating explanation…</span>
+              </button>
+            </div>
+
+            <!-- AI Recommendation Explanation -->
+            <div class="ai-explanation" *ngIf="aiExplanation as explanation">
+              <h3 class="section-title">🤖 Why this scholarship was recommended</h3>
+
+              <!-- Error -->
+              <p class="ai-error" *ngIf="explanationError">
+                {{ explanationError }}
+              </p>
+
+              <!-- Why Recommended -->
+              <div *ngIf="explanation.whyRecommended" class="ai-section">
+                <p class="ai-text" [innerText]="explanation.whyRecommended"></p>
+              </div>
+
+              <!-- Improve Chances -->
+              <div
+                class="improve-toggle"
+                *ngIf="explanation.improvementTips?.length"
+                (click)="toggleImproveTips()"
+              >
+                <span class="chevron" [class.open]="showImproveTips">▸</span>
+                <h4>How can I improve my chances?</h4>
+              </div>
+
+              <div *ngIf="showImproveTips" class="ai-section improve">
+                <ul>
+                  <li *ngFor="let tip of explanation.improvementTips">
+                    {{ tip }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+
             <!-- Deadline -->
             <div class="detail-section" *ngIf="selectedScholarship.eligibility?.length">
               <h2>Eligibility Criteria</h2>
@@ -336,14 +369,6 @@
               </ul>
             </div>
 
-            <!-- Required Documents -->
-            <div class="detail-section" *ngIf="selectedScholarship.requiredDocuments">
-              <h3 class="section-title">Required Documents</h3>
-              <ul class="documents-list">
-                <li *ngFor="let doc of selectedScholarship.requiredDocuments">{{ doc }}</li>
-              </ul>
-            </div>
-
             <!-- Tags -->
             <div
               class="detail-section"
@@ -352,14 +377,6 @@
               <h3 class="section-title">Tags</h3>
               <div class="tags">
                 <span *ngFor="let tag of selectedScholarship.tags" class="tag">{{ tag }}</span>
-              </div>
-            </div>
-
-            <!-- Your Notes -->
-            <div class="detail-section" *ngIf="selectedScholarship.notes">
-              <h3 class="section-title">Your Notes</h3>
-              <div class="notes-content">
-                <p>{{ selectedScholarship.notes }}</p>
               </div>
             </div>
 

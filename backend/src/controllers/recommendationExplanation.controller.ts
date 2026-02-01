@@ -24,7 +24,7 @@ export class RecommendationExplanationController {
         return res.status(404).json({ error: "Recommendation not found" });
       }
 
-      // 🔒 Optional safety check: ensure the match belongs to the logged-in student
+      // 🔒 Ensure ownership
       if (match.student?.id !== req.user!.id) {
         return res.status(403).json({ error: "Unauthorized access" });
       }
@@ -37,12 +37,14 @@ export class RecommendationExplanationController {
 
       const explanation = await geminiService.generateRecommendationExplanation(
         match.scholarship!.title,
-        match.matched_criteria
+        match.matched_criteria,
+        match.unmatched_criteria || []
       );
 
       return res.json({
         scholarship_id: match.scholarship!.scholarship_id,
-        explanation,
+        whyRecommended: explanation.whyRecommended,
+        improvementTips: explanation.improvementTips,
       });
     } catch (error: any) {
       console.error("Gemini explanation error:", error);
