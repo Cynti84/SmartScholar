@@ -8,6 +8,9 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { AdminService } from '../../../core/services/admin.service';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { NgZone } from '@angular/core';
 
 interface Student {
   id: number;
@@ -58,6 +61,7 @@ export class StudentManagement {
     private router: Router,
     private authService: AuthService,
     private adminService: AdminService,
+    private zone: NgZone,
   ) {}
 
   students: Student[] = [];
@@ -371,9 +375,57 @@ export class StudentManagement {
     return `${Math.floor(days / 30)} months ago`;
   }
 
+  isExporting = false;
+
   exportStudents(): void {
-    console.log('Exporting students to CSV');
-    // Implement export logic
+    if (this.isExporting) return;
+    this.isExporting = true;
+
+    const element = document.getElementById('students-export');
+    if (!element) {
+      this.isExporting = false;
+      console.error('Export element not found');
+      return;
+    }
+
+    this.zone.runOutsideAngular(async () => {
+      // wait for fonts (fixes Material icons warning)
+      await document.fonts.ready;
+
+      html2canvas(element, {
+        scale: 1.5,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      })
+        .then((canvas) => {
+          const imgData = canvas.toDataURL('image/png');
+
+          const pdf = new jsPDF('p', 'mm', 'a4');
+          const pageWidth = pdf.internal.pageSize.getWidth();
+          const pageHeight = pdf.internal.pageSize.getHeight();
+
+          const imgHeight = (canvas.height * pageWidth) / canvas.width;
+          let heightLeft = imgHeight;
+          let position = 0;
+
+          pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight);
+          heightLeft -= pageHeight;
+
+          while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight);
+            heightLeft -= pageHeight;
+          }
+
+          pdf.save('student-management-report.pdf');
+        })
+        .catch((err) => console.error('Export failed', err))
+        .finally(() => {
+          this.zone.run(() => (this.isExporting = false));
+        });
+    });
   }
 
   Math = Math;

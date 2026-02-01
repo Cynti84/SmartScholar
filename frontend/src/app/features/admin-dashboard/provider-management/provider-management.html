@@ -5,7 +5,7 @@
   (action)="onSidebarAction($event)"
 >
   <section>
-    <div class="provider-management">
+    <div class="provider-management" id="providers-export">
       <!-- Header -->
       <div class="header">
         <div class="header-content">
@@ -13,11 +13,11 @@
           <p class="subtitle">Manage all scholarship providers and their activities</p>
         </div>
         <div class="header-actions">
-          <!-- <button class="btn btn-secondary" (click)="exportProviders()">
+          <button type="button" class="btn btn-secondary" (click)="exportProviders()">
             <mat-icon style="color: #4299e1">file_download</mat-icon>
 
             Export
-          </button> -->
+          </button>
         </div>
       </div>
 
@@ -75,9 +75,10 @@
 
           <select [(ngModel)]="selectedType" (change)="onFilterChange()" class="filter-select">
             <option value="all">All Types</option>
-            <option value="university">Universities</option>
-            <option value="ngo">NGOs</option>
-            <option value="company">Companies</option>
+
+            <option *ngFor="let type of providerTypes" [value]="type">
+              {{ type }}
+            </option>
           </select>
         </div>
       </div>

@@ -10,6 +10,8 @@ import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { AdminService } from '../../../core/services/admin.service';
 import { ChangeDetectorRef } from '@angular/core';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface QuickStat {
   label: string;
@@ -392,24 +394,49 @@ export class Dashboard implements OnInit {
     this.router.navigate(['/admin/students']);
   }
 
-  downloadReport() {
-    this.adminService.getAdminReports().subscribe({
-      next: (blob: Blob) => {
-        const link = document.createElement('a');
-        const url = window.URL.createObjectURL(blob);
-        link.href = url;
+  isDownloading = false;
 
-        // Set a file name
-        link.download = 'admin_report.xlsx'; // or .pdf/.csv depending on backend
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      },
-      error: (err) => {
-        console.error('Report download failed', err);
-      },
-    });
+  downloadReport(): void {
+    if (this.isDownloading) return;
+    this.isDownloading = true;
+
+    const dashboard = document.getElementById('dashboard-content');
+    if (!dashboard) {
+      this.isDownloading = false;
+      return;
+    }
+
+    html2canvas(dashboard, {
+      scale: 2,
+      useCORS: true,
+      logging: false, // 🔥 reduces console noise
+    })
+      .then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        const imgHeight = (canvas.height * pageWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        pdf.save('admin-dashboard-report.pdf');
+      })
+      .finally(() => {
+        this.isDownloading = false;
+      });
   }
 
   showLogoutModal = false;

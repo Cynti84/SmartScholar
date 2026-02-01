@@ -54,11 +54,11 @@
             </div>
 
             <div class="filter-group">
-              <label for="category">Category</label>
-              <select id="category" formControlName="category" class="filter-select">
-                <option value="">All Categories</option>
-                <option *ngFor="let category of categories" [value]="category">
-                  {{ category }}
+              <label for="Country">Country</label>
+              <select id="country" formControlName="country" class="filter-select">
+                <option value="">All Countries</option>
+                <option *ngFor="let country of countries" [value]="country">
+                  {{ country }}
                 </option>
               </select>
             </div>
@@ -67,9 +67,9 @@
               <label for="status">Status</label>
               <select id="status" formControlName="status" class="filter-select">
                 <option value="all">All Status</option>
-                <option value="active">Approved</option>
+                <option value="approved">Approved</option>
                 <option value="pending">Pending</option>
-                <option value="expired">Expired</option>
+                <option value="rejected">Rejected</option>
               </select>
             </div>
 
@@ -97,7 +97,7 @@
             <tr>
               <th>Title</th>
               <th>Provider</th>
-              <th>Category</th>
+              <th>Country</th>
               <th>Amount</th>
               <th>Deadline</th>
               <th>Status</th>
@@ -114,7 +114,7 @@
               </td>
               <td>{{ scholarship.provider }}</td>
               <td>
-                <span class="category-badge">{{ scholarship.category }}</span>
+                <span class="category-badge">{{ scholarship.country }}</span>
               </td>
               <td class="amount-cell">{{ scholarship.scholarshipType }}</td>
               <td>{{ formatDate(scholarship.deadline) }}</td>

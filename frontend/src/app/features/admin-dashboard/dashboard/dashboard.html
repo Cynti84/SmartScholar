@@ -5,7 +5,7 @@
   (action)="onSidebarAction($event)"
 >
   <section>
-    <div class="admin-dashboard">
+    <div class="admin-dashboard" id="dashboard-content">
       <!-- Header -->
       <div class="dashboard-header">
         <div class="header-content">
@@ -13,12 +13,12 @@
           <p class="subtitle">Welcome back! Here's what's happening today.</p>
         </div>
         <div class="header-actions">
-          <!-- <button class="btn btn-secondary" (click)="downloadReport()">
+          <button class="btn btn-secondary" (click)="downloadReport()" type="button">
             <span class="icon">
               <mat-icon style="color: #4299e1">download</mat-icon>
             </span>
             Generate Report
-          </button> -->
+          </button>
 
           <!-- <button class="btn btn-primary">
             <span class="icon" style="color: #4299e1"> </span>

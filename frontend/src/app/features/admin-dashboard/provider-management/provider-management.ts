@@ -8,6 +8,8 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { AdminService } from '../../../core/services/admin.service';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 export interface AdminProvider {
   id: number;
@@ -65,7 +67,7 @@ export class ProviderManagement {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private adminService: AdminService
+    private adminService: AdminService,
   ) {}
   Math = Math;
   providers: AdminProvider[] = [];
@@ -149,7 +151,6 @@ export class ProviderManagement {
       suspendedProviders: this.providers.filter((p) => p.status === 'suspended').length,
     };
   }
-
   applyFilters(): void {
     const search = this.searchTerm.toLowerCase().trim();
 
@@ -162,7 +163,9 @@ export class ProviderManagement {
       const matchesStatus =
         this.selectedStatus === 'all' || provider.status === this.selectedStatus;
 
-      return matchesSearch && matchesStatus;
+      const matchesType = this.selectedType === 'all' || provider.type === this.selectedType;
+
+      return matchesSearch && matchesStatus && matchesType;
     });
 
     this.currentPage = 1;
@@ -205,6 +208,20 @@ export class ProviderManagement {
       },
     });
   }
+
+  providerTypes: string[] = [
+    'NGO (Non-Governmental Organization)',
+    'University/Educational Institution',
+    'Private Company/Corporation',
+    'Government Agency',
+    'Foundation',
+    'Religious Organization',
+    'Community-Based Organization',
+    'International Organization',
+    'Research Institution',
+    'Healthcare Organization',
+    'Other',
+  ];
 
   loadActivityLogs(providerId: number): void {
     // Mock activity logs - replace with actual API call
@@ -386,8 +403,45 @@ export class ProviderManagement {
   }
 
   exportProviders(): void {
-    console.log('Exporting providers to CSV');
-    // Implement export logic
+    const element = document.getElementById('providers-export');
+    if (!element) {
+      console.error('Providers export element not found');
+      return;
+    }
+
+    html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+    })
+      .then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        const imgWidth = pageWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        pdf.save('providers-management-report.pdf');
+      })
+      .catch((err) => {
+        console.error('Providers PDF export failed', err);
+      });
   }
 
   showLogoutModal = false;
