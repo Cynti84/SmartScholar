@@ -126,6 +126,12 @@ export class Scholarship {
   })
   status!: string;
 
+  /* === ACADEMIC PERFORMANCE === */
+
+  // Minimum GPA required (e.g. 2.5, 3.0, 3.5)
+  @Column({ type: "float", nullable: true })
+  min_gpa?: number;
+
   /* === RELATIONS === */
 
   @ManyToOne(() => User, (user) => user.scholarships, {

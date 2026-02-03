@@ -15,6 +15,9 @@ interface StudentSignupForm {
   income_level?: 'low' | 'middle' | 'any';
   is_disabled?: boolean | null;
 
+  gpa_min?: number | null;
+  gpa_max?: number | null;
+
   profileImageFile: File | null;
   cvFile: File | null;
 }
@@ -28,6 +31,8 @@ interface StudentSignupForm {
 export class StudentSignup {
   isLoading: boolean = false;
   tempUserData: any = {};
+
+  selectedGpaRange: string = '';
 
   profileData: StudentSignupForm = {
     country: '',
@@ -165,6 +170,26 @@ export class StudentSignup {
     }
   }
 
+  private gpaRangeMap: Record<string, { min: number | null; max: number | null }> = {
+    below_2_5: { min: 0.0, max: 2.49 },
+    '2_5_2_99': { min: 2.5, max: 2.99 },
+    '3_0_3_49': { min: 3.0, max: 3.49 },
+    '3_5_4_0': { min: 3.5, max: 4.0 },
+  };
+
+  onGpaRangeChange(): void {
+    if (!this.selectedGpaRange) {
+      this.profileData.gpa_min = null;
+      this.profileData.gpa_max = null;
+      return;
+    }
+
+    const range = this.gpaRangeMap[this.selectedGpaRange];
+
+    this.profileData.gpa_min = range.min;
+    this.profileData.gpa_max = range.max;
+  }
+
   /**
    * Handle file selection for profile image
    */
@@ -291,6 +316,14 @@ export class StudentSignup {
 
       if (this.profileData.is_disabled !== null && this.profileData.is_disabled !== undefined) {
         formData.append('is_disabled', String(this.profileData.is_disabled));
+      }
+
+      if (this.profileData.gpa_min !== null && this.profileData.gpa_min !== undefined) {
+        formData.append('gpa_min', String(this.profileData.gpa_min));
+      }
+
+      if (this.profileData.gpa_max !== null && this.profileData.gpa_max !== undefined) {
+        formData.append('gpa_max', String(this.profileData.gpa_max));
       }
 
       // --- Files ---

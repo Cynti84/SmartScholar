@@ -79,6 +79,15 @@ export class StudentProfile {
     return age;
   }
 
+  /* === ACADEMIC PERFORMANCE === */
+
+  // Student GPA range (privacy-friendly)
+  @Column({ type: "float", nullable: true })
+  gpa_min?: number;
+
+  @Column({ type: "float", nullable: true })
+  gpa_max?: number;
+
   // --- Associations ---
   @OneToOne(() => User, (user) => user.profile, {
     onDelete: "CASCADE",
