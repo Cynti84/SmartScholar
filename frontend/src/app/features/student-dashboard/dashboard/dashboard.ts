@@ -15,6 +15,7 @@ import { UserScholarshipService } from '../../../core/services/user-scholarship.
 import { Scholarship } from '../../../core/services/scholarship.service';
 import { RecommendationExplanationService } from '../../../core/services/recommendation-explanation.service';
 import { RecommendationExplanation } from '../../../core/services/recommendation-explanation.service';
+import { AIChatComponent } from '../../../shared/components/ai-chat/ai-chat.component';
 interface ScholarshipUI {
   id: number;
   scholarshipId: number;
@@ -45,7 +46,7 @@ interface ScholarshipUI {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, DashboardLayout, ConfirmModal],
+  imports: [CommonModule, DashboardLayout, ConfirmModal, AIChatComponent],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
 })

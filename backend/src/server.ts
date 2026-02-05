@@ -12,6 +12,7 @@ import studentRoutes from "./routes/student.routes";
 import { getLandingScholarships } from "./controllers/scholarship.controller";
 import recommendationExplanationRoutes from "./routes/recommendationExplanation.routes";
 import applicationReadinessRoutes from "./routes/applicationReadiness.routes";
+import aiDiscoveryRoutes from "./routes/aiScholarshipDiscovery.routes";
 
 //1. configure dotenv
 dotenv.config();
@@ -48,7 +49,8 @@ app.use(
   "/api/student",
   studentRoutes,
   recommendationExplanationRoutes,
-  applicationReadinessRoutes
+  applicationReadinessRoutes,
+  aiDiscoveryRoutes
 );
 
 // 404 handler
