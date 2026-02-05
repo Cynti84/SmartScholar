@@ -1,0 +1,229 @@
+<!-- Floating Chat Button -->
+<button class="chat-fab" (click)="toggleChat()" [class.open]="isChatOpen">
+  <svg
+    *ngIf="!isChatOpen"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+  >
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    <path d="M8 10h.01M12 10h.01M16 10h.01" />
+  </svg>
+  <svg
+    *ngIf="isChatOpen"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+  >
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+  <span class="chat-fab-label">AI Assistant</span>
+</button>
+
+<div class="chat-backdrop" *ngIf="isChatOpen" (click)="closeChat()"></div>
+
+<!-- Chat Window -->
+<div class="chat-window" *ngIf="isChatOpen">
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="chat-header-info">
+      <div class="chat-avatar">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+          />
+        </svg>
+      </div>
+      <div>
+        <h3 class="chat-title">AI Scholarship Finder</h3>
+        <p class="chat-subtitle">Powered by SmartScholar</p>
+      </div>
+    </div>
+    <div class="chat-header-actions">
+      <button class="chat-icon-btn" (click)="clearChat()" title="Clear chat">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="1 4 1 10 7 10" />
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+        </svg>
+      </button>
+      <button class="chat-icon-btn" (click)="closeChat()" title="Close chat">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="chat-messages" #messagesContainer>
+    <div
+      *ngFor="let message of messages"
+      class="message"
+      [class.user-message]="message.role === 'user'"
+      [class.assistant-message]="message.role === 'assistant'"
+    >
+      <!-- Assistant Avatar -->
+      <div class="message-avatar" *ngIf="message.role === 'assistant'">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+          />
+        </svg>
+      </div>
+
+      <div class="message-content">
+        <!-- Loading State -->
+        <div class="message-loading" *ngIf="message.isLoading">
+          <div class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+
+        <!-- Message Text -->
+        <div class="message-text" *ngIf="!message.isLoading">
+          {{ message.content }}
+        </div>
+
+        <!-- Extracted Filters (if present) -->
+        <div class="message-filters" *ngIf="message.filters && !message.isLoading">
+          <div class="filters-label">🔍 Search criteria:</div>
+          <div class="filters-content">{{ formatFilters(message.filters) }}</div>
+        </div>
+
+        <!-- Scholarship Results -->
+        <div
+          class="scholarship-results"
+          *ngIf="message.scholarships && message.scholarships.length > 0"
+        >
+          <div class="results-header">
+            <span class="results-count">{{ message.scholarships.length }} scholarships found</span>
+          </div>
+
+          <div class="scholarship-cards">
+            <div
+              class="scholarship-card-mini"
+              *ngFor="let scholarship of message.scholarships.slice(0, 5)"
+              (click)="viewScholarship(scholarship)"
+            >
+              <div class="card-mini-header">
+                <!-- <span class="match-score">{{ scholarship.matchScore }}% match</span> -->
+                <span
+                  class="deadline-badge"
+                  [class.urgent]="getDaysRemaining(scholarship.deadline) <= 30"
+                >
+                  {{ getDaysRemaining(scholarship.deadline) }}d left
+                </span>
+              </div>
+
+              <h4 class="card-mini-title">{{ scholarship.title }}</h4>
+              <p class="card-mini-org">{{ scholarship.organization_name }}</p>
+
+              <div class="card-mini-tags">
+                <span class="tag">{{ scholarship.country }}</span>
+                <span class="tag">{{ scholarship.education_level }}</span>
+                <span class="tag type">{{ scholarship.scholarship_type }}</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            class="view-all-btn"
+            *ngIf="message.scholarships.length > 5"
+            (click)="viewScholarship(message.scholarships[0])"
+          >
+            View all {{ message.scholarships.length }} scholarships
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Timestamp -->
+        <span class="message-time">{{ message.timestamp | date : 'shortTime' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Prompts (show when chat is empty or just has welcome message) -->
+  <div class="quick-prompts" *ngIf="messages.length <= 1">
+    <div class="quick-prompts-label">💡 Try asking:</div>
+    <div class="quick-prompts-list">
+      <button
+        *ngFor="let prompt of quickPrompts.slice(0, 3)"
+        class="quick-prompt-btn"
+        (click)="useQuickPrompt(prompt)"
+      >
+        {{ prompt }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="chat-input-container">
+    <textarea
+      class="chat-input"
+      [(ngModel)]="userInput"
+      (keypress)="onKeyPress($event)"
+      placeholder="Ask me anything about scholarships..."
+      rows="1"
+      [disabled]="isProcessing"
+    ></textarea>
+    <button
+      class="chat-send-btn"
+      (click)="sendMessage()"
+      [disabled]="!userInput.trim() || isProcessing"
+    >
+      <svg
+        *ngIf="!isProcessing"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <line x1="22" y1="2" x2="11" y2="13" />
+        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+      </svg>
+      <div class="spinner-small" *ngIf="isProcessing"></div>
+    </button>
+  </div>
+</div>
