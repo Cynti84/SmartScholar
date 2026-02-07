@@ -98,6 +98,45 @@ export const getStudentProfileById = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getLoggedInStudentProfile = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const authReq = req as unknown as AuthRequest;
+    const userId = authReq.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const profileRepo = AppDataSource.getRepository(StudentProfile);
+
+    const profile = await profileRepo.findOne({
+      where: { student_id: userId },
+    });
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: "Profile not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: profile,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch student profile",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
 //UpdateProfile
 export const updateStudentProfile = async (req: Request, res: Response) => {
   try {

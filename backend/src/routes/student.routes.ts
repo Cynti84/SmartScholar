@@ -23,6 +23,7 @@ import {
   downloadStudentProfile,
   getStudentProfileById,
   get2FAStatus,
+  getLoggedInStudentProfile,
 } from "../controllers/student.user.controller";
 import {
   getEmailPreferences,
@@ -54,6 +55,8 @@ router.put(
   ]),
   updateStudentProfile,
 );
+
+router.get("/profile", AuthMiddleware.authenticate, getLoggedInStudentProfile);
 router.get("/profile/:id", AuthMiddleware.authenticate, getStudentProfileById);
 
 router.delete(

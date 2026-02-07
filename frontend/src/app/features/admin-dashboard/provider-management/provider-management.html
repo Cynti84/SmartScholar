@@ -299,10 +299,10 @@
                 <label>Registration Date</label>
                 <span>{{ formatDate(selectedProvider.registrationDate) }}</span>
               </div>
-              <div class="info-item">
+              <!-- <div class="info-item">
                 <label>Last Active</label>
                 <span>{{ getTimeSinceActive(selectedProvider.lastActive) }}</span>
-              </div>
+              </div> -->
               <div class="info-item">
                 <label>Contact Person</label>
                 <span>{{ selectedProvider.contactPerson }}</span>
@@ -325,12 +325,12 @@
                 <label>Phone</label>
                 <span>{{ selectedProvider.phone }}</span>
               </div>
-              <div class="info-item">
+              <!-- <div class="info-item">
                 <label>Website</label>
                 <a [href]="'https://' + selectedProvider.website" target="_blank">
                   {{ selectedProvider.website }}
                 </a>
-              </div>
+              </div> -->
               <div class="info-item full-width">
                 <label>Address</label>
                 <span>{{ selectedProvider.address }}</span>
