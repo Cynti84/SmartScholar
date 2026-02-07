@@ -61,6 +61,23 @@ export class Landing implements OnInit {
     });
   }
 
+  ngAfterViewInit() {
+    const reveals = document.querySelectorAll('.reveal');
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+          }
+        });
+      },
+      { threshold: 0.15 },
+    );
+
+    reveals.forEach((el) => observer.observe(el));
+  }
+
   onScholarshipClick(scholarship: Scholarship): void {
     console.log('Scholarship clicked:', scholarship);
   }
