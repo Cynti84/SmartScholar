@@ -27,7 +27,7 @@ export interface UserScholarship {
   required_documents?: string;
   application_steps?: string;
   application_url?: string;
-  status: 'pending' | 'accepted' | 'rejected' | 'applied' | 'bookmarked';
+  status: 'pending' | 'accepted' | 'rejected' | 'applied' | 'bookmarked' | 'approved' | 'expired';
 }
 
 @Injectable({
@@ -36,10 +36,7 @@ export interface UserScholarship {
 export class UserScholarshipService {
   private apiUrl = `${environment.apiUrl}/student/scholarships`;
 
-  constructor(
-    private http: HttpClient,
-    private authService: AuthService,
-  ) {}
+  constructor(private http: HttpClient, private authService: AuthService) {}
 
   private getHeaders(): HttpHeaders {
     const token = this.authService.getAccessToken();
@@ -54,7 +51,7 @@ export class UserScholarshipService {
     return this.http.post<ApiResponse<UserScholarship>>(
       `${this.apiUrl}/${scholarshipId}/bookmark`,
       {},
-      { headers: this.getHeaders() },
+      { headers: this.getHeaders() }
     );
   }
 
@@ -70,7 +67,7 @@ export class UserScholarshipService {
     return this.http.post(
       `${this.apiUrl}/${scholarshipId}/apply`,
       {}, // ✅ empty body
-      { headers: this.getHeaders() },
+      { headers: this.getHeaders() }
     );
   }
 
@@ -82,7 +79,7 @@ export class UserScholarshipService {
   }> {
     return this.http.get<{ success: boolean; data: UserScholarship[]; count: number }>(
       `${this.apiUrl}/bookmarked`,
-      { headers: this.getHeaders() },
+      { headers: this.getHeaders() }
     );
   }
 
@@ -94,7 +91,7 @@ export class UserScholarshipService {
   }> {
     return this.http.get<{ success: boolean; data: UserScholarship[]; count: number }>(
       `${this.apiUrl}/applied`,
-      { headers: this.getHeaders() },
+      { headers: this.getHeaders() }
     );
   }
 
@@ -102,7 +99,7 @@ export class UserScholarshipService {
   getTotalApplied(): Observable<{ success: boolean; data: { total: number } }> {
     return this.http.get<{ success: boolean; data: { total: number } }>(
       `${this.apiUrl}/applied/total`,
-      { headers: this.getHeaders() },
+      { headers: this.getHeaders() }
     );
   }
 
@@ -110,7 +107,7 @@ export class UserScholarshipService {
   getExpiredApplied(): Observable<{ success: boolean; data: UserScholarship[]; count: number }> {
     return this.http.get<{ success: boolean; data: UserScholarship[]; count: number }>(
       `${this.apiUrl}/applied/expired`,
-      { headers: this.getHeaders() },
+      { headers: this.getHeaders() }
     );
   }
   // added

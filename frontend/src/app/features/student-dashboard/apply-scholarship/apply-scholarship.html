@@ -67,6 +67,317 @@
       </p>
     </div>
 
+    <!-- ============================================ -->
+    <!-- APPLICATION ASSISTANT SECTION -->
+    <!-- ============================================ -->
+
+    <!-- Application Assistant Toggle Button -->
+    <div class="assistant-toggle">
+      <button class="assistant-btn" (click)="toggleAssistant()">
+        <mat-icon>stars</mat-icon>
+        {{ showAssistant ? 'Hide' : 'Show' }} AI Application Helper
+      </button>
+    </div>
+
+    <!-- Application Assistant Panel -->
+    <div class="assistant-panel" *ngIf="showAssistant">
+      <div class="assistant-header">
+        <mat-icon class="header-icon">school</mat-icon>
+        <h2>AI Application Helper</h2>
+        <p>Get personalized assistance for your scholarship application</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="assistant-tabs">
+        <button
+          class="tab-btn"
+          [class.active]="activeAssistantTab === 'checklist'"
+          (click)="switchAssistantTab('checklist')"
+        >
+          <mat-icon>check_circle</mat-icon>
+          <span>Checklist</span>
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeAssistantTab === 'questions'"
+          (click)="switchAssistantTab('questions')"
+        >
+          <mat-icon>mic</mat-icon>
+          <span>Interview Prep</span>
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeAssistantTab === 'tips'"
+          (click)="switchAssistantTab('tips')"
+        >
+          <mat-icon>lightbulb</mat-icon>
+          <span>Tips</span>
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeAssistantTab === 'essay'"
+          (click)="switchAssistantTab('essay')"
+        >
+          <mat-icon>edit_note</mat-icon>
+          <span>Essay Review</span>
+        </button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="assistant-content">
+        <!-- ========== CHECKLIST TAB ========== -->
+        <div class="tab-content" *ngIf="activeAssistantTab === 'checklist'">
+          <div class="content-header">
+            <div class="header-with-icon">
+              <mat-icon>assignment</mat-icon>
+              <h3>Required Documents</h3>
+            </div>
+            <div class="progress-badge" *ngIf="documentChecklist.length > 0">
+              {{ getChecklistProgress() }}% Complete
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div class="loading-state" *ngIf="assistantLoading.checklist">
+            <div class="spinner"></div>
+            <p>Generating personalized checklist...</p>
+          </div>
+
+          <!-- Checklist Items -->
+          <div
+            class="checklist"
+            *ngIf="!assistantLoading.checklist && documentChecklist.length > 0"
+          >
+            <div
+              class="checklist-item"
+              *ngFor="let item of documentChecklist; let i = index"
+              [class.completed]="item.completed"
+              [class.required]="item.priority === 'required'"
+              [class.recommended]="item.priority === 'recommended'"
+            >
+              <div class="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  [id]="'doc-' + i"
+                  [checked]="item.completed"
+                  (change)="toggleChecklistItem(i)"
+                />
+                <label [for]="'doc-' + i"></label>
+              </div>
+
+              <div class="item-content">
+                <div class="item-header">
+                  <h4>{{ item.name }}</h4>
+                  <span class="priority-badge" [class]="item.priority">
+                    {{ item.priority }}
+                  </span>
+                </div>
+                <p class="item-description">{{ item.description }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="progress-bar-container" *ngIf="documentChecklist.length > 0">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="getChecklistProgress()"></div>
+            </div>
+            <p class="progress-text">
+              {{ getCompletedCount() }} of {{ documentChecklist.length }} documents ready
+            </p>
+          </div>
+        </div>
+
+        <!-- ========== INTERVIEW QUESTIONS TAB ========== -->
+        <div class="tab-content" *ngIf="activeAssistantTab === 'questions'">
+          <div class="content-header">
+            <div class="header-with-icon">
+              <mat-icon>question_answer</mat-icon>
+              <h3>Likely Interview Questions</h3>
+            </div>
+            <p class="subtitle">Practice these questions to prepare for your interview</p>
+          </div>
+
+          <!-- Loading State -->
+          <div class="loading-state" *ngIf="assistantLoading.questions">
+            <div class="spinner"></div>
+            <p>Generating interview questions...</p>
+          </div>
+
+          <!-- Questions List -->
+          <div
+            class="questions-list"
+            *ngIf="!assistantLoading.questions && interviewQuestions.length > 0"
+          >
+            <div class="question-card" *ngFor="let q of interviewQuestions; let i = index">
+              <div class="question-number">Q{{ i + 1 }}</div>
+              <div class="question-content">
+                <span class="question-category">{{ q.category }}</span>
+                <h4>{{ q.question }}</h4>
+                <div class="question-tips">
+                  <div class="tips-header">
+                    <mat-icon>tips_and_updates</mat-icon>
+                    <strong>Tip:</strong>
+                  </div>
+                  <p>{{ q.tips }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== TIPS TAB ========== -->
+        <div class="tab-content" *ngIf="activeAssistantTab === 'tips'">
+          <div class="content-header">
+            <div class="header-with-icon">
+              <mat-icon>psychology</mat-icon>
+              <h3>Personalized Application Tips</h3>
+            </div>
+            <p class="subtitle">Strategic advice tailored to your profile and this scholarship</p>
+          </div>
+
+          <!-- Loading State -->
+          <div class="loading-state" *ngIf="assistantLoading.tips">
+            <div class="spinner"></div>
+            <p>Generating personalized tips...</p>
+          </div>
+
+          <!-- Tips List -->
+          <div class="tips-list" *ngIf="!assistantLoading.tips && applicationTips.length > 0">
+            <div
+              class="tip-card"
+              *ngFor="let tip of applicationTips"
+              [class.high-priority]="tip.priority === 'high'"
+              [class.medium-priority]="tip.priority === 'medium'"
+              [class.low-priority]="tip.priority === 'low'"
+            >
+              <div class="tip-header">
+                <mat-icon class="tip-icon">
+                  {{
+                    tip.priority === 'high'
+                      ? 'warning'
+                      : tip.priority === 'medium'
+                      ? 'info'
+                      : 'chat_bubble'
+                  }}
+                </mat-icon>
+                <h4>{{ tip.category }}</h4>
+                <span class="priority-label">{{ tip.priority }} priority</span>
+              </div>
+              <p class="tip-advice">{{ tip.advice }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== ESSAY REVIEW TAB ========== -->
+        <div class="tab-content" *ngIf="activeAssistantTab === 'essay'">
+          <div class="content-header">
+            <div class="header-with-icon">
+              <mat-icon>rate_review</mat-icon>
+              <h3>Essay/Statement Review</h3>
+            </div>
+            <p class="subtitle">Get AI feedback on your personal statement or essay</p>
+          </div>
+
+          <!-- Essay Input -->
+          <div class="essay-input-section">
+            <label for="essay-text">Paste your essay or personal statement:</label>
+            <textarea
+              id="essay-text"
+              [(ngModel)]="essayText"
+              placeholder="Paste your essay here (minimum 100 characters)..."
+              rows="10"
+              [disabled]="assistantLoading.essayReview"
+            ></textarea>
+
+            <div class="essay-actions">
+              <span
+                class="char-count"
+                [class.error]="essayText.length > 0 && essayText.length < 100"
+              >
+                {{ essayText.length }} characters (min 100)
+              </span>
+              <button
+                class="review-btn"
+                (click)="reviewEssay()"
+                [disabled]="
+                  !essayText.trim() || essayText.length < 100 || assistantLoading.essayReview
+                "
+              >
+                <span *ngIf="!assistantLoading.essayReview">
+                  <mat-icon>auto_awesome</mat-icon>
+                  Analyze Essay
+                </span>
+                <span *ngIf="assistantLoading.essayReview">
+                  <div class="spinner-small"></div>
+                  Analyzing...
+                </span>
+              </button>
+            </div>
+
+            <p class="error-message" *ngIf="essayError">{{ essayError }}</p>
+          </div>
+
+          <!-- Essay Review Results -->
+          <div class="essay-review-results" *ngIf="essayReview">
+            <!-- Overall Score -->
+            <div class="score-card">
+              <div class="score-circle" [class]="getScoreClass(essayReview.overallScore)">
+                <span class="score-number">{{ essayReview.overallScore }}</span>
+                <span class="score-label">/ 100</span>
+              </div>
+              <div class="score-description">
+                <h4>Overall Score</h4>
+                <p>{{ getScoreDescription(essayReview.overallScore) }}</p>
+              </div>
+            </div>
+
+            <!-- Alignment -->
+            <div class="review-section">
+              <div class="section-header">
+                <mat-icon>track_changes</mat-icon>
+                <h4>Alignment with Scholarship</h4>
+              </div>
+              <p class="alignment-text">{{ essayReview.alignment }}</p>
+            </div>
+
+            <!-- Strengths -->
+            <div class="review-section strengths">
+              <div class="section-header">
+                <mat-icon>verified</mat-icon>
+                <h4>Strengths</h4>
+              </div>
+              <ul>
+                <li *ngFor="let strength of essayReview.strengths">{{ strength }}</li>
+              </ul>
+            </div>
+
+            <!-- Improvements -->
+            <div class="review-section improvements">
+              <div class="section-header">
+                <mat-icon>trending_up</mat-icon>
+                <h4>Areas for Improvement</h4>
+              </div>
+              <ul>
+                <li *ngFor="let improvement of essayReview.improvements">{{ improvement }}</li>
+              </ul>
+            </div>
+
+            <!-- Suggestions -->
+            <div class="review-section suggestions">
+              <div class="section-header">
+                <mat-icon>emoji_objects</mat-icon>
+                <h4>Specific Suggestions</h4>
+              </div>
+              <ul>
+                <li *ngFor="let suggestion of essayReview.suggestions">{{ suggestion }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Action Bar -->
     <div class="action-bar">
       <button class="btn-outline" (click)="goBack()">← Back</button>

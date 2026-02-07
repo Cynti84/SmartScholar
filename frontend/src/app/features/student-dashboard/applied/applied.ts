@@ -15,7 +15,7 @@ interface Scholarship {
   amount: number;
   appliedDate: Date;
   deadline: Date;
-  status: 'active' | 'expired' | 'pending';
+  status: 'active' | 'expired' | 'pending' | 'approved';
   description: string;
   requirements: string[];
   field: string;
@@ -38,7 +38,7 @@ export class Applied implements OnInit {
   ];
   scholarships: Scholarship[] = [];
   filteredScholarships: Scholarship[] = [];
-  selectedFilter: 'all' | 'active' | 'expired' | 'pending' = 'all';
+  selectedFilter: 'all' | 'active' | 'expired' | 'pending' | 'approved' = 'all';
   selectedScholarship: Scholarship | null = null;
   isModalOpen: boolean = false;
 
@@ -102,12 +102,12 @@ export class Applied implements OnInit {
 
   calculateStats(): void {
     this.totalApplied = this.scholarships.length;
-    this.activeCount = this.scholarships.filter((s) => s.status === 'active').length;
+    this.activeCount = this.scholarships.filter((s) => s.status === 'approved').length;
     this.expiredCount = this.scholarships.filter((s) => s.status === 'expired').length;
     this.pendingCount = this.scholarships.filter((s) => s.status === 'pending').length;
   }
 
-  filterScholarships(filter: 'all' | 'active' | 'expired' | 'pending'): void {
+  filterScholarships(filter: 'all' | 'active' | 'expired' | 'pending' | 'approved'): void {
     this.selectedFilter = filter;
     if (filter === 'all') {
       this.filteredScholarships = [...this.scholarships];

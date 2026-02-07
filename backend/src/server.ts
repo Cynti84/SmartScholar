@@ -14,6 +14,8 @@ import recommendationExplanationRoutes from "./routes/recommendationExplanation.
 import applicationReadinessRoutes from "./routes/applicationReadiness.routes";
 import aiDiscoveryRoutes from "./routes/aiScholarshipDiscovery.routes";
 
+import applicationAssistantRoutes from "./routes/applicationAssistant.routes";
+
 //1. configure dotenv
 dotenv.config();
 
@@ -52,6 +54,7 @@ app.use(
   applicationReadinessRoutes,
   aiDiscoveryRoutes
 );
+app.use("/api/student/application-assistant", applicationAssistantRoutes);
 
 // 404 handler
 app.use((req, res) => {

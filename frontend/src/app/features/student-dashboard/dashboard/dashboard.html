@@ -341,7 +341,7 @@
                 *ngIf="!aiExplanation && !loadingExplanation && selectedMatchId"
                 (click)="loadModalExplanation(selectedMatchId)"
               >
-                <span class="sparkle-icon">✨</span>
+                <mat-icon class="sparkle-icon">auto_awesome</mat-icon>
                 <span class="label">Why was this recommended for you?</span>
               </button>
 
@@ -356,17 +356,7 @@
               <!-- Match Strength Badge -->
               <div class="match-strength-header">
                 <div class="strength-badge" [class]="explanation.matchStrength">
-                  <svg
-                    class="badge-icon"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                    />
-                  </svg>
+                  <mat-icon class="badge-icon">stars</mat-icon>
                   <span class="strength-label">
                     {{ getMatchStrengthLabel(explanation.matchStrength) }}
                   </span>
@@ -385,8 +375,8 @@
               <!-- Main Explanation Section -->
               <div class="explanation-main">
                 <h3 class="explanation-title">
-                  <span class="title-icon">🎯</span>
-                  Why This Scholarship is Perfect for You
+                  <mat-icon class="title-icon">track_changes</mat-icon>
+                  <span>Why This Scholarship is Perfect for You</span>
                 </h3>
 
                 <div class="explanation-content">
@@ -395,7 +385,7 @@
 
                 <!-- Personalized Note (if available) -->
                 <div class="personalized-note" *ngIf="explanation.personalizedNote">
-                  <div class="note-icon">💡</div>
+                  <mat-icon class="note-icon">tips_and_updates</mat-icon>
                   <p class="note-text">{{ explanation.personalizedNote }}</p>
                 </div>
               </div>
@@ -408,13 +398,11 @@
                   [class.expanded]="showImproveTips"
                 >
                   <span class="toggle-icon" [class.rotated]="showImproveTips">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M9 18l6-6-6-6" />
-                    </svg>
+                    <mat-icon>chevron_right</mat-icon>
                   </span>
                   <span class="toggle-title">
-                    <span class="title-icon">🚀</span>
-                    Ways to Strengthen Your Application
+                    <mat-icon class="title-icon">rocket_launch</mat-icon>
+                    <span>Ways to Strengthen Your Application</span>
                   </span>
                   <span class="tips-count">{{ explanation.improvementTips.length }} tips</span>
                 </button>
@@ -435,31 +423,27 @@
               <!-- Call to Action -->
               <div class="explanation-cta">
                 <div class="cta-content">
-                  <span class="cta-icon">🎓</span>
+                  <mat-icon class="cta-icon">school</mat-icon>
                   <span class="cta-text">Ready to take the next step?</span>
                 </div>
                 <button
                   class="cta-button"
                   (click)="goToApplyPage(selectedScholarship!.scholarshipId)"
                 >
-                  Start Application
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
+                  <span>Start Application</span>
+                  <mat-icon>arrow_forward</mat-icon>
                 </button>
               </div>
             </div>
 
             <!-- Error State -->
             <div class="ai-error-card" *ngIf="explanationError">
-              <div class="error-icon">⚠️</div>
+              <mat-icon class="error-icon">warning</mat-icon>
               <p class="error-text">{{ explanationError }}</p>
               <button class="retry-btn" (click)="loadModalExplanation(selectedMatchId!)">
                 Try Again
               </button>
             </div>
-
-            <!-- AI Recommendation Explanation -->
 
             <!-- Eligibility -->
             <div class="detail-section" *ngIf="selectedScholarship.eligibility?.length">

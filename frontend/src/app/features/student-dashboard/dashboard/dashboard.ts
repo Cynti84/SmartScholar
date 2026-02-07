@@ -19,6 +19,7 @@ import {
 } from '../../../core/services/recommendation-explanation.service';
 import { AIChatComponent } from '../../../shared/components/ai-chat/ai-chat.component';
 import { trigger, state, style, transition, animate, stagger, query } from '@angular/animations';
+import { MatIconModule } from '@angular/material/icon';
 
 interface ScholarshipUI {
   id: number;
@@ -50,7 +51,7 @@ interface ScholarshipUI {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, DashboardLayout, ConfirmModal, AIChatComponent],
+  imports: [CommonModule, DashboardLayout, ConfirmModal, AIChatComponent, MatIconModule],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
 

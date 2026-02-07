@@ -63,7 +63,7 @@ export class AIScholarshipDiscoveryService {
       field: studentProfile.field_of_study,
     });
 
-    // RULE-BASED classification (NO Gemini)
+    // RULE-BASED classification
     console.log("\n🔍 Step 1: Classifying query type...");
     const queryType = this.classifyQueryRuleBased(query);
     console.log("✅ Query classified as:", queryType);
@@ -73,7 +73,7 @@ export class AIScholarshipDiscoveryService {
       return this.handleConversationalQuery(query, queryType, studentProfile);
     }
 
-    // RULE-BASED filter extraction (NO Gemini)
+    // RULE-BASED filter extraction
     console.log("\n🔎 Step 2: Extracting filters from query...");
     const extractedFilters = this.extractFiltersRuleBased(
       query,
@@ -116,7 +116,7 @@ export class AIScholarshipDiscoveryService {
   }
 
   /**
-   * RULE-BASED classification (NO Gemini API)
+   * RULE-BASED classification of user queries/requests
    */
   private classifyQueryRuleBased(query: string): string {
     const lowerQuery = query.toLowerCase().trim();
@@ -185,7 +185,7 @@ export class AIScholarshipDiscoveryService {
   }
 
   /**
-   * RULE-BASED filter extraction (NO Gemini API)
+   * RULE-BASED filter extraction
    */
   private extractFiltersRuleBased(
     query: string,
@@ -262,6 +262,8 @@ export class AIScholarshipDiscoveryService {
       korea: "South Korea",
       "s korea": "South Korea",
       sk: "South Korea",
+      tz: "Tanzania",
+      ke: "Kenya",
     };
 
     const foundCountries: string[] = [];
