@@ -77,14 +77,10 @@
             <option value="suspended">Suspended</option>
           </select>
 
-          <select
-            [(ngModel)]="selectedUniversity"
-            (change)="onFilterChange()"
-            class="filter-select"
-          >
-            <option value="all">All Universities</option>
-            <option *ngFor="let university of universities" [value]="university">
-              {{ university }}
+          <select [(ngModel)]="selectedField" (change)="onFilterChange()" class="filter-select">
+            <option value="all">All Fields of Study</option>
+            <option *ngFor="let field of fieldsOfStudy" [value]="field">
+              {{ field }}
             </option>
           </select>
         </div>
@@ -103,9 +99,9 @@
           <thead>
             <tr>
               <th>Student</th>
-              <th>University</th>
+              <th>Academic Level</th>
               <th>Major</th>
-              <th>GPA</th>
+              <!-- <th>GPA</th> -->
               <th>Applications</th>
               <th>Registered</th>
               <th>Status</th>
@@ -125,13 +121,13 @@
                   </div>
                 </div>
               </td>
-              <td>{{ student.university }}</td>
-              <td>{{ student.major }}</td>
-              <td>
-                <span class="gpa-badge" [class.high-gpa]="student.gpa >= 3.7">
+              <td>{{ student.academic_level }}</td>
+              <td>{{ student.field_of_study }}</td>
+              <!-- <td>
+                 <span class="gpa-badge" [class.high-gpa]="student.gpa >= 3.7">
                   {{ student.gpa.toFixed(2) }}
-                </span>
-              </td>
+                </span> 
+              </td> -->
               <td class="applications-cell">
                 <div class="application-stats">
                   <span class="total">{{ student.applicationsCount }} applied</span>
@@ -272,15 +268,15 @@
         <div class="quick-stats">
           <div class="quick-stat">
             <span class="stat-icon"> <mat-icon style="color: #ffffff">school</mat-icon></span>
-            <span>{{ selectedStudent.university }}</span>
+            <span>{{ selectedStudent.academic_level }}</span>
           </div>
           <div class="quick-stat">
             <span class="stat-icon"><mat-icon style="color: #ffffff">menu_book</mat-icon></span>
-            <span>{{ selectedStudent.major }}</span>
+            <span>{{ selectedStudent.field_of_study }}</span>
           </div>
           <div class="quick-stat">
-            <span class="stat-icon"><mat-icon style="color: #ffffff">bar_chart</mat-icon></span>
-            <span>GPA: {{ selectedStudent.gpa.toFixed(2) }}</span>
+            <!-- <span class="stat-icon"><mat-icon style="color: #ffffff">bar_chart</mat-icon></span> -->
+            <!-- <span>GPA: {{ selectedStudent.gpa.toFixed(2) }}</span> -->
           </div>
         </div>
       </div>
@@ -300,18 +296,18 @@
             <label>Email</label>
             <span>{{ selectedStudent.email }}</span>
           </div>
-          <div class="info-item">
+          <!-- <div class="info-item">
             <label>Phone</label>
             <span>{{ selectedStudent.phone }}</span>
-          </div>
+          </div> -->
           <div class="info-item">
             <label>Age</label>
             <span>{{ calculateAge(selectedStudent.dateOfBirth) }} years</span>
           </div>
-          <div class="info-item full-width">
+          <!-- <div class="info-item full-width">
             <label>Address</label>
             <span>{{ selectedStudent.address }}</span>
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -323,19 +319,19 @@
         </h4>
         <div class="info-grid">
           <div class="info-item">
-            <label>University</label>
-            <span>{{ selectedStudent.university }}</span>
+            <label>Academic Level</label>
+            <span>{{ selectedStudent.academic_level }}</span>
           </div>
           <div class="info-item">
             <label>Major</label>
-            <span>{{ selectedStudent.major }}</span>
+            <span>{{ selectedStudent.field_of_study }}</span>
           </div>
-          <div class="info-item">
+          <!-- <div class="info-item">
             <label>GPA</label>
             <span class="gpa-value" [class.high-gpa]="selectedStudent.gpa >= 3.7">
               {{ selectedStudent.gpa.toFixed(2) }}
             </span>
-          </div>
+          </div> -->
           <!-- <div class="info-item">
             <label>Expected Graduation</label>
             <span>{{ selectedStudent.graduationYear }}</span>

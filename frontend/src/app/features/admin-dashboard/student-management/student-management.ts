@@ -17,16 +17,22 @@ interface Student {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
-  dateOfBirth: Date;
+  phone: string | null;
+
+  dateOfBirth?: Date;
+
   status: 'active' | 'pending' | 'suspended';
   registrationDate: Date;
   lastLogin: Date;
   avatar?: string;
   address: string;
-  university: string;
-  major: string;
-  gpa: number;
+  academic_level?: string;
+  field_of_study?: string;
+  country?: string;
+  interest?: string;
+
+  gpaMin?: number | null;
+  gpaMax?: number | null;
   graduationYear: number;
   applicationsCount: number;
   acceptedScholarships: number;
@@ -70,7 +76,11 @@ export class StudentManagement {
   // Filter properties
   searchTerm: string = '';
   selectedStatus: string = 'all';
-  selectedUniversity: string = 'all';
+  // For the dropdown options
+  fieldsOfStudy: string[] = [];
+
+  // The selected value
+  selectedField: string = 'all';
 
   // Pagination
   currentPage: number = 1;
@@ -94,51 +104,51 @@ export class StudentManagement {
     suspended: 0,
   };
 
-  universities: string[] = [];
-
   ngOnInit(): void {
     this.loadStudents();
   }
 
   loadStudents(): void {
-    // Mock data - replace with actual API call
     this.adminService.getAllStudents().subscribe({
       next: (res) => {
         const users = res.data;
 
-        this.students = users.map((u: any) => ({
+        const mappedStudents = users.map((u: any) => ({
           id: u.id,
           firstName: u.firstName,
           lastName: u.lastName,
           email: u.email,
-          phone: u.phone ?? 'N/A',
-          dateOfBirth: u.dateOfBirth ? new Date(u.dateOfBirth) : null,
+          phone: u.phone ?? null,
           status: u.status,
           registrationDate: new Date(u.createdAt),
           lastLogin: u.lastLogin ? new Date(u.lastLogin) : new Date(u.createdAt),
           address: u.address ?? '—',
-          university: u.profile?.university ?? '—',
-          major: u.profile?.major ?? '—',
-          gpa: u.profile?.gpa ?? 0,
-          graduationYear: u.profile?.graduationYear ?? 0,
+          country: u.profile?.country ?? '—',
+          academic_level: u.profile?.academic_level ?? '—',
+          field_of_study: u.profile?.field_of_study ?? '—',
           applicationsCount: u.applications?.length ?? 0,
           acceptedScholarships:
             u.applications?.filter((a: any) => a.status === 'accepted').length ?? 0,
         }));
 
-        this.universities = [...new Set(this.students.map((s) => s.university))];
-
-        this.updateStatistics();
-        this.applyFilters();
+        // <-- Wrap the assignment and filter update in NgZone
+        this.zone.run(() => {
+          this.students = mappedStudents;
+          this.fieldsOfStudy = Array.from(
+            new Set(
+              this.students
+                .map((student) => student.field_of_study)
+                .filter((f): f is string => f !== undefined),
+            ),
+          );
+          this.updateStatistics();
+          this.applyFilters();
+        });
       },
       error: (err) => {
         console.error('Failed to load students', err);
       },
     });
-
-    this.universities = [...new Set(this.students.map((s) => s.university))];
-    this.updateStatistics();
-    this.applyFilters();
   }
 
   updateStatistics(): void {
@@ -151,16 +161,18 @@ export class StudentManagement {
   applyFilters(): void {
     this.filteredStudents = this.students.filter((student) => {
       const fullName = `${student.firstName} ${student.lastName}`.toLowerCase();
-      const matchesSearch =
-        fullName.includes(this.searchTerm.toLowerCase()) ||
-        student.email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        student.university.toLowerCase().includes(this.searchTerm.toLowerCase());
-      const matchesStatus = this.selectedStatus === 'all' || student.status === this.selectedStatus;
-      const matchesUniversity =
-        this.selectedUniversity === 'all' || student.university === this.selectedUniversity;
+      const search = this.searchTerm.toLowerCase();
 
-      return matchesSearch && matchesStatus && matchesUniversity;
+      const matchesSearch =
+        fullName.includes(search) || student.email.toLowerCase().includes(search);
+
+      const matchesStatus = this.selectedStatus === 'all' || student.status === this.selectedStatus;
+
+      const matchesField =
+        this.selectedField === 'all' || student.field_of_study === this.selectedField;
+      return matchesSearch && matchesStatus && matchesField;
     });
+
     this.currentPage = 1;
   }
 
@@ -188,8 +200,28 @@ export class StudentManagement {
     }
   }
 
+  loadStudentProfile(studentId: number): void {
+    this.adminService.getStudentProfile(studentId).subscribe({
+      next: (res) => {
+        if (!this.selectedStudent) return;
+
+        const p = res.data;
+
+        this.selectedStudent.academic_level = p.academic_level;
+        this.selectedStudent.field_of_study = p.field_of_study;
+        this.selectedStudent.country = p.country;
+        this.selectedStudent.interest = p.interest;
+        this.selectedStudent.dateOfBirth = p.date_of_birth ? new Date(p.date_of_birth) : undefined;
+        this.selectedStudent.gpaMin = p.gpa_min;
+        this.selectedStudent.gpaMax = p.gpa_max;
+      },
+      error: (err) => console.error('Failed to load student profile', err),
+    });
+  }
+
   viewStudentDetails(student: Student): void {
     this.selectedStudent = student;
+    this.loadStudentProfile(student.id);
     this.loadStudentApplications(student.id);
     this.showDetailsModal = true;
   }
@@ -352,14 +384,18 @@ export class StudentManagement {
     });
   }
 
-  calculateAge(dateOfBirth: Date): number {
+  calculateAge(dateOfBirth?: Date): number | null {
+    if (!dateOfBirth) return null;
+
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
+
     return age;
   }
 

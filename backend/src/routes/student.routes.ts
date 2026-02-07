@@ -21,7 +21,7 @@ import {
   getExpiredApplied,
   removeBookmark,
   downloadStudentProfile,
-  getStudentProfile,
+  getStudentProfileById,
   get2FAStatus,
 } from "../controllers/student.user.controller";
 import {
@@ -42,7 +42,7 @@ router.post(
     { name: "profileImage", maxCount: 1 },
     { name: "cvFile", maxCount: 1 },
   ]),
-  createStudentProfile
+  createStudentProfile,
 );
 
 router.put(
@@ -52,20 +52,20 @@ router.put(
     { name: "profileImage", maxCount: 1 },
     { name: "cvFile", maxCount: 1 },
   ]),
-  updateStudentProfile
+  updateStudentProfile,
 );
-router.get("/profile", AuthMiddleware.authenticate, getStudentProfile);
+router.get("/profile/:id", AuthMiddleware.authenticate, getStudentProfileById);
 
 router.delete(
   "/delete-profile",
   AuthMiddleware.authenticate,
   AuthMiddleware.isStudent,
-  deleteProfile
+  deleteProfile,
 );
 router.get(
   "/profile/download",
   AuthMiddleware.authenticate,
-  downloadStudentProfile
+  downloadStudentProfile,
 );
 
 router.post("/logout", AuthMiddleware.authenticate, logout);
@@ -80,77 +80,77 @@ router.post("/2fa/disable-2fa", AuthMiddleware.authenticate, disable2FA);
 router.get(
   "/email-preferences",
   AuthMiddleware.authenticate,
-  getEmailPreferences
+  getEmailPreferences,
 );
 router.put(
   "/email-preferences",
   AuthMiddleware.authenticate,
-  updateEmailPreferences
+  updateEmailPreferences,
 );
 
 //scholarshipfor students
 router.get(
   "/scholarships",
   AuthMiddleware.authenticate,
-  getScholarshipsForStudent
+  getScholarshipsForStudent,
 );
 router.get(
   "/scholarships/active-scholarship",
   AuthMiddleware.authenticate,
-  getActiveScholarships
+  getActiveScholarships,
 );
 
 router.get(
   "/scholarships/recommendations",
   AuthMiddleware.authenticate,
-  controller.getRecommendations
+  controller.getRecommendations,
 );
 
 router.post(
   "/scholarships/:scholarshipId/bookmark",
   AuthMiddleware.authenticate,
-  bookmarkScholarship
+  bookmarkScholarship,
 );
 
 router.get(
   "/scholarships/bookmarked",
   AuthMiddleware.authenticate,
-  getBookmarkedScholarships
+  getBookmarkedScholarships,
 );
 
 router.delete(
   "/scholarships/:scholarshipId/bookmark",
   AuthMiddleware.authenticate,
-  removeBookmark
+  removeBookmark,
 );
 
 router.post(
   "/scholarships/:scholarshipId/apply",
   AuthMiddleware.authenticate,
-  markScholarshipAsApplied
+  markScholarshipAsApplied,
 );
 
 router.get(
   "/scholarships/applied",
   AuthMiddleware.authenticate,
-  getAppliedScholarships
+  getAppliedScholarships,
 );
 
 router.get(
   "/scholarships/applied/total",
   AuthMiddleware.authenticate,
-  getTotalApplied
+  getTotalApplied,
 );
 
 router.get(
   "/scholarships/applied/expired",
   AuthMiddleware.authenticate,
-  getExpiredApplied
+  getExpiredApplied,
 );
 router.get(
   "/scholarships/:id",
   AuthMiddleware.authenticate,
-  getScholarshipById
+  getScholarshipById,
 );
 
 export default router;

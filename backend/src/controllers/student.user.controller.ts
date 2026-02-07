@@ -62,19 +62,21 @@ export const createStudentProfile = async (req: Request, res: Response) => {
 };
 
 // GetProfile test first
-export const getStudentProfile = async (req: Request, res: Response) => {
+export const getStudentProfileById = async (req: Request, res: Response) => {
   try {
-    const authReq = req as unknown as AuthRequest;
+    const { id } = req.params; // get student ID from URL
 
-    if (!authReq.user) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Student ID is required",
+      });
     }
 
-    const userId = authReq.user.id;
     const profileRepo = AppDataSource.getRepository(StudentProfile);
 
     const profile = await profileRepo.findOne({
-      where: { student_id: userId },
+      where: { student_id: parseInt(id) },
     });
 
     if (!profile) {
@@ -96,7 +98,6 @@ export const getStudentProfile = async (req: Request, res: Response) => {
     });
   }
 };
-
 //UpdateProfile
 export const updateStudentProfile = async (req: Request, res: Response) => {
   try {
