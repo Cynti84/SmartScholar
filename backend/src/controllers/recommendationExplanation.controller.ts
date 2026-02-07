@@ -45,11 +45,19 @@ export class RecommendationExplanationController {
         scholarship_id: match.scholarship!.scholarship_id,
         whyRecommended: explanation.whyRecommended,
         improvementTips: explanation.improvementTips,
+        matchStrength: explanation.matchStrength,
+        personalizedNote: explanation.personalizedNote,
+        // Additional context for frontend
+        matchedCount: match.matched_criteria.length,
+        totalCriteria:
+          match.matched_criteria.length +
+          (match.unmatched_criteria?.length || 0),
       });
     } catch (error: any) {
       console.error("Gemini explanation error:", error);
       return res.status(500).json({
         error: "Failed to generate explanation",
+        message: error.message || "An unexpected error occurred",
       });
     }
   }

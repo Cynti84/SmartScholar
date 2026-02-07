@@ -1,0 +1,143 @@
+<div class="scholarship-details-modal" *ngIf="scholarship" (click)="onBackdropClick($event)">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <!-- Close button -->
+    <button class="close-btn" (click)="closeModal()"><span>✕</span></button>
+
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <div class="provider-section">
+        <div class="provider-logo" *ngIf="scholarship.providerLogo">
+          <img [src]="scholarship.providerLogo" [alt]="scholarship.provider" />
+        </div>
+
+        <div class="provider-logo placeholder" *ngIf="!scholarship.providerLogo">
+          {{ scholarship.provider.charAt(0) }}
+        </div>
+
+        <div class="provider-info">
+          <div class="provider-name">{{ scholarship.provider }}</div>
+          <div class="status-badge" [class]="scholarship.status">
+            {{ scholarship.status | uppercase }}
+          </div>
+        </div>
+      </div>
+
+      <h2 class="scholarship-title">{{ scholarship.title }}</h2>
+      <div class="scholarship-meta">
+        <span class="category-badge">{{ scholarship.category }}</span>
+        <span class="amount">{{ scholarship.amount }}</span>
+        <span class="match-score" *ngIf="scholarship.matchScore"
+          >{{ scholarship.matchScore }}% Match</span
+        >
+      </div>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body">
+      <!-- Description -->
+      <div class="detail-section">
+        <h3 class="section-title">Description</h3>
+        <p class="section-content">{{ scholarship.description }}</p>
+      </div>
+
+      <!-- Eligibility -->
+      <div class="detail-section" *ngIf="scholarship.eligibility?.length">
+        <h3 class="section-title">Eligibility Criteria</h3>
+        <ul class="criteria-list">
+          <li *ngFor="let criterion of scholarship.eligibility">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            {{ criterion }}
+          </li>
+        </ul>
+      </div>
+
+      <!-- Requirements -->
+      <div class="detail-section" *ngIf="scholarship.requirements?.length">
+        <h3 class="section-title">Application Requirements</h3>
+        <ul class="requirements-list">
+          <li *ngFor="let requirement of scholarship.requirements">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            {{ requirement }}
+          </li>
+        </ul>
+      </div>
+
+      <!-- Tags -->
+      <div class="detail-section" *ngIf="scholarship.tags && scholarship.tags.length > 0">
+        <h3 class="section-title">Tags</h3>
+        <div class="tags">
+          <span *ngFor="let tag of scholarship.tags" class="tag">{{ tag }}</span>
+        </div>
+      </div>
+
+      <!-- Additional Info -->
+      <div class="detail-section">
+        <h3 class="section-title">Additional Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Country:</span>
+            <span class="info-value">{{ scholarship.country }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Education Level:</span>
+            <span class="info-value">{{ scholarship.level }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Funding Type:</span>
+            <span class="info-value">{{ scholarship.fundingType }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Deadline:</span>
+            <span class="info-value">{{ scholarship.deadline | date : 'MMM d, yyyy' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Days Remaining:</span>
+            <span class="info-value" [class.urgent]="getDaysRemaining(scholarship.deadline) <= 7">
+              {{ getDaysRemaining(scholarship.deadline) }} days
+            </span>
+          </div>
+          <div class="info-item" *ngIf="scholarship.applicationUrl">
+            <span class="info-label">Application URL:</span>
+            <a [href]="scholarship.applicationUrl" target="_blank" class="info-link">
+              Visit Application Page →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="closeModal()">Close</button>
+      <button
+        class="btn btn-primary"
+        [disabled]="scholarship.status === 'applied' || scholarship.status === 'expired'"
+        (click)="onApplyNow()"
+      >
+        {{
+          scholarship.status === 'applied'
+            ? 'Already Applied'
+            : scholarship.status === 'expired'
+            ? 'Expired'
+            : 'Apply Now'
+        }}
+      </button>
+    </div>
+  </div>
+</div>
