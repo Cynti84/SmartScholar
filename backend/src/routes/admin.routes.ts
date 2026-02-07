@@ -31,6 +31,9 @@ router.patch("/students/:id/suspend", AdminController.suspendStudent);
 // Activate student
 router.patch("/students/:id/activate", AdminController.activateStudent);
 
+// Get single student profile by ID
+router.get("/students/profile/:id", AdminController.getStudentProfileById);
+
 // Delete student (hard delete)
 router.delete("/students/:id", AdminController.deleteStudent);
 

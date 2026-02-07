@@ -83,9 +83,27 @@ export class AdminController {
 
       const students = await studentRepo.find({
         where: { role: UserRole.STUDENT },
-        relations: ["applications"],
+        relations: ["applications", "profile"],
         order: { createdAt: "DESC" },
       });
+
+      const data = students.map((u) => ({
+        id: u.id,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        email: u.email,
+
+        status: u.status,
+        registrationDate: u.createdAt,
+        lastLogin: u.updatedAt,
+
+        country: u.profile?.country ?? "—",
+        academic_level: u.profile?.academic_level ?? "—",
+        field_of_study: u.profile?.field_of_study ?? "—",
+        applicationsCount: u.applications?.length ?? 0,
+        acceptedScholarships:
+          u.applications?.filter((a) => a.status === "accepted").length ?? 0,
+      }));
 
       res.json({
         success: true,
@@ -101,6 +119,35 @@ export class AdminController {
     }
   }
 
+  //Student by id
+  static getStudentProfileById = async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const profileRepo = AppDataSource.getRepository(StudentProfile);
+
+      const profile = await profileRepo.findOne({
+        where: { student_id: parseInt(id) },
+      });
+
+      if (!profile) {
+        return res.status(404).json({
+          success: false,
+          message: "Student profile not found",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: profile,
+      });
+    } catch (error) {
+      console.error("Get student profile error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch student profile",
+      });
+    }
+  };
   // PATCH /api/admin/students/:id/suspend
   static async suspendStudent(req: Request, res: Response): Promise<void> {
     try {

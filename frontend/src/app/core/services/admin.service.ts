@@ -59,6 +59,9 @@ export class AdminService {
       headers: this.getHeaders(),
     });
   }
+  getStudentProfile(studentId: number): Observable<any> {
+    return this.http.get<any>(`${this.API_URL}/students/profile/${studentId}`);
+  }
 
   // =========================
   // SUSPEND STUDENT
