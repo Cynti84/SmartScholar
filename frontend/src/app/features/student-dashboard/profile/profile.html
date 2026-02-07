@@ -259,6 +259,27 @@
                   </select>
                 </div>
               </div>
+              <div class="form-group">
+                <label for="gpaRange">GPA Range (Optional)</label>
+                <div class="select-wrapper">
+                  <select
+                    id="gpaRange"
+                    name="gpaRange"
+                    [(ngModel)]="studentProfile.gpa_range"
+                    [disabled]="!isEditingProfile"
+                    class="form-input"
+                    (change)="onGpaRangeChange()"
+                  >
+                    <option value="">Prefer not to say</option>
+                    <option value="below_2_5">Below 2.5</option>
+                    <option value="2_5_2_99">2.5 – 2.99</option>
+                    <option value="3_0_3_49">3.0 – 3.49</option>
+                    <option value="3_5_4_0">3.5 – 4.0</option>
+                  </select>
+                  <i class="dropdown-icon"></i>
+                </div>
+              </div>
+
               <!-- Disability Status -->
               <div class="form-group">
                 <label class="checkbox-label">
