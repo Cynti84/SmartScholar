@@ -359,28 +359,8 @@
                     <span class="amount-value">{{ selectedScholarship.amount }}</span>
                   </div>
                 </div>
-                <!-- <p class="funding-description">{{ selectedScholarship.fundingDetails }}</p> -->
               </div>
             </div>
-
-            <!-- <div class="detail-section">
-              <h2>Application Requirements</h2>
-              <ul class="requirements-list">
-                <li *ngFor="let requirement of selectedScholarship.requirements">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                  </svg>
-                  {{ requirement }}
-                </li>
-              </ul>
-            </div> -->
           </div>
 
           <aside class="detail-sidebar">
@@ -425,6 +405,21 @@
                 <line x1="16" y1="17" x2="8" y2="17" />
               </svg>
               Apply Now
+            </button>
+
+            <!-- Fit Check Button -->
+            <button class="fit-check-btn" (click)="checkScholarshipFit(selectedScholarship)">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M9 11l3 3L22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+              Is This Right For Me?
             </button>
 
             <div class="info-cards">
@@ -480,6 +475,194 @@
               </div>
             </div>
           </aside>
+
+          <!-- Readiness Panel (Add after the detail-sidebar closing tag) -->
+          <div class="readiness-panel" *ngIf="showReadinessPanel">
+            <div class="readiness-header">
+              <h3>Application Readiness Check</h3>
+              <button class="close-btn" (click)="closeReadinessPanel()">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Loading State -->
+            <div class="readiness-loading" *ngIf="isLoadingReadiness">
+              <div class="loading-spinner"></div>
+              <p>Analyzing your profile...</p>
+            </div>
+
+            <!-- Error State -->
+            <div class="readiness-error" *ngIf="readinessError && !isLoadingReadiness">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <p>{{ readinessError }}</p>
+              <button class="retry-btn" (click)="checkScholarshipFit(selectedScholarship)">
+                Try Again
+              </button>
+            </div>
+
+            <!-- Results -->
+            <div class="readiness-content" *ngIf="readinessResult && !isLoadingReadiness">
+              <!-- Score Badge -->
+              <!-- <div class="readiness-score">
+                <div
+                  class="score-circle"
+                  [style.border-color]="getStatusColor(readinessResult.overallReadiness)"
+                >
+                  <span class="score-number">{{ readinessResult.readinessScore }}%</span>
+                  <span class="score-label">Match</span>
+                </div>
+                <div class="score-status">
+                  <span
+                    class="status-badge"
+                    [style.background-color]="getStatusColor(readinessResult.overallReadiness)"
+                  >
+                    {{ getStatusLabel(readinessResult.overallReadiness) }}
+                  </span>
+                </div>
+              </div> -->
+
+              <!-- AI Explanation -->
+              <div class="ai-explanation">
+                <h4>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                  AI Analysis
+                </h4>
+                <p class="explanation-text">{{ readinessResult.aiExplanation }}</p>
+              </div>
+
+              <!-- Matched Criteria -->
+              <div class="criteria-section" *ngIf="readinessResult.matchedCriteria.length > 0">
+                <h4 class="criteria-title success">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                  What You Match ({{ readinessResult.matchedCriteria.length }})
+                </h4>
+                <ul class="criteria-list matched">
+                  <li *ngFor="let criterion of readinessResult.matchedCriteria">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    {{ criterion }}
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Recommendations -->
+              <div class="criteria-section" *ngIf="readinessResult.recommendations.length > 0">
+                <h4 class="criteria-title warning">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M12 2L2 19.5h20L12 2z" />
+                    <path d="M12 9v4" />
+                    <path d="M12 17h.01" />
+                  </svg>
+                  Recommendations ({{ readinessResult.recommendations.length }})
+                </h4>
+                <ul class="criteria-list recommendations">
+                  <li *ngFor="let rec of readinessResult.recommendations">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="16" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                    {{ rec }}
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Unmatched Criteria -->
+              <div class="criteria-section" *ngIf="readinessResult.unmatchedCriteria.length > 0">
+                <h4 class="criteria-title danger">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                  </svg>
+                  What Doesn't Match ({{ readinessResult.unmatchedCriteria.length }})
+                </h4>
+                <ul class="criteria-list unmatched">
+                  <li *ngFor="let criterion of readinessResult.unmatchedCriteria">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                    {{ criterion }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Backdrop -->
+          <div
+            class="readiness-backdrop"
+            *ngIf="showReadinessPanel"
+            (click)="closeReadinessPanel()"
+          ></div>
         </div>
 
         <div class="related-section" *ngIf="relatedScholarships.length > 0">

@@ -224,7 +224,7 @@ export class PostScholarships implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private authService: AuthService,
-    private providerScholarshipService: ProviderService,
+    private providerScholarshipService: ProviderService
   ) {
     //set minimum date to today
     const today = new Date();
@@ -254,8 +254,9 @@ export class PostScholarships implements OnInit {
       education_level: ['', [Validators.required]],
       scholarship_type: ['', [Validators.required]],
       fields_of_study: ['', [Validators.required]],
+      min_gpa: [null],
 
-      // Step 4: Enhanced Eligibility
+      // Step 4: Enhanced Eligibility and demographics
       min_age: [null, [Validators.min(0)]],
       max_age: [null, [Validators.min(0)]],
       eligibility_gender: ['any'], // default to any
@@ -291,7 +292,7 @@ export class PostScholarships implements OnInit {
 
   removeEligibilityCountry(country: string) {
     this.selectedEligibilityCountries = this.selectedEligibilityCountries.filter(
-      (c) => c !== country,
+      (c) => c !== country
     );
     this.scholarshipForm.patchValue({
       eligibility_countries: this.selectedEligibilityCountries.join(','),
@@ -364,6 +365,16 @@ export class PostScholarships implements OnInit {
     }
   }
 
+  private gpaRangeValidator(group: FormGroup) {
+    const min = group.get('min_gpa')?.value;
+    const max = group.get('max_gpa')?.value;
+
+    if (min !== null && max !== null && max < min) {
+      return { invalidGpaRange: true };
+    }
+    return null;
+  }
+
   //fields of study management
   addField(field: string): void {
     if (!this.selectedFields.includes(field)) {
@@ -405,7 +416,7 @@ export class PostScholarships implements OnInit {
         break;
       case 'verification':
         const validFiles = files.filter((file) =>
-          this.validateFile(file, ['pdf', 'doc', 'docx'], 10),
+          this.validateFile(file, ['pdf', 'doc', 'docx'], 10)
         );
         this.selectedVerificationDocs = validFiles.map((file) => this.createFileUpload(file));
         break;

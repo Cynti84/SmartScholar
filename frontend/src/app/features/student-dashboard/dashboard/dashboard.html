@@ -334,55 +334,132 @@
               <p class="section-content">{{ selectedScholarship.description }}</p>
             </div>
 
-            <!-- AI Trigger -->
+            <!-- AI Trigger Button -->
             <div class="ai-trigger">
               <button
                 class="ai-btn"
                 *ngIf="!aiExplanation && !loadingExplanation && selectedMatchId"
                 (click)="loadModalExplanation(selectedMatchId)"
               >
-                <span class="icon">✨</span>
-                <span class="label">Why was this recommended?</span>
+                <span class="sparkle-icon">✨</span>
+                <span class="label">Why was this recommended for you?</span>
               </button>
 
               <button class="ai-btn loading" *ngIf="loadingExplanation" disabled>
                 <span class="spinner"></span>
-                <span class="label">Generating explanation…</span>
+                <span class="label">Analyzing your match…</span>
+              </button>
+            </div>
+
+            <!-- AI Recommendation Explanation Card -->
+            <div class="ai-explanation-card" *ngIf="aiExplanation as explanation">
+              <!-- Match Strength Badge -->
+              <div class="match-strength-header">
+                <div class="strength-badge" [class]="explanation.matchStrength">
+                  <svg
+                    class="badge-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                    />
+                  </svg>
+                  <span class="strength-label">
+                    {{ getMatchStrengthLabel(explanation.matchStrength) }}
+                  </span>
+                </div>
+
+                <div
+                  class="match-stats"
+                  *ngIf="explanation.matchedCount && explanation.totalCriteria"
+                >
+                  <span class="stats-text">
+                    {{ explanation.matchedCount }}/{{ explanation.totalCriteria }} criteria matched
+                  </span>
+                </div>
+              </div>
+
+              <!-- Main Explanation Section -->
+              <div class="explanation-main">
+                <h3 class="explanation-title">
+                  <span class="title-icon">🎯</span>
+                  Why This Scholarship is Perfect for You
+                </h3>
+
+                <div class="explanation-content">
+                  <p class="explanation-text">{{ explanation.whyRecommended }}</p>
+                </div>
+
+                <!-- Personalized Note (if available) -->
+                <div class="personalized-note" *ngIf="explanation.personalizedNote">
+                  <div class="note-icon">💡</div>
+                  <p class="note-text">{{ explanation.personalizedNote }}</p>
+                </div>
+              </div>
+
+              <!-- Improvement Tips Section -->
+              <div class="improvement-section" *ngIf="explanation.improvementTips?.length">
+                <button
+                  class="improvement-toggle"
+                  (click)="toggleImproveTips()"
+                  [class.expanded]="showImproveTips"
+                >
+                  <span class="toggle-icon" [class.rotated]="showImproveTips">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  </span>
+                  <span class="toggle-title">
+                    <span class="title-icon">🚀</span>
+                    Ways to Strengthen Your Application
+                  </span>
+                  <span class="tips-count">{{ explanation.improvementTips.length }} tips</span>
+                </button>
+
+                <div class="improvement-content" *ngIf="showImproveTips">
+                  <div class="tips-list">
+                    <div
+                      class="tip-item"
+                      *ngFor="let tip of explanation.improvementTips; let i = index"
+                    >
+                      <div class="tip-number">{{ i + 1 }}</div>
+                      <p class="tip-text">{{ tip }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Call to Action -->
+              <div class="explanation-cta">
+                <div class="cta-content">
+                  <span class="cta-icon">🎓</span>
+                  <span class="cta-text">Ready to take the next step?</span>
+                </div>
+                <button
+                  class="cta-button"
+                  (click)="goToApplyPage(selectedScholarship!.scholarshipId)"
+                >
+                  Start Application
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Error State -->
+            <div class="ai-error-card" *ngIf="explanationError">
+              <div class="error-icon">⚠️</div>
+              <p class="error-text">{{ explanationError }}</p>
+              <button class="retry-btn" (click)="loadModalExplanation(selectedMatchId!)">
+                Try Again
               </button>
             </div>
 
             <!-- AI Recommendation Explanation -->
-            <div class="ai-explanation" *ngIf="aiExplanation as explanation">
-              <h3 class="section-title">🤖 Why this scholarship was recommended</h3>
-
-              <!-- Error -->
-              <p class="ai-error" *ngIf="explanationError">
-                {{ explanationError }}
-              </p>
-
-              <!-- Why Recommended -->
-              <div *ngIf="explanation.whyRecommended" class="ai-section">
-                <p class="ai-text" [innerText]="explanation.whyRecommended"></p>
-              </div>
-
-              <!-- Improve Chances -->
-              <div
-                class="improve-toggle"
-                *ngIf="explanation.improvementTips?.length"
-                (click)="toggleImproveTips()"
-              >
-                <span class="chevron" [class.open]="showImproveTips">▸</span>
-                <h4>How can I improve my chances?</h4>
-              </div>
-
-              <div *ngIf="showImproveTips" class="ai-section improve">
-                <ul>
-                  <li *ngFor="let tip of explanation.improvementTips">
-                    {{ tip }}
-                  </li>
-                </ul>
-              </div>
-            </div>
 
             <!-- Eligibility -->
             <div class="detail-section" *ngIf="selectedScholarship.eligibility?.length">
@@ -456,6 +533,7 @@
     </div>
   </section>
 </app-dashboard-layout>
+<app-ai-chat></app-ai-chat>
 
 <app-confirm-modal
   *ngIf="showLogoutModal"

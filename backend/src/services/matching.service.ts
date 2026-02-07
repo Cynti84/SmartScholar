@@ -167,8 +167,39 @@ export class MatchingService {
         }
       }
 
+      // 7. GPA requirement
+      if (scholarship.min_gpa !== null && scholarship.min_gpa !== undefined) {
+        // Student did not provide GPA
+        if (
+          profile.gpa_min === null ||
+          profile.gpa_min === undefined ||
+          profile.gpa_max === null ||
+          profile.gpa_max === undefined
+        ) {
+          // Soft penalty – unclear eligibility
+          unmatchedCriteria.push(
+            `Minimum GPA required (${scholarship.min_gpa}), but your GPA was not provided`
+          );
+          score -= 5;
+        } else {
+          // Student GPA range below requirement
+          if (profile.gpa_max < scholarship.min_gpa) {
+            unmatchedCriteria.push(
+              `Minimum GPA requirement (${scholarship.min_gpa}) not met`
+            );
+            continue; // hard fail
+          }
+
+          // Student GPA meets or exceeds requirement
+          score += 15;
+          matchedCriteria.push(
+            `GPA requirement met (minimum ${scholarship.min_gpa})`
+          );
+        }
+      }
+
       // Ignore weak matches
-      if (score < 50) continue;
+      if (score < 55) continue;
 
       const match = matchRepo.create({
         student: { id: studentId } as any,

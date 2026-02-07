@@ -277,6 +277,21 @@
               </div>
             </div>
 
+            <div class="form-group">
+              <label for="min_gpa">
+                Minimum GPA Requirement
+                <span class="hint">(Optional)</span>
+              </label>
+
+              <select id="min_gpa" formControlName="min_gpa" class="form-control">
+                <option [ngValue]="null">No minimum GPA</option>
+                <option [ngValue]="2.5">2.5 and above</option>
+                <option [ngValue]="3.0">3.0 and above</option>
+                <option [ngValue]="3.5">3.5 and above</option>
+                <option [ngValue]="3.8">3.8 and above</option>
+              </select>
+            </div>
+
             <div class="form-group full-width">
               <label>Fields of Study <span class="required">*</span></label>
               <div class="tags-container">

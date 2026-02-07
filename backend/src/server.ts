@@ -11,6 +11,8 @@ import scholarshipAnalyticsRoutes from "./routes/scholarshipAnalytics.routes";
 import studentRoutes from "./routes/student.routes";
 import { getLandingScholarships } from "./controllers/scholarship.controller";
 import recommendationExplanationRoutes from "./routes/recommendationExplanation.routes";
+import applicationReadinessRoutes from "./routes/applicationReadiness.routes";
+import aiDiscoveryRoutes from "./routes/aiScholarshipDiscovery.routes";
 
 //1. configure dotenv
 dotenv.config();
@@ -43,7 +45,13 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/provider", providerScholarshipRoutes, scholarshipAnalyticsRoutes);
 // app.use("/api/student", studentRoutes);
 app.use("/api/scholarships", getLandingScholarships);
-app.use("/api/student", studentRoutes, recommendationExplanationRoutes);
+app.use(
+  "/api/student",
+  studentRoutes,
+  recommendationExplanationRoutes,
+  applicationReadinessRoutes,
+  aiDiscoveryRoutes
+);
 
 // 404 handler
 app.use((req, res) => {
