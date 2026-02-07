@@ -8,7 +8,7 @@
   <!-- Hero Section -->
   <section class="hero-section">
     <div class="hero-container">
-      <div class="hero-content fade-in">
+      <div class="hero-content reveal fade-in">
         <h1 class="hero-title">Welcome To SmartScholar</h1>
         <p class="hero-description">
           SmartScholar is an intelligent scholarship matching platform that combines verified
@@ -39,7 +39,7 @@
   <!-- Scholarships Section -->
   <section class="scholarships-section">
     <div class="section-container">
-      <h2 class="section-title fade-in">Scholarships</h2>
+      <h2 class="section-title reveal fade-in">Scholarships</h2>
 
       <!-- skeleton cards while loading -->
       <div class="scholarships-grid" *ngIf="!scholarshipsLoaded">
@@ -55,7 +55,7 @@
       <div class="scholarships-grid" *ngIf="scholarshipsLoaded">
         <div
           *ngFor="let scholarship of scholarships"
-          class="scholarship-card fade-in"
+          class="scholarship-card reveal fade-in"
           (click)="onScholarshipClick(scholarship)"
         >
           <div class="card-image">
