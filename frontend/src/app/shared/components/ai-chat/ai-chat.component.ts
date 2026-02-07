@@ -8,11 +8,16 @@ import {
   DiscoveredScholarship,
   ExtractedFilters,
 } from '../../../core/services/ai-scholarship-discovery.service';
+import { ScholarshipService, Scholarship } from '../../../core/services/scholarship.service';
+import {
+  ScholarshipDetailModalComponent,
+  ScholarshipDetail,
+} from '../scholarship-detail-modal/scholarship-detail-modal.component';
 
 @Component({
   selector: 'app-ai-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ScholarshipDetailModalComponent],
   templateUrl: './ai-chat.component.html',
   styleUrls: ['./ai-chat.component.scss'],
 })
@@ -25,9 +30,16 @@ export class AIChatComponent implements OnInit, AfterViewChecked {
   isProcessing = false;
   quickPrompts: string[] = [];
 
+  // Scholarship modal state
+  selectedScholarship: ScholarshipDetail | null = null;
+
   private shouldScrollToBottom = false;
 
-  constructor(private discoveryService: AIScholarshipDiscoveryService, private router: Router) {}
+  constructor(
+    private discoveryService: AIScholarshipDiscoveryService,
+    private scholarshipService: ScholarshipService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     // Subscribe to chat state
@@ -111,13 +123,77 @@ export class AIChatComponent implements OnInit, AfterViewChecked {
   }
 
   /**
-   * View scholarship details
+   * View scholarship details - opens modal
    */
   viewScholarship(scholarship: DiscoveredScholarship): void {
-    this.closeChat();
-    this.router.navigate(['/student/scholarships'], {
-      queryParams: { id: scholarship.scholarship_id },
+    // Fetch full scholarship details
+    this.scholarshipService.getScholarshipById(scholarship.scholarship_id.toString()).subscribe({
+      next: (res) => {
+        this.selectedScholarship = this.mapToScholarshipDetail(res.data);
+      },
+      error: (err) => {
+        console.error('Failed to load scholarship details', err);
+      },
     });
+  }
+
+  /**
+   * Close scholarship modal
+   */
+  closeScholarshipModal(): void {
+    this.selectedScholarship = null;
+  }
+
+  /**
+   * Handle apply action from modal
+   */
+  onApplyScholarship(scholarshipId: number): void {
+    this.router.navigate(['/student/apply', scholarshipId]);
+  }
+
+  /**
+   * Map Scholarship to ScholarshipDetail format
+   */
+  private mapToScholarshipDetail(s: Scholarship): ScholarshipDetail {
+    return {
+      id: s.scholarship_id,
+      scholarshipId: s.scholarship_id,
+      title: s.title,
+      provider: s.organization_name,
+      providerLogo: s.banner_url,
+      status: this.getScholarshipStatus(s),
+      category: s.scholarship_type,
+      country: s.country,
+      level: s.education_level,
+      fundingType: s.scholarship_type,
+      fieldOfStudy: s.fields_of_study.join(', '),
+      tags: s.fields_of_study,
+      amount: s.benefits,
+      deadline: s.deadline,
+      description: s.description,
+      eligibility: s.eligibility_criteria.split('\n').filter((e) => e.trim()),
+      fundingDetails: s.benefits,
+      requirements: s.application_instructions.split('\n').filter((r) => r.trim()),
+      applicationUrl: s.application_link,
+      savedDate: new Date(s.created_at),
+      matchScore: s.matchScore,
+    };
+  }
+
+  /**
+   * Determine scholarship status
+   */
+  private getScholarshipStatus(s: Scholarship): 'active' | 'expired' | 'applied' {
+    const deadlineDate = new Date(s.deadline);
+    const today = new Date();
+
+    if (deadlineDate < today) {
+      return 'expired';
+    }
+
+    // You can add logic here to check if user has applied
+    // For now, we'll just return 'active'
+    return 'active';
   }
 
   /**

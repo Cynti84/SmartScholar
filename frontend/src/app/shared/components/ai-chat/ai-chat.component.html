@@ -227,3 +227,10 @@
     </button>
   </div>
 </div>
+
+<!-- Scholarship Detail Modal -->
+<app-scholarship-detail-modal
+  [scholarship]="selectedScholarship"
+  (close)="closeScholarshipModal()"
+  (apply)="onApplyScholarship($event)"
+></app-scholarship-detail-modal>

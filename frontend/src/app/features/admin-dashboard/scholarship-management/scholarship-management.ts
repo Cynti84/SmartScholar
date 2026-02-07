@@ -58,7 +58,6 @@ export interface FilterCriteria {
     ReactiveFormsModule,
     FormsModule,
     TitleCasePipe,
-    FilterPipe,
     DashboardLayout,
     ConfirmModal,
   ],
@@ -162,7 +161,7 @@ export class ScholarshipManagement implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private authService: AuthService,
-    private adminService: AdminService,
+    private adminService: AdminService
   ) {
     this.filterForm = this.fb.group({
       provider: [''],

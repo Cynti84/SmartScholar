@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, delay } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface ExtractedFilters {
@@ -24,6 +24,7 @@ export interface DiscoveredScholarship {
   fields_of_study: string[];
   scholarship_type: string;
   deadline: string;
+  matchScore: number; // ✅ Added back
 }
 
 export interface DiscoveryResponse {
@@ -91,7 +92,10 @@ export class AIScholarshipDiscoveryService {
       .post<DiscoveryResponse>(`${this.apiUrl}/discover-scholarships`, { query })
       .pipe(
         tap({
-          next: (response) => {
+          next: async (response) => {
+            // ✅ Simulate realistic typing delay based on response length
+            await this.simulateTypingDelay(response.data.aiExplanation);
+
             // Remove loading message
             this.removeMessage(loadingMessage.id);
 
@@ -102,7 +106,10 @@ export class AIScholarshipDiscoveryService {
               response.data.extractedFilters
             );
           },
-          error: (error) => {
+          error: async (error) => {
+            // ✅ Small delay even for errors
+            await this.simulateTypingDelay('Error message');
+
             // Remove loading message
             this.removeMessage(loadingMessage.id);
 
@@ -113,6 +120,24 @@ export class AIScholarshipDiscoveryService {
           },
         })
       );
+  }
+
+  /**
+   * Simulate realistic typing delay based on text length
+   */
+  private simulateTypingDelay(text: string): Promise<void> {
+    return new Promise((resolve) => {
+      // Base delay (1.5 seconds) + extra time based on text length
+      // Simulates realistic typing speed (~40 chars per second for thoughtful responses)
+      const baseDelay = 1500; // 1.5 seconds minimum
+      const charsPerSecond = 40; // Slower = more realistic for AI "thinking"
+      const extraDelay = Math.min((text.length / charsPerSecond) * 1000, 3000); // Max 3 seconds extra
+      const totalDelay = baseDelay + extraDelay;
+
+      console.log(`⏱️ Simulating typing delay: ${totalDelay}ms for ${text.length} characters`);
+
+      setTimeout(resolve, totalDelay);
+    });
   }
 
   /**

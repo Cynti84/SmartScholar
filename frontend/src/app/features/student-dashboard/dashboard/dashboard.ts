@@ -13,9 +13,13 @@ import {
 } from '../../../core/services/scholarship.service';
 import { UserScholarshipService } from '../../../core/services/user-scholarship.service';
 import { Scholarship } from '../../../core/services/scholarship.service';
-import { RecommendationExplanationService } from '../../../core/services/recommendation-explanation.service';
-import { RecommendationExplanation } from '../../../core/services/recommendation-explanation.service';
+import {
+  RecommendationExplanationService,
+  RecommendationExplanation,
+} from '../../../core/services/recommendation-explanation.service';
 import { AIChatComponent } from '../../../shared/components/ai-chat/ai-chat.component';
+import { trigger, state, style, transition, animate, stagger, query } from '@angular/animations';
+
 interface ScholarshipUI {
   id: number;
   scholarshipId: number;
@@ -49,6 +53,35 @@ interface ScholarshipUI {
   imports: [CommonModule, DashboardLayout, ConfirmModal, AIChatComponent],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
+
+  animations: [
+    trigger('fadeSlideIn', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(20px)' }),
+        animate(
+          '400ms cubic-bezier(0.4, 0, 0.2, 1)',
+          style({ opacity: 1, transform: 'translateY(0)' })
+        ),
+      ]),
+    ]),
+    trigger('expandCollapse', [
+      transition(':enter', [
+        style({ height: 0, opacity: 0 }),
+        animate('300ms ease-out', style({ height: '*', opacity: 1 })),
+      ]),
+      transition(':leave', [animate('200ms ease-in', style({ height: 0, opacity: 0 }))]),
+    ]),
+    trigger('staggeredFade', [
+      transition(
+        ':enter',
+        [
+          style({ opacity: 0, transform: 'translateX(-10px)' }),
+          animate('300ms {{delay}}ms ease-out', style({ opacity: 1, transform: 'translateX(0)' })),
+        ],
+        { params: { delay: 0 } }
+      ),
+    ]),
+  ],
 })
 export class DashboardComponent implements OnInit {
   // =========================
@@ -278,6 +311,16 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  getMatchStrengthLabel(strength?: 'excellent' | 'great' | 'good' | 'fair'): string {
+    const labels = {
+      excellent: 'Excellent Match',
+      great: 'Great Match',
+      good: 'Good Match',
+      fair: 'Fair Match',
+    };
+    return labels[strength || 'good'];
+  }
+
   loadModalExplanation(matchId: number): void {
     if (!matchId || this.loadingExplanation || this.aiExplanation) {
       return;
@@ -292,7 +335,7 @@ export class DashboardComponent implements OnInit {
         this.loadingExplanation = false;
       },
       error: () => {
-        this.explanationError = 'Failed to load AI explanation.';
+        this.explanationError = 'Failed to load AI explanation. Please try again.';
         this.loadingExplanation = false;
       },
     });

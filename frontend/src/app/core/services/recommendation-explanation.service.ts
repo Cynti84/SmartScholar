@@ -7,6 +7,10 @@ export interface RecommendationExplanation {
   scholarship_id: number;
   whyRecommended: string;
   improvementTips: string[];
+  matchStrength?: 'excellent' | 'great' | 'good' | 'fair'; // NEW
+  personalizedNote?: string; // NEW
+  matchedCount?: number; // NEW
+  totalCriteria?: number; // NEW
 }
 
 @Injectable({
