@@ -409,6 +409,9 @@ export class Profile implements OnInit {
     });
   }
 
+  onGpaRangeChange() {
+    console.log('Selected GPA Range:', this.studentProfile.gpa_range);
+  }
   // =========================
   // PASSWORD MANAGEMENT
   // =========================

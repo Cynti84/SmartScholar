@@ -37,12 +37,12 @@ export class AboutUs {
   // Statistics data
   statistics: Statistic[] = [
     {
-      number: '10,000+',
+      number: '100+',
       label: 'Students Helped',
       description: 'Students who found scholarships through our platform',
     },
     {
-      number: '500+',
+      number: '5+',
       label: 'Partner Institutions',
       description: 'Universities and organizations offering scholarships',
     },
@@ -52,7 +52,7 @@ export class AboutUs {
       description: 'Countries where our students have studied',
     },
     {
-      number: '$50M+',
+      number: '$0.5M+',
       label: 'Scholarships Awarded',
       description: 'Total value of scholarships facilitated',
     },
@@ -106,29 +106,16 @@ export class AboutUs {
   // Team members data
   teamMembers: TeamMember[] = [
     {
-      name: 'Sarah Johnson',
+      name: 'Cynthia Njoki',
       role: 'Founder & CEO',
       description: 'Former scholarship recipient with 15+ years in education technology.',
       image: 'team-sarah.jpg',
     },
     {
-      name: 'Michael Chen',
-      role: 'Chief Technology Officer',
+      name: 'Faith Chebet',
+      role: 'Founder',
       description: 'AI and machine learning expert passionate about education accessibility.',
-      image: 'team-michael.jpg',
-    },
-    {
-      name: 'Dr. Emily Rodriguez',
-      role: 'Head of Partnerships',
-      description:
-        'Former university admissions director with extensive scholarship program experience.',
-      image: 'team-emily.jpg',
-    },
-    {
-      name: 'David Thompson',
-      role: 'Student Success Manager',
-      description: 'Dedicated to guiding students through their scholarship application journey.',
-      image: 'team-david.jpg',
+      image: 'features\images\WhatsApp Image 2026-01-05 at 10.41.38 PM.jpeg',
     },
   ];
 

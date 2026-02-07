@@ -20,6 +20,7 @@ export interface StudentProfile {
   financial_need?: boolean;
   income_level?: 'low' | 'middle' | 'any';
   is_disabled?: boolean;
+  gpa_range?: string;
 }
 
 @Injectable({
