@@ -62,6 +62,42 @@ export const createStudentProfile = async (req: Request, res: Response) => {
 };
 
 // GetProfile test first
+export const getStudentProfile = async (req: Request, res: Response) => {
+  try {
+    const authReq = req as unknown as AuthRequest;
+
+    if (!authReq.user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const userId = authReq.user.id;
+    const profileRepo = AppDataSource.getRepository(StudentProfile);
+
+    const profile = await profileRepo.findOne({
+      where: { student_id: userId },
+    });
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: "Student profile not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: profile,
+    });
+  } catch (error) {
+    console.error("Get student profile error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch student profile",
+    });
+  }
+};
+
+// GetProfile test first
 export const getStudentProfileById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params; // get student ID from URL
@@ -101,7 +137,7 @@ export const getStudentProfileById = async (req: Request, res: Response) => {
 
 export const getLoggedInStudentProfile = async (
   req: Request,
-  res: Response,
+  res: Response
 ) => {
   try {
     const authReq = req as unknown as AuthRequest;
@@ -471,7 +507,7 @@ export const disable2FA = async (req: Request, res: Response) => {
 //getting all scholarship
 export const getScholarshipsForStudent = async (
   req: Request,
-  res: Response,
+  res: Response
 ) => {
   try {
     const page = Number(req.query.page) || 1;
@@ -651,7 +687,7 @@ export const bookmarkScholarship = async (req: Request, res: Response) => {
 //Get bookmarkScholarship
 export const getBookmarkedScholarships = async (
   req: Request,
-  res: Response,
+  res: Response
 ) => {
   try {
     // Get user from request (after authentication middleware)
@@ -843,7 +879,7 @@ export const getExpiredApplied = async (req: Request, res: Response) => {
     // Filter applications where scholarship deadline is in the past
     const expired = applied.filter(
       (app) =>
-        app.scholarship?.deadline && app.scholarship.deadline < new Date(),
+        app.scholarship?.deadline && app.scholarship.deadline < new Date()
     );
 
     return res.status(200).json({
@@ -936,7 +972,7 @@ export const downloadStudentProfile = async (req: Request, res: Response) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=student_profile_${student.id}.pdf`,
+      `attachment; filename=student_profile_${student.id}.pdf`
     );
 
     doc.pipe(res);
