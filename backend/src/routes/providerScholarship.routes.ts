@@ -17,7 +17,7 @@ const router = Router();
 
 // create a new scholarship
 router.post(
-  "/scholarships",
+  "/scholarships/post",
   AuthMiddleware.authenticate,
   AuthMiddleware.isProvider,
   AuthMiddleware.requireActiveProvider,

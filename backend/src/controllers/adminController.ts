@@ -33,7 +33,7 @@ export class AdminController {
   // Getting PendingScholarship
   static async getPendingScholarships(
     req: Request,
-    res: Response,
+    res: Response
   ): Promise<void> {
     try {
       const scholarshipRepo = AppDataSource.getRepository(Scholarship);

@@ -14,10 +14,17 @@ import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { AdminService } from '../../../core/services/admin.service';
+import {
+  FraudDetectionService,
+  FraudAnalysis,
+  RedFlag,
+} from '../../../core/services/fraud-detection.service';
 
 export interface Scholarship {
   id: number;
   title: string;
+  organization_name?: string;
+
   description: string;
   provider: string;
   shortSummary: string;
@@ -88,6 +95,16 @@ export class ScholarshipManagement implements OnInit {
   providers: string[] = [];
   country: string[] = [];
   statusOptions = ['all', 'approved', 'pending', 'rejected'];
+
+  // Fraud detection state
+  fraudAnalyses = new Map<number, FraudAnalysis>();
+  loadingFraudAnalysis = new Map<number, boolean>();
+  showFraudAnalysis = false;
+  currentFraudAnalysis: FraudAnalysis | null = null;
+
+  // Batch analysis
+  batchAnalyzing = false;
+  batchAnalysisResults: any = null;
 
   countries = [
     'Algeria',
@@ -161,7 +178,8 @@ export class ScholarshipManagement implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private authService: AuthService,
-    private adminService: AdminService
+    private adminService: AdminService,
+    private fraudDetection: FraudDetectionService
   ) {
     this.filterForm = this.fb.group({
       provider: [''],
@@ -187,6 +205,9 @@ export class ScholarshipManagement implements OnInit {
     this.loadScholarships();
     this.setupFilterSubscription();
     this.loadPendingScholarships();
+    setTimeout(() => {
+      this.loadVisibleFraudAnalyses();
+    }, 1000);
   }
   loadScholarships(): void {
     this.adminService.getAllScholarships().subscribe({
@@ -198,6 +219,8 @@ export class ScholarshipManagement implements OnInit {
           shortSummary: s.short_summary,
           provider:
             s.organization_name || s.provider?.providerProfile?.organization_name || 'Unknown',
+          organization_name: s.organization_name, // ✅ ADD THIS LINE TO MAP THE FIELD
+
           country: s.country,
           fieldOfStudy: s.fields_of_study || [],
           scholarshipType: s.scholarship_type,
@@ -286,6 +309,10 @@ export class ScholarshipManagement implements OnInit {
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
+      // Load fraud analyses for newly visible scholarships
+      setTimeout(() => {
+        this.loadVisibleFraudAnalyses();
+      }, 100);
     }
   }
 
@@ -405,8 +432,14 @@ export class ScholarshipManagement implements OnInit {
   }
   // added
   viewScholarship(scholarship: Scholarship) {
-    this.selectedScholarship = scholarship; // set the scholarship to view
-    this.isViewModalOpen = true; // open the modal
+    this.selectedScholarship = scholarship;
+    this.isViewModalOpen = true;
+
+    // Load fraud analysis for this scholarship
+    if (!this.fraudAnalyses.has(scholarship.id)) {
+      this.loadFraudAnalysis(scholarship.id);
+    }
+    this.currentFraudAnalysis = this.fraudAnalyses.get(scholarship.id) || null;
   }
   // Utility methods
   getStatusClass(status: string): string {
@@ -438,6 +471,127 @@ export class ScholarshipManagement implements OnInit {
   }
 
   showLogoutModal = false;
+
+  // Get fraud analysis for scholarship (with caching)
+  getFraudAnalysis(scholarshipId: number): FraudAnalysis | null {
+    return this.fraudAnalyses.get(scholarshipId) || null;
+  }
+
+  // load fraud analysis for a scholarship
+  loadFraudAnalysis(scholarshipId: number, forceRefresh = false): void {
+    if (this.loadingFraudAnalysis.get(scholarshipId)) {
+      return; //already loading
+    }
+
+    this.loadingFraudAnalysis.set(scholarshipId, true);
+    this.fraudDetection.analyzeScholarship(scholarshipId, forceRefresh).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.fraudAnalyses.set(scholarshipId, response.data);
+        }
+        this.loadingFraudAnalysis.set(scholarshipId, false);
+      },
+      error: (err) => {
+        console.error('Fraud analysis error:', err);
+        this.loadingFraudAnalysis.set(scholarshipId, false);
+      },
+    });
+  }
+
+  // check if fraud analysis is loading
+  isFraudAnalysisLoading(scholarshipId: number): boolean {
+    return this.loadingFraudAnalysis.get(scholarshipId) || false;
+  }
+
+  // get risk badge class for UI
+  getRiskBadgeClass(riskLevel: 'low' | 'medium' | 'high'): string {
+    return this.fraudDetection.getRiskBadgeClass(riskLevel);
+  }
+
+  // get risk icon
+  getRiskIcon(riskLevel: 'low' | 'medium' | 'high'): string {
+    return this.fraudDetection.getRiskIcon(riskLevel);
+  }
+
+  // get severity class for red flags
+  getSeverityClass(severity: 'low' | 'medium' | 'high'): string {
+    return this.fraudDetection.getSeverityClass(severity);
+  }
+
+  // toggle fraud analysis visibility in modal
+  toggleFraudAnalysis(): void {
+    this.showFraudAnalysis = !this.showFraudAnalysis;
+
+    if (this.showFraudAnalysis && this.selectedScholarship) {
+      // Load analysis if not already loaded
+      if (!this.fraudAnalyses.has(this.selectedScholarship.id)) {
+        this.loadFraudAnalysis(this.selectedScholarship.id);
+      }
+      this.currentFraudAnalysis = this.fraudAnalyses.get(this.selectedScholarship.id) || null;
+    }
+  }
+
+  // refresh fraud analyses
+  refreshFraudAnalysis(): void {
+    if (this.selectedScholarship) {
+      this.loadFraudAnalysis(this.selectedScholarship.id, true);
+      setTimeout(() => {
+        this.currentFraudAnalysis = this.fraudAnalyses.get(this.selectedScholarship!.id) || null;
+      }, 100);
+    }
+  }
+
+  // batch analyze all pending scholarships
+  batchAnalyzePending(): void {
+    const pendingIds = this.scholarships.filter((s) => s.status === 'pending').map((s) => s.id);
+
+    if (pendingIds.length === 0) {
+      alert('No pending scholarships to analyze');
+      return;
+    }
+
+    this.batchAnalyzing = true;
+
+    this.fraudDetection.batchAnalyze(pendingIds).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          // Cache all results
+          response.data.results.forEach((analysis) => {
+            this.fraudAnalyses.set(analysis.scholarshipId, analysis);
+          });
+
+          this.batchAnalysisResults = response.data;
+          this.batchAnalyzing = false;
+
+          alert(
+            `Analyzed ${response.data.summary.total} scholarships:\n` +
+              `Low Risk: ${response.data.summary.lowRisk}\n` +
+              `Medium Risk: ${response.data.summary.mediumRisk}\n` +
+              `High Risk: ${response.data.summary.highRisk}`
+          );
+        }
+      },
+      error: (err) => {
+        console.error('Batch analysis error:', err);
+        this.batchAnalyzing = false;
+        alert('Failed to perform batch analysis');
+      },
+    });
+  }
+
+  // load fraud analyses for visible scholarships (on page load)
+  loadVisibleFraudAnalyses(): void {
+    // Auto-load fraud analysis for pending scholarships
+    const pendingScholarships = this.paginatedScholarships
+      .filter((s) => s.status === 'pending')
+      .slice(0, 5); // Limit to first 5 to avoid too many API calls
+
+    pendingScholarships.forEach((scholarship) => {
+      if (!this.fraudAnalyses.has(scholarship.id)) {
+        this.loadFraudAnalysis(scholarship.id);
+      }
+    });
+  }
 
   onSidebarAction(item: NavItem) {
     if (item.action === 'logout') {

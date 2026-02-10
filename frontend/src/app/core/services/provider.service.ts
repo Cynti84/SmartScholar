@@ -36,7 +36,7 @@ export class ProviderService {
 
   // create scholarship
   createScholarship(formData: FormData): Observable<any> {
-    return this.http.post(`${this.API_URL}/scholarships`, formData);
+    return this.http.post(`${this.API_URL}/scholarships/post`, formData);
   }
 
   // get all scholarships for logged in provider

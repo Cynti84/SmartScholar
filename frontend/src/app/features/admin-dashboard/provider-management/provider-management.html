@@ -374,8 +374,10 @@
                   <span class="doc-icon">
                     <mat-icon style="color: #ffffff">description</mat-icon>
                   </span>
-                  <span class="doc-name">{{ doc }}</span>
-                  <button class="btn-download" (click)="downloadDocument(doc)">Download</button>
+                  <span class="doc-name">{{ getFileName(doc) }}</span>
+                  <a [href]="getDownloadUrl(doc)" target="_blank" class="btn-download">
+                    Download
+                  </a>
                 </div>
               </div>
 
@@ -451,14 +453,14 @@
             confirmAction === 'approve'
               ? 'Approve Provider'
               : confirmAction === 'decline'
-                ? 'Decline Provider'
-                : confirmAction === 'suspend'
-                  ? 'Suspend Provider'
-                  : confirmAction === 'activate'
-                    ? 'Activate Provider'
-                    : confirmAction === 'delete'
-                      ? 'Delete Provider'
-                      : 'Confirm Action'
+              ? 'Decline Provider'
+              : confirmAction === 'suspend'
+              ? 'Suspend Provider'
+              : confirmAction === 'activate'
+              ? 'Activate Provider'
+              : confirmAction === 'delete'
+              ? 'Delete Provider'
+              : 'Confirm Action'
           }}
         </h3>
 
@@ -539,12 +541,12 @@
           confirmAction === 'approve'
             ? 'Approve'
             : confirmAction === 'suspend'
-              ? 'Suspend'
-              : confirmAction === 'activate'
-                ? 'Activate'
-                : confirmAction === 'delete'
-                  ? 'Delete'
-                  : 'Confirm'
+            ? 'Suspend'
+            : confirmAction === 'activate'
+            ? 'Activate'
+            : confirmAction === 'delete'
+            ? 'Delete'
+            : 'Confirm'
         }}
       </button>
     </div>

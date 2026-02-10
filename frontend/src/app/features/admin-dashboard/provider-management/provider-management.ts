@@ -67,7 +67,7 @@ export class ProviderManagement {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private adminService: AdminService,
+    private adminService: AdminService
   ) {}
   Math = Math;
   providers: AdminProvider[] = [];
@@ -139,8 +139,99 @@ export class ProviderManagement {
       website: profile?.website,
       address: profile?.country,
       contactPerson: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(),
-      verificationDocs: profile?.verification_docs ? [profile.verification_docs] : [],
+      verificationDocs: this.parseVerificationDocs(profile?.verification_docs),
     };
+  }
+
+  parseVerificationDocs(docs: any): string[] {
+    if (!docs) return [];
+
+    // If already an array, return it
+    if (Array.isArray(docs)) {
+      return docs;
+    }
+
+    // If it's a string in PostgreSQL array format: {url1,url2}
+    if (typeof docs === 'string') {
+      const cleaned = docs.replace(/[{}]/g, '');
+      if (cleaned.trim() === '') return [];
+      return cleaned.split(',').map((url) => url.trim());
+    }
+
+    return [];
+  }
+
+  getFileName(url: string): string {
+    try {
+      let filename = decodeURIComponent(url.split('/').pop() || 'Document');
+
+      // ✅ Remove double extensions (.pdf.pdf, .doc.doc, etc.)
+      const doubleExtensions = [
+        '.pdf.pdf',
+        '.doc.doc',
+        '.docx.docx',
+        '.jpg.jpg',
+        '.png.png',
+        '.jpeg.jpeg',
+      ];
+
+      for (const ext of doubleExtensions) {
+        if (filename.endsWith(ext)) {
+          // Remove the duplicate part
+          filename = filename.replace(ext, ext.slice(0, ext.length / 2));
+        }
+      }
+
+      return filename;
+    } catch (e) {
+      return url.split('/').pop() || 'Document';
+    }
+  }
+
+  getDownloadUrl(url: string): string {
+    if (!url) return url;
+
+    let cleanedUrl = url;
+
+    // Remove double extensions
+    cleanedUrl = cleanedUrl.replace('.pdf.pdf', '.pdf');
+    cleanedUrl = cleanedUrl.replace('.doc.doc', '.doc');
+    cleanedUrl = cleanedUrl.replace('.docx.docx', '.docx');
+
+    // Use image/upload instead of raw/upload (more reliable)
+    cleanedUrl = cleanedUrl.replace('/raw/upload/', '/image/upload/');
+
+    // Add download flag
+    if (!cleanedUrl.includes('fl_attachment')) {
+      // Try to add after /upload/ and before version
+      if (cleanedUrl.match(/\/upload\/v\d+\//)) {
+        cleanedUrl = cleanedUrl.replace(/\/upload\//, '/upload/fl_attachment/');
+      } else {
+        cleanedUrl = cleanedUrl.replace('/upload/', '/upload/fl_attachment/');
+      }
+    }
+
+    return cleanedUrl;
+  }
+
+  downloadDocumentSimple(url: string): void {
+    if (!url) return;
+
+    // Clean URL
+    let downloadUrl = url
+      .replace('.pdf.pdf', '.pdf')
+      .replace('.doc.doc', '.doc')
+      .replace('/raw/upload/', '/image/upload/');
+
+    // Add download flag if missing
+    if (!downloadUrl.includes('fl_attachment')) {
+      downloadUrl = downloadUrl.replace('/upload/', '/upload/fl_attachment/');
+    }
+
+    console.log('Opening:', downloadUrl);
+
+    // Open in new tab - browser will download it
+    window.open(downloadUrl, '_blank');
   }
 
   updateStatistics() {
