@@ -173,6 +173,7 @@ Benefits: ${scholarship.benefits}
 STUDENT CONTEXT:
 Academic Level: ${studentProfile?.academic_level || "Not specified"}
 Field of Study: ${studentProfile?.field_of_study || "Not specified"}
+Student's interests: ${studentProfile?.interest || "Not specified"}
 
 Generate 5-7 interview questions that are likely to be asked for this scholarship. Include:
 1. General motivation questions

@@ -15,6 +15,7 @@ import applicationReadinessRoutes from "./routes/applicationReadiness.routes";
 import aiDiscoveryRoutes from "./routes/aiScholarshipDiscovery.routes";
 
 import applicationAssistantRoutes from "./routes/applicationAssistant.routes";
+import fraudDetectionRoutes from "./routes/fraud-detection.routes";
 
 //1. configure dotenv
 dotenv.config();
@@ -44,6 +45,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/provider", providerRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin/fraud-detection", fraudDetectionRoutes);
 app.use("/api/provider", providerScholarshipRoutes, scholarshipAnalyticsRoutes);
 // app.use("/api/student", studentRoutes);
 app.use("/api/scholarships", getLandingScholarships);

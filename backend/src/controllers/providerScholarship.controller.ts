@@ -5,6 +5,11 @@ export const createScholarship = async (req: Request, res: Response) => {
   const providerId = req.user!.id;
   const files = req.files as Record<string, Express.Multer.File[]>;
 
+  // ✅ ADD DEBUGGING
+  console.log("🔍 CREATE SCHOLARSHIP DEBUG:");
+  console.log("Files received:", Object.keys(files || {}));
+  console.log("Full files object:", JSON.stringify(files, null, 2));
+
   const flyerUrl = files?.flyer?.[0]?.path ?? null;
   const bannerUrl = files?.banner?.[0]?.path ?? null;
 
@@ -12,16 +17,30 @@ export const createScholarship = async (req: Request, res: Response) => {
     ? files.verificationDocuments.map((file) => file.path)
     : [];
 
+  // ✅ ADD DEBUGGING
+  console.log("📄 Extracted data:");
+  console.log("  Flyer URL:", flyerUrl);
+  console.log("  Banner URL:", bannerUrl);
+  console.log("  Verification Docs:", verificationDocs);
+  console.log("  Number of docs:", verificationDocs.length);
+
+  const payload = {
+    ...req.body,
+    flyer_url: flyerUrl,
+    banner_url: bannerUrl,
+    verification_docs: verificationDocs,
+    status: "pending",
+  };
+
+  console.log("💾 Final payload:", JSON.stringify(payload, null, 2));
+
   const result = await providerScholarshipSerivice.createScholarship(
     providerId,
-    {
-      ...req.body,
-      flyer_url: flyerUrl,
-      banner_url: bannerUrl,
-      verification_docs: verificationDocs,
-      status: "pending", // force review
-    }
+    payload
   );
+
+  console.log("✅ Created scholarship result:", result);
+
   return res.status(201).json(result);
 };
 
