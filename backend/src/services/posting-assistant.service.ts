@@ -147,40 +147,139 @@ Return ONLY valid JSON (no markdown):
     fieldType: "eligibility" | "benefits" | "instructions",
     context: any
   ): Promise<GenerateSuggestionResponse> {
-    const prompt = `
-You are a scholarship posting assistant. Generate helpful ${fieldType} content for this scholarship.
+    const prompts = {
+      eligibility: `
+You are a scholarship posting assistant. Generate ONLY the eligibility criteria content (no headers, no titles).
 
 SCHOLARSHIP CONTEXT:
 - Type: ${context.scholarshipType}
 - Education Level: ${context.educationLevel}
-- Fields of Study: ${context.fieldsOfStudy?.join(", ")}
+- Fields of Study: ${context.fieldsOfStudy?.join(", ") || "Not specified"}
 - Country: ${context.country || "Not specified"}
 
-Generate appropriate ${fieldType} content that:
-1. Is specific to this type of scholarship
-2. Follows best practices
-3. Is clear and professional
-4. Covers all important points
+REQUIREMENTS:
+1. Start directly with the criteria (no "Eligibility Criteria" title or headers)
+2. Use NUMBERED LIST format (1. 2. 3. etc.) NOT asterisks or bullets
+3. Be specific to the scholarship type and education level
+4. Include 5-8 clear, actionable criteria
+5. Each criterion should be 1-2 sentences maximum
+6. Cover: academic requirements, enrollment status, field of study, nationality/residency, and any other relevant criteria
+
+FORMAT EXAMPLE:
+1. Must be currently enrolled in or accepted to a ${
+        context.educationLevel
+      } program
+2. Primary field of study must be in ${
+        context.fieldsOfStudy?.[0] || "specified fields"
+      }
+3. [Additional criterion]
 
 Return ONLY valid JSON (no markdown):
 {
-  "suggestions": [
-    "First helpful suggestion",
-    "Second helpful suggestion",
-    "Third helpful suggestion"
-  ],
-  "template": "A complete template text the provider can use or customize"
+  "suggestions": ["Tip 1", "Tip 2", "Tip 3"],
+  "template": "Your numbered list of eligibility criteria starting with 1. "
 }
-`;
+`,
+      benefits: `
+You are a scholarship posting assistant. Generate ONLY the benefits/funding coverage content (no introductory paragraph).
+
+SCHOLARSHIP CONTEXT:
+- Type: ${context.scholarshipType}
+- Education Level: ${context.educationLevel}
+- Fields of Study: ${context.fieldsOfStudy?.join(", ") || "Not specified"}
+- Country: ${context.country || "Not specified"}
+
+REQUIREMENTS:
+1. Start DIRECTLY with the first benefit (no introduction like "This scholarship provides:")
+2. Use NUMBERED LIST format (1. 2. 3. etc.)
+3. Be specific to scholarship type (${context.scholarshipType})
+4. Do NOT use placeholder text like [Insert Amount] or [Name of Grant]
+5. Use realistic, specific amounts appropriate for ${context.country}
+6. Include 5-8 benefits covering: tuition, stipend, research funds, travel, etc.
+7. Each benefit should be clear and specific
+
+FORMAT EXAMPLE (for Fully Funded):
+1. Full tuition coverage for the duration of the program
+2. Monthly living stipend to cover accommodation and daily expenses
+3. Annual research/materials allowance for academic supplies
+4. [Additional benefits]
+
+FORMAT EXAMPLE (for Partial Funding):
+1. Partial tuition coverage (up to 50% of total fees)
+2. One-time educational materials grant
+3. [Additional benefits]
+
+Return ONLY valid JSON (no markdown):
+{
+  "suggestions": ["Tip 1", "Tip 2", "Tip 3"],
+  "template": "Your numbered list of benefits starting with 1. "
+}
+`,
+      instructions: `
+You are a scholarship posting assistant. Generate ONLY the application instructions (no title, no overview).
+
+SCHOLARSHIP CONTEXT:
+- Type: ${context.scholarshipType}
+- Education Level: ${context.educationLevel}
+- Fields of Study: ${context.fieldsOfStudy?.join(", ") || "Not specified"}
+- Country: ${context.country || "Not specified"}
+
+REQUIREMENTS:
+1. Start DIRECTLY with step 1 (no title like "Application Instructions", no overview paragraph)
+2. Use NUMBERED LIST format for steps (1. 2. 3. etc.)
+3. Be clear, actionable, and specific
+4. Include 6-10 steps covering: document preparation, submission process, timeline
+5. Do NOT include placeholder text like [Insert Deadline]
+6. Each step should be 1-2 sentences
+7. Cover: required documents, formatting, submission method, what happens next
+
+FORMAT EXAMPLE:
+1. Complete the online application form at the scholarship portal
+2. Prepare your academic transcripts (official copies required)
+3. Write a research proposal or personal statement (max 1000 words)
+4. Submit two letters of recommendation from academic referees
+5. [Additional steps]
+
+Return ONLY valid JSON (no markdown):
+{
+  "suggestions": ["Tip 1", "Tip 2", "Tip 3"],
+  "template": "Your numbered list of instructions starting with 1. "
+}
+`,
+    };
 
     try {
-      const result = await this.model.generateContent(prompt);
+      const result = await this.model.generateContent(prompts[fieldType]);
       const responseText = result.response.text();
       const cleaned = responseText
         .replace(/```json\n?/g, "")
         .replace(/```\n?/g, "")
         .trim();
-      return JSON.parse(cleaned);
+      const aiResponse = JSON.parse(cleaned);
+
+      // Clean up the template to remove any remaining headers or markdown
+      let template = aiResponse.template || "";
+
+      // Remove common unwanted patterns
+      template = template
+        .replace(/^#+\s*.+$/gm, "") // Remove markdown headers
+        .replace(/^Overview:?\s*$/gim, "") // Remove "Overview:" line
+        .replace(/^.*Instructions:.*$/gim, "") // Remove instruction headers
+        .replace(/^.*Eligibility Criteria.*$/gim, "") // Remove eligibility headers
+        .replace(/^.*\[Name of Grant\].*$/gim, "") // Remove grant name mentions
+        .replace(/\[Insert.*?\]/g, "an appropriate amount") // Replace placeholders
+        .replace(/^\*+\s/gm, "") // Convert asterisks to nothing (will be numbered)
+        .replace(/^•\s/gm, "") // Convert bullets to nothing
+        .trim();
+
+      return {
+        suggestions: aiResponse.suggestions || [
+          `Be specific about ${fieldType} details`,
+          `Include all necessary information`,
+          `Keep it clear and professional`,
+        ],
+        template,
+      };
     } catch (error) {
       console.error("Generate suggestion error:", error);
       return {
@@ -444,38 +543,42 @@ Return ONLY valid JSON (no markdown):
   private getFallbackTemplate(fieldType: string, context: any): string {
     switch (fieldType) {
       case "eligibility":
-        return `Applicants must meet the following criteria:
-- Currently enrolled or accepted to a ${context.educationLevel} program
-- Studying in one of the specified fields: ${context.fieldsOfStudy?.join(", ")}
-- Meet minimum academic requirements
-- Submit all required application materials by the deadline`;
+        return `1. Currently enrolled in or accepted to a ${
+          context.educationLevel
+        } program
+2. Studying in one of the specified fields: ${
+          context.fieldsOfStudy?.join(", ") || "relevant field"
+        }
+3. Meet minimum academic requirements (typically 3.0 GPA or equivalent)
+4. Submit all required application materials by the deadline
+5. Demonstrate financial need or academic merit as specified`;
 
       case "benefits":
-        return `This scholarship provides:
-- Financial support for ${
-          context.scholarshipType === "Fully Funded"
-            ? "full tuition and fees"
-            : "educational expenses"
-        }
-- ${
-          context.scholarshipType === "Fully Funded"
-            ? "Living stipend"
-            : "Partial tuition coverage"
-        }
-- ${
-          context.scholarshipType === "Fully Funded"
-            ? "Book allowance"
-            : "Educational materials support"
-        }
-- Recognition as a scholarship recipient`;
+        const isFullyFunded = context.scholarshipType === "Fully Funded";
+        return isFullyFunded
+          ? `1. Full tuition coverage for the duration of the program
+2. Monthly living stipend to cover accommodation and daily expenses
+3. Annual research and materials allowance
+4. Health insurance coverage
+5. Travel allowance for academic conferences or study-related travel
+6. Book and equipment allowance
+7. Recognition as a scholarship recipient`
+          : `1. Partial tuition coverage (up to 50% of total fees)
+2. One-time educational materials grant
+3. Access to mentorship and networking opportunities
+4. Recognition as a scholarship recipient
+5. Potential for scholarship renewal based on academic performance`;
 
       case "instructions":
-        return `To apply for this scholarship, please follow these steps:
-1. Complete the online application form at the provided link
-2. Submit all required documents (transcripts, essays, recommendations)
-3. Ensure all materials are submitted before the deadline
-4. Await notification of application status
-5. Contact us if you have any questions during the process`;
+        return `1. Complete the online application form at the scholarship portal
+2. Prepare official academic transcripts from all institutions attended
+3. Write a personal statement or research proposal (maximum 1000 words)
+4. Obtain two letters of recommendation from academic referees
+5. Submit proof of enrollment or acceptance letter
+6. Upload all required documents in PDF format
+7. Ensure all materials are submitted before the deadline
+8. Await notification of application status via email
+9. Contact us if you have questions during the application process`;
 
       default:
         return "";

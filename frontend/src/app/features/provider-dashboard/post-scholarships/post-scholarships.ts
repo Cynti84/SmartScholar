@@ -1,4 +1,4 @@
-import { Component, OnInit, Renderer2 } from '@angular/core';
+import { Component, OnInit, Renderer2, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -8,6 +8,11 @@ import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { ProviderService } from '../../../core/services/provider.service';
 import { MatIconModule } from '@angular/material/icon';
+import {
+  PostingAssistantService,
+  CompletenessAnalysis,
+  PolishTextResponse,
+} from '../../../core/services/posting-assistance.service';
 
 interface FileUpload {
   name: string;
@@ -21,7 +26,7 @@ interface FileUpload {
   templateUrl: './post-scholarships.html',
   styleUrl: './post-scholarships.scss',
 })
-export class PostScholarships implements OnInit {
+export class PostScholarships implements OnInit, OnDestroy {
   isDarkMode = false;
 
   scholarshipForm!: FormGroup;
@@ -42,6 +47,22 @@ export class PostScholarships implements OnInit {
 
   // step 4 tag selections
   selectedEligibilityCountries: string[] = [];
+
+  // AI Assistant State
+  completenessAnalysis: CompletenessAnalysis | null = null;
+  polishingField: string | null = null;
+  generatingField: string | null = null;
+  showCompletenessWidget = true;
+
+  // Polish text comparison
+  polishComparison: {
+    show: boolean;
+    field: string;
+    original: string;
+    polished: string;
+    improvements: string[];
+  } | null = null;
+
   menu = [
     { label: 'Overview', route: '/provider' },
     { label: 'Post Scholarships', route: '/provider/post' },
@@ -224,7 +245,8 @@ export class PostScholarships implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private authService: AuthService,
-    private providerScholarshipService: ProviderService
+    private providerScholarshipService: ProviderService,
+    private postingAssistant: PostingAssistantService // ← ADD THIS
   ) {
     //set minimum date to today
     const today = new Date();
@@ -234,7 +256,21 @@ export class PostScholarships implements OnInit {
   ngOnInit(): void {
     this.initializeForm();
     this.loadDraft();
+    // analyze on load
+    setTimeout(() => {
+      this.analyzeFormCompleteness();
+    }, 500);
+    this.scholarshipForm.valueChanges.subscribe(() => {
+      // Debounce analysis
+      if (this.analysisTimeout) {
+        clearTimeout(this.analysisTimeout);
+      }
+      this.analysisTimeout = setTimeout(() => {
+        this.analyzeFormCompleteness();
+      }, 1000);
+    });
   }
+  private analysisTimeout: any;
 
   private initializeForm(): void {
     this.scholarshipForm = this.fb.group({
@@ -244,17 +280,17 @@ export class PostScholarships implements OnInit {
       short_summary: ['', [Validators.required, Validators.maxLength(200)]],
 
       // Step 2
-      description: ['', [Validators.required, Validators.minLength(50)]],
-      eligibility_criteria: ['', [Validators.required]],
-      benefits: ['', [Validators.required]],
-      deadline: ['', [Validators.required, this.futureDateValidator]],
-
-      // Step 3
       country: ['', [Validators.required]],
       education_level: ['', [Validators.required]],
       scholarship_type: ['', [Validators.required]],
       fields_of_study: ['', [Validators.required]],
       min_gpa: [null],
+
+      // Step 3
+      description: ['', [Validators.required, Validators.minLength(50)]],
+      eligibility_criteria: ['', [Validators.required]],
+      benefits: ['', [Validators.required]],
+      deadline: ['', [Validators.required, this.futureDateValidator]],
 
       // Step 4: Enhanced Eligibility and demographics
       min_age: [null, [Validators.min(0)]],
@@ -318,12 +354,20 @@ export class PostScholarships implements OnInit {
   nextStep(): void {
     if (this.isCurrentStepValid() && this.currentStep < this.maxStep) {
       this.currentStep++;
+      this.analyzeFormCompleteness(); // ← ADD THIS
     }
   }
 
   previousStep(): void {
     if (this.currentStep > 1) {
       this.currentStep--;
+      this.analyzeFormCompleteness(); // ← ADD THIS
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.analysisTimeout) {
+      clearTimeout(this.analysisTimeout);
     }
   }
 
@@ -336,19 +380,20 @@ export class PostScholarships implements OnInit {
           (this.scholarshipForm.get('organization_name')?.valid ?? false) &&
           (this.scholarshipForm.get('short_summary')?.valid ?? false)
         );
+
       case 2:
-        return (
-          (this.scholarshipForm.get('description')?.valid ?? false) &&
-          (this.scholarshipForm.get('eligibility_criteria')?.valid ?? false) &&
-          (this.scholarshipForm.get('benefits')?.valid ?? false) &&
-          (this.scholarshipForm.get('deadline')?.valid ?? false)
-        );
-      case 3:
         return (
           (this.scholarshipForm.get('country')?.valid ?? false) &&
           (this.scholarshipForm.get('education_level')?.valid ?? false) &&
           (this.scholarshipForm.get('scholarship_type')?.valid ?? false) &&
           this.selectedFields.length > 0
+        );
+      case 3:
+        return (
+          (this.scholarshipForm.get('description')?.valid ?? false) &&
+          (this.scholarshipForm.get('eligibility_criteria')?.valid ?? false) &&
+          (this.scholarshipForm.get('benefits')?.valid ?? false) &&
+          (this.scholarshipForm.get('deadline')?.valid ?? false)
         );
       case 4:
         return true;
@@ -373,6 +418,194 @@ export class PostScholarships implements OnInit {
       return { invalidGpaRange: true };
     }
     return null;
+  }
+
+  /**
+   * Analyze form completeness
+   */
+  analyzeFormCompleteness(): void {
+    const formData = {
+      ...this.scholarshipForm.value,
+      fields_of_study: this.selectedFields,
+      eligibility_countries: this.selectedEligibilityCountries,
+      has_flyer: !!this.selectedFlyer,
+      has_banner: !!this.selectedBanner,
+      has_verification_docs: this.selectedVerificationDocs.length > 0,
+    };
+
+    this.postingAssistant.analyzeCompleteness(formData).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.completenessAnalysis = response.data;
+        }
+      },
+      error: (err) => {
+        console.error('Completeness analysis error:', err);
+      },
+    });
+  }
+
+  /**
+   * Get completeness score class
+   */
+  getScoreClass(): string {
+    if (!this.completenessAnalysis) return '';
+    return this.postingAssistant.getScoreClass(this.completenessAnalysis.score);
+  }
+
+  /**
+   * Get importance class for missing fields
+   */
+  getImportanceClass(importance: 'critical' | 'recommended' | 'optional'): string {
+    return this.postingAssistant.getImportanceClass(importance);
+  }
+
+  /**
+   * Polish text with AI
+   */
+  polishText(
+    fieldName: string,
+    fieldType: 'title' | 'description' | 'eligibility' | 'benefits' | 'instructions' | 'summary'
+  ): void {
+    const currentValue = this.scholarshipForm.get(fieldName)?.value;
+
+    if (!currentValue || currentValue.trim().length === 0) {
+      alert('Please enter some text first before polishing');
+      return;
+    }
+
+    this.polishingField = fieldName;
+
+    const context = {
+      scholarshipType: this.scholarshipForm.get('scholarship_type')?.value,
+      educationLevel: this.scholarshipForm.get('education_level')?.value,
+      fieldsOfStudy: this.selectedFields,
+    };
+
+    this.postingAssistant.polishText(currentValue, fieldType, context).subscribe({
+      next: (response) => {
+        this.polishingField = null;
+
+        if (response.success && response.data) {
+          this.polishComparison = {
+            show: true,
+            field: fieldName,
+            original: response.data.originalText,
+            polished: response.data.polishedText,
+            improvements: response.data.improvements,
+          };
+        }
+      },
+      error: (err) => {
+        console.error('Polish text error:', err);
+        this.polishingField = null;
+        alert('Failed to polish text. Please try again.');
+      },
+    });
+  }
+
+  /**
+   * Accept polished text
+   */
+  acceptPolishedText(): void {
+    if (this.polishComparison) {
+      this.scholarshipForm.patchValue({
+        [this.polishComparison.field]: this.polishComparison.polished,
+      });
+      this.polishComparison = null;
+      // Re-analyze completeness
+      this.analyzeFormCompleteness();
+    }
+  }
+
+  /**
+   * Reject polished text
+   */
+  rejectPolishedText(): void {
+    this.polishComparison = null;
+  }
+
+  /**
+   * Generate AI suggestion for field
+   */
+  generateSuggestion(
+    fieldName: string,
+    fieldType: 'eligibility' | 'benefits' | 'instructions'
+  ): void {
+    const scholarshipType = this.scholarshipForm.get('scholarship_type')?.value;
+    const educationLevel = this.scholarshipForm.get('education_level')?.value;
+
+    if (!scholarshipType || !educationLevel) {
+      alert('Please select scholarship type and education level first');
+      return;
+    }
+
+    this.generatingField = fieldName;
+
+    const context = {
+      scholarshipType,
+      educationLevel,
+      fieldsOfStudy: this.selectedFields,
+      country: this.scholarshipForm.get('country')?.value,
+    };
+
+    this.postingAssistant.generateSuggestion(fieldType, context).subscribe({
+      next: (response) => {
+        this.generatingField = null;
+
+        if (response.success && response.data) {
+          const currentValue = this.scholarshipForm.get(fieldName)?.value || '';
+
+          // If field is empty, use template directly
+          if (currentValue.trim().length === 0) {
+            this.scholarshipForm.patchValue({
+              [fieldName]: response.data.template,
+            });
+          } else {
+            // Show as suggestion if field already has content
+            const useTemplate = confirm(
+              'Field already has content. Replace with AI-generated template?\n\n' +
+                'Click OK to replace, Cancel to keep current content.'
+            );
+
+            if (useTemplate) {
+              this.scholarshipForm.patchValue({
+                [fieldName]: response.data.template,
+              });
+            }
+          }
+
+          // Re-analyze completeness
+          this.analyzeFormCompleteness();
+        }
+      },
+      error: (err) => {
+        console.error('Generate suggestion error:', err);
+        this.generatingField = null;
+        alert('Failed to generate suggestion. Please try again.');
+      },
+    });
+  }
+
+  /**
+   * Check if field is being polished
+   */
+  isPolishing(fieldName: string): boolean {
+    return this.polishingField === fieldName;
+  }
+
+  /**
+   * Check if field is generating
+   */
+  isGenerating(fieldName: string): boolean {
+    return this.generatingField === fieldName;
+  }
+
+  /**
+   * Toggle completeness widget visibility
+   */
+  toggleCompletenessWidget(): void {
+    this.showCompletenessWidget = !this.showCompletenessWidget;
   }
 
   //fields of study management
