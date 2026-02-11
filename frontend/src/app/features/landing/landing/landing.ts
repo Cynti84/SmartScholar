@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 import { Navbar } from '../../../shared/components/navbar/navbar';
 import { Footer } from '../../../shared/components/footer/footer';
 import { Router } from '@angular/router';
@@ -20,7 +21,7 @@ export interface Scholarship {
 
 @Component({
   selector: 'app-landing',
-  imports: [CommonModule, RouterModule, Navbar, Footer],
+  imports: [CommonModule, RouterModule, MatIconModule, Navbar, Footer],
   templateUrl: './landing.html',
   styleUrl: './landing.scss',
 })
@@ -30,10 +31,17 @@ export class Landing implements OnInit {
 
   scholarships: Scholarship[] = [];
 
-  constructor(
-    private scholarshipService: PublicScholarshipService,
-    private router: Router,
-  ) {}
+  // Fallback images for different categories
+  private fallbackImages: { [key: string]: string } = {
+    undergraduate:
+      'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&h=250&fit=crop',
+    postgraduate:
+      'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=400&h=250&fit=crop',
+    research: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=400&h=250&fit=crop',
+    default: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400&h=250&fit=crop',
+  };
+
+  constructor(private scholarshipService: PublicScholarshipService, private router: Router) {}
 
   ngOnInit(): void {
     this.fetchLandingScholarships();
@@ -48,7 +56,7 @@ export class Landing implements OnInit {
             country: s.country,
             title: s.title,
             description: s.short_summary,
-            image: s.banner_url || s.flyer_url || 'default-image.jpg',
+            image: s.banner_url || s.flyer_url || this.getFallbackImage(s.scholarship_type),
             category: s.scholarship_type,
           }));
         }
@@ -72,14 +80,40 @@ export class Landing implements OnInit {
           }
         });
       },
-      { threshold: 0.15 },
+      { threshold: 0.15 }
     );
 
     reveals.forEach((el) => observer.observe(el));
   }
 
+  /**
+   * Get fallback image based on scholarship category
+   */
+  private getFallbackImage(category: string): string {
+    const normalizedCategory = category?.toLowerCase() || 'default';
+    return this.fallbackImages[normalizedCategory] || this.fallbackImages['default'];
+  }
+
+  /**
+   * Handle image load errors with beautiful fallback images
+   */
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    const card = img.closest('.scholarship-card');
+
+    if (card) {
+      const categoryBadge = card.querySelector('.card-badge');
+      const category = categoryBadge?.textContent?.toLowerCase() || 'default';
+      img.src = this.fallbackImages[category] || this.fallbackImages['default'];
+    } else {
+      img.src = this.fallbackImages['default'];
+    }
+  }
+
   onScholarshipClick(scholarship: Scholarship): void {
     console.log('Scholarship clicked:', scholarship);
+    // Navigate to scholarship detail page
+    // this.router.navigate(['/scholarships', scholarship.id]);
   }
 
   onGetStarted(): void {
