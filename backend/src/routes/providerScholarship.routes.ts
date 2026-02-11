@@ -11,11 +11,16 @@ import { upload } from "../config/multer.config";
 import {
   getMostPopularScholarship,
   getScholarshipOverview,
+  getScholarshipApplicationCount,
+  getScholarshipViewCount,
+  getScholarshipBookmarkCount,
+  getScholarshipAnalytics,
 } from "../controllers/scholarshipAnalytics.controller";
 
 const router = Router();
 
-// create a new scholarship
+// ─── Scholarship CRUD ────────────────────────────────────────────────────────
+
 router.post(
   "/scholarships/post",
   AuthMiddleware.authenticate,
@@ -29,7 +34,6 @@ router.post(
   createScholarship
 );
 
-// get all scholarships
 router.get(
   "/scholarships",
   AuthMiddleware.authenticate,
@@ -37,14 +41,15 @@ router.get(
   getAllScholarships
 );
 
-// get scholarship overview
+// ── Static/named routes MUST come before /:id ────────────────────────────────
+
 router.get(
   "/scholarships/overview",
   AuthMiddleware.authenticate,
   AuthMiddleware.isProvider,
   getScholarshipOverview
 );
-// get most popular scholarship
+
 router.get(
   "/scholarships/popular",
   AuthMiddleware.authenticate,
@@ -52,7 +57,53 @@ router.get(
   getMostPopularScholarship
 );
 
-// get a specific scholarship
+// ─── Per-scholarship analytics ───────────────────────────────────────────────
+
+/**
+ * GET /api/provider/scholarships/:id/analytics
+ * Returns { views, bookmarks, applications } for one scholarship.
+ * This is the single endpoint the manage-scholarships page calls per row.
+ */
+router.get(
+  "/scholarships/:id/analytics",
+  AuthMiddleware.authenticate,
+  AuthMiddleware.isProvider,
+  getScholarshipAnalytics
+);
+
+/**
+ * GET /api/provider/scholarships/:id/applications/count
+ * Already implemented — kept here for completeness.
+ */
+router.get(
+  "/scholarships/:id/applications/count",
+  AuthMiddleware.authenticate,
+  AuthMiddleware.isProvider,
+  getScholarshipApplicationCount
+);
+
+/**
+ * GET /api/provider/scholarships/:id/views/count
+ */
+router.get(
+  "/scholarships/:id/views/count",
+  AuthMiddleware.authenticate,
+  AuthMiddleware.isProvider,
+  getScholarshipViewCount
+);
+
+/**
+ * GET /api/provider/scholarships/:id/bookmarks/count
+ */
+router.get(
+  "/scholarships/:id/bookmarks/count",
+  AuthMiddleware.authenticate,
+  AuthMiddleware.isProvider,
+  getScholarshipBookmarkCount
+);
+
+// ─── Single scholarship (keep AFTER all /scholarships/:id/sub-routes) ────────
+
 router.get(
   "/scholarships/:id",
   AuthMiddleware.authenticate,
@@ -60,7 +111,6 @@ router.get(
   getScholarshipById
 );
 
-// update a scholarship
 router.put(
   "/scholarships/:id",
   AuthMiddleware.authenticate,
@@ -73,7 +123,6 @@ router.put(
   updateScholarship
 );
 
-// delete scholarship
 router.delete(
   "/scholarships/:id",
   AuthMiddleware.authenticate,

@@ -18,7 +18,7 @@ export interface Scholarship {
   description: string;
   eligibility_criteria: string;
   benefits: string;
-  created_at: string; // ISO string from backend
+  created_at: string;
   deadline: string;
 
   // Categorisation
@@ -129,19 +129,16 @@ export class ScholarshipService {
       })
       .pipe(
         map((res) =>
-          res.map((s) => {
-            const fields = s.fields_of_study ?? []; // assume array or null
-            return {
-              scholarship_id: s.scholarship_id,
-              title: s.title,
-              organization_name: s.organization_name,
-              country: s.country,
-              deadline: s.deadline,
-              matchScore: Number(s.match_score),
-              fieldOfStudy: s.fields_of_study ? s.fields_of_study.join(', ') : 'Any',
-              match_id: s.match_id,
-            };
-          })
+          res.map((s) => ({
+            scholarship_id: s.scholarship_id,
+            title: s.title,
+            organization_name: s.organization_name,
+            country: s.country,
+            deadline: s.deadline,
+            matchScore: Number(s.match_score),
+            fieldOfStudy: s.fields_of_study ? s.fields_of_study.join(', ') : 'Any',
+            match_id: s.match_id,
+          }))
         )
       );
   }
@@ -151,5 +148,18 @@ export class ScholarshipService {
     return this.http.get<{ success: boolean; count: number }>(`${this.apiUrl}/active-scholarship`, {
       headers: this.getHeaders(),
     });
+  }
+
+  /**
+   * Records a unique view for the authenticated student.
+   * Safe to call multiple times — the backend ignores duplicates
+   * (enforced by the @Unique constraint on scholarship_views table).
+   */
+  recordView(scholarshipId: number): Observable<{ success: boolean }> {
+    return this.http.post<{ success: boolean }>(
+      `${this.apiUrl}/${scholarshipId}/view`,
+      {},
+      { headers: this.getHeaders() }
+    );
   }
 }

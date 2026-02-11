@@ -48,6 +48,7 @@ interface ScholarshipUI {
   requirements: string[];
   isSaved: boolean;
 }
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -104,7 +105,6 @@ export class DashboardComponent implements OnInit {
   relatedScholarships: RecommendedScholarship[] = [];
 
   selectedScholarshipIds: Set<number> = new Set();
-
   isSelectionMode = false;
 
   // AI explanation state
@@ -117,24 +117,15 @@ export class DashboardComponent implements OnInit {
   // =========================
   // RECOMMENDED — SHOW MORE
   // =========================
-  /** How many cards are visible before the user expands */
   initialDisplayCount = 3;
-
-  /** Flips to true when the user clicks "Show More" */
   showAllRecommended = false;
 
-  /**
-   * Computed slice of the full recommendations array.
-   * Returns the first `initialDisplayCount` items while collapsed,
-   * or the entire array once expanded.
-   */
   get visibleRecommendedScholarships(): RecommendedScholarship[] {
     return this.showAllRecommended
       ? this.recommendedScholarships
       : this.recommendedScholarships.slice(0, this.initialDisplayCount);
   }
 
-  /** Toggles the expanded / collapsed state */
   toggleShowMore(): void {
     this.showAllRecommended = !this.showAllRecommended;
   }
@@ -149,14 +140,10 @@ export class DashboardComponent implements OnInit {
     recommended: 0,
   };
 
-  // =========================
-  // DATA
-  // =========================
   recommendedScholarships: RecommendedScholarship[] = [];
 
   loading = false;
   error = '';
-
   showLogoutModal = false;
 
   constructor(
@@ -176,8 +163,8 @@ export class DashboardComponent implements OnInit {
   // =========================
   private loadDashboardData(): void {
     this.loading = true;
-
     this.error = '';
+
     forkJoin({
       activeScholarships: this.scholarshipService.getActiveScholarships(),
       applied: this.userScholarshipService.getAppliedScholarships(),
@@ -204,11 +191,9 @@ export class DashboardComponent implements OnInit {
   onApplyNow(): void {
     this.router.navigate(['/student/scholarships']);
   }
-
   onViewSaved(): void {
     this.router.navigate(['/student/bookmarked']);
   }
-
   onEditProfile(): void {
     this.router.navigate(['/student/profile']);
   }
@@ -217,52 +202,51 @@ export class DashboardComponent implements OnInit {
     return {
       id: s.scholarship_id,
       scholarshipId: s.scholarship_id,
-
       title: s.title,
       provider: s.organization_name,
       providerLogo: s.banner_url,
-
       status: new Date(s.deadline) < new Date() ? 'expired' : 'active',
-
       category: s.scholarship_type,
       country: s.country,
       level: s.education_level,
       fundingType: s.scholarship_type,
       fieldOfStudy: s.fields_of_study.join(', '),
-
       tags: s.fields_of_study,
-
       amount: s.benefits,
       deadline: s.deadline,
-
       description: s.description,
       eligibility: s.eligibility_criteria.split('\n'),
       fundingDetails: s.benefits,
       requirements: s.application_instructions.split('\n'),
-
       requiredDocuments: s.verification_docs,
       applicationUrl: s.application_link,
-
       savedDate: new Date(s.created_at),
       isSaved: false,
       matchScore: s.matchScore,
     };
   }
 
+  // ─── VIEW DETAILS ────────────────────────────────────────────────────────────
   openScholarshipDetails(rec: RecommendedScholarship, event?: Event): void {
     if (event) event.stopPropagation();
 
-    // reset AI state (important!)
+    // Reset AI state
     this.aiExplanation = null;
     this.loadingExplanation = false;
     this.explanationError = '';
     this.showImproveTips = false;
-
     this.selectedMatchId = rec.match_id;
 
     this.scholarshipService.getScholarshipById(rec.scholarship_id.toString()).subscribe({
       next: (res) => {
         this.selectedScholarship = this.mapScholarshipToUI(res.data);
+
+        // Record the view after the detail is successfully fetched.
+        // Fire-and-forget — errors are swallowed so they never
+        // block the modal from opening.
+        this.scholarshipService.recordView(rec.scholarship_id).subscribe({
+          error: (err) => console.warn('Failed to record view:', err),
+        });
       },
       error: (err) => {
         console.error('Failed to load scholarship details', err);
@@ -285,16 +269,11 @@ export class DashboardComponent implements OnInit {
 
   toggleSelectionMode(): void {
     this.isSelectionMode = !this.isSelectionMode;
-    if (!this.isSelectionMode) {
-      this.selectedScholarshipIds.clear();
-    }
+    if (!this.isSelectionMode) this.selectedScholarshipIds.clear();
   }
 
   toggleScholarshipSelection(scholarshipId: number, event?: Event): void {
-    if (event) {
-      event.stopPropagation();
-    }
-
+    if (event) event.stopPropagation();
     if (this.selectedScholarshipIds.has(scholarshipId)) {
       this.selectedScholarshipIds.delete(scholarshipId);
     } else {
@@ -307,9 +286,7 @@ export class DashboardComponent implements OnInit {
   }
 
   onSidebarAction(item: NavItem) {
-    if (item.action === 'logout') {
-      this.showLogoutModal = true;
-    }
+    if (item.action === 'logout') this.showLogoutModal = true;
   }
 
   getMatchStrengthLabel(strength?: 'excellent' | 'great' | 'good' | 'fair'): string {
@@ -323,9 +300,7 @@ export class DashboardComponent implements OnInit {
   }
 
   loadModalExplanation(matchId: number): void {
-    if (!matchId || this.loadingExplanation || this.aiExplanation) {
-      return;
-    }
+    if (!matchId || this.loadingExplanation || this.aiExplanation) return;
 
     this.loadingExplanation = true;
     this.explanationError = '';
@@ -358,9 +333,6 @@ export class DashboardComponent implements OnInit {
     this.showLogoutModal = false;
   }
 
-  // =========================
-  // HELPERS
-  // =========================
   getDaysRemaining(deadline: string | Date): number {
     const date = typeof deadline === 'string' ? new Date(deadline) : deadline;
     const diff = date.getTime() - Date.now();

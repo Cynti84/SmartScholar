@@ -139,3 +139,69 @@ export const getSoonestScholarshipDeadline = async (
 
   res.json(data);
 };
+
+// ─── NEW: per-scholarship analytics ──────────────────────────────────────────
+
+/**
+ * GET /api/provider/scholarships/:id/views/count
+ * Returns unique view count for one scholarship.
+ */
+export const getScholarshipViewCount = async (req: Request, res: Response) => {
+  const providerId = req.user!.id;
+  const scholarshipId = Number(req.params.id);
+
+  const result = await scholarshipAnalyticsService.getViewCount(
+    providerId,
+    scholarshipId
+  );
+  return res.status(200).json(result);
+};
+
+/**
+ * GET /api/provider/scholarships/:id/bookmarks/count
+ * Returns bookmark count for one scholarship.
+ */
+export const getScholarshipBookmarkCount = async (
+  req: Request,
+  res: Response
+) => {
+  const providerId = req.user!.id;
+  const scholarshipId = Number(req.params.id);
+
+  const result = await scholarshipAnalyticsService.getBookmarkCount(
+    providerId,
+    scholarshipId
+  );
+  return res.status(200).json(result);
+};
+
+/**
+ * GET /api/provider/scholarships/:id/analytics
+ * Returns views + bookmarks + applications in one call.
+ * Used by the manage-scholarships page.
+ */
+export const getScholarshipAnalytics = async (req: Request, res: Response) => {
+  const providerId = req.user!.id;
+  const scholarshipId = Number(req.params.id);
+
+  const result = await scholarshipAnalyticsService.getScholarshipAnalytics(
+    providerId,
+    scholarshipId
+  );
+  return res.status(200).json(result);
+};
+
+// ─── NEW: record a view (called from student side) ───────────────────────────
+
+/**
+ * POST /api/scholarships/:id/view
+ * Records a unique view for the authenticated student.
+ * Safe to call multiple times — duplicate is silently ignored.
+ */
+export const recordScholarshipView = async (req: Request, res: Response) => {
+  const userId = req.user!.id;
+  const scholarshipId = Number(req.params.id);
+
+  await scholarshipAnalyticsService.recordView(userId, scholarshipId);
+  return res.status(200).json({ success: true });
+};

@@ -10,6 +10,13 @@ export interface ProviderScholarshipDto {
   created_at: string;
   application_count?: number;
 }
+
+export interface ScholarshipAnalyticsDto {
+  views: number;
+  bookmarks: number;
+  applications: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProviderService {
   private API_URL = `${environment.apiUrl}/provider`;
@@ -32,29 +39,24 @@ export class ProviderService {
     return this.http.delete(`${this.API_URL}/delete`);
   }
 
-  //Scholarship utilities
+  // ─── Scholarship CRUD ──────────────────────────────────────────────────────
 
-  // create scholarship
   createScholarship(formData: FormData): Observable<any> {
     return this.http.post(`${this.API_URL}/scholarships/post`, formData);
   }
 
-  // get all scholarships for logged in provider
   getMyScholarships(): Observable<any> {
     return this.http.get(`${this.API_URL}/scholarships`);
   }
 
-  // get one scholarship
   getScholarshipById(id: number): Observable<any> {
     return this.http.get(`${this.API_URL}/scholarships/${id}`);
   }
 
-  // update scholarship
   updateScholarship(id: number, formData: FormData): Observable<any> {
     return this.http.put(`${this.API_URL}/scholarships/${id}`, formData);
   }
 
-  // delete scholarship
   deleteScholarship(id: number): Observable<any> {
     return this.http.delete(`${this.API_URL}/scholarships/${id}`);
   }
@@ -63,9 +65,33 @@ export class ProviderService {
     return this.http.get<any>(`${this.API_URL}/scholarships/popular`);
   }
 
+  // ─── Analytics ────────────────────────────────────────────────────────────
+
+  /**
+   * Fetches views, bookmarks, and applications for a single scholarship
+   * in one request. Used by the manage-scholarships table.
+   */
+  getScholarshipAnalytics(scholarshipId: number): Observable<ScholarshipAnalyticsDto> {
+    return this.http.get<ScholarshipAnalyticsDto>(
+      `${this.API_URL}/scholarships/${scholarshipId}/analytics`
+    );
+  }
+
   getSingleScholarshipApplicationsCount(scholarshipId: number): Observable<{ count: number }> {
     return this.http.get<{ count: number }>(
       `${this.API_URL}/scholarships/${scholarshipId}/applications/count`
+    );
+  }
+
+  getSingleScholarshipViewCount(scholarshipId: number): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(
+      `${this.API_URL}/scholarships/${scholarshipId}/views/count`
+    );
+  }
+
+  getSingleScholarshipBookmarkCount(scholarshipId: number): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(
+      `${this.API_URL}/scholarships/${scholarshipId}/bookmarks/count`
     );
   }
 
@@ -84,8 +110,6 @@ export class ProviderService {
       `${this.API_URL}/scholarships/deadline/soonest`
     );
   }
-
-  // Analytics
 
   getApplicantsByEducationLevel(scholarshipId?: number): Observable<any[]> {
     const url = scholarshipId

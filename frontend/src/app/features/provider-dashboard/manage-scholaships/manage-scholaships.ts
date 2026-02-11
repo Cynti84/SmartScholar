@@ -8,6 +8,8 @@ import { ProviderService } from '../../../core/services/provider.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { MatIconModule } from '@angular/material/icon';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 interface ScholarshipAnalytics {
   views: number;
@@ -61,6 +63,7 @@ export class ManageScholaships implements OnInit {
   viewMode: ViewMode = 'table';
 
   loading = false;
+  analyticsLoading = false;
   error = '';
 
   // =========================
@@ -84,7 +87,7 @@ export class ManageScholaships implements OnInit {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private providerService: ProviderService,
+    private providerService: ProviderService
   ) {}
 
   // =========================
@@ -106,16 +109,56 @@ export class ManageScholaships implements OnInit {
         const rows: any[] = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
 
         this.scholarships = rows
-          .filter((s) => s && s.scholarship_id) // 👈 important guard
+          .filter((s) => s && s.scholarship_id)
           .map((s) => this.mapScholarship(s));
 
         this.applyFilters();
         this.loading = false;
+
+        // Load analytics for all scholarships in parallel after the list loads
+        this.loadAnalytics();
       },
       error: (err) => {
         console.error('Load scholarships failed:', err);
         this.error = 'Failed to load scholarships';
         this.loading = false;
+      },
+    });
+  }
+
+  // =========================
+  // LOAD ANALYTICS
+  // =========================
+  /**
+   * Fires one GET /scholarships/:id/analytics per scholarship in parallel.
+   * On completion, patches analytics onto each scholarship in-place so the
+   * table updates without a full re-render.
+   * Any individual failure falls back to { views: 0, bookmarks: 0, applications: 0 }.
+   */
+  private loadAnalytics(): void {
+    if (this.scholarships.length === 0) return;
+
+    this.analyticsLoading = true;
+
+    const requests = this.scholarships.map((s) =>
+      this.providerService
+        .getScholarshipAnalytics(+s.id)
+        .pipe(catchError(() => of({ views: 0, bookmarks: 0, applications: 0 })))
+    );
+
+    forkJoin(requests).subscribe({
+      next: (results) => {
+        results.forEach((analytics, index) => {
+          this.scholarships[index].analytics = analytics;
+        });
+        // Re-apply filters so sort-by-views / sort-by-applications reflects real data
+        this.applyFilters();
+        this.analyticsLoading = false;
+      },
+      error: () => {
+        // forkJoin won't error here because catchError handles per-item failures,
+        // but guard anyway
+        this.analyticsLoading = false;
       },
     });
   }
@@ -139,18 +182,19 @@ export class ManageScholaships implements OnInit {
       scholarshipType: api.scholarship_type ?? '',
       fieldsOfStudy: Array.isArray(api.fields_of_study)
         ? api.fields_of_study.flatMap((f: string) =>
-            typeof f === 'string' ? f.split(',').map((v) => v.trim()) : [],
+            typeof f === 'string' ? f.split(',').map((v) => v.trim()) : []
           )
         : typeof api.fields_of_study === 'string'
-          ? api.fields_of_study.split(',').map((v: string) => v.trim())
-          : [],
+        ? api.fields_of_study.split(',').map((v: string) => v.trim())
+        : [],
       status: api.status ?? 'draft',
       applicationDeadline: new Date(api.deadline),
       dateCreated: new Date(api.created_at),
+      // Initialise to zero — loadAnalytics() patches real values asynchronously
       analytics: {
-        views: api.views ?? 0,
-        bookmarks: api.bookmarks ?? 0,
-        applications: api.applications ?? 0,
+        views: 0,
+        bookmarks: 0,
+        applications: 0,
       },
     };
   }
@@ -169,7 +213,7 @@ export class ManageScholaships implements OnInit {
           s.shortSummary.toLowerCase().includes(q) ||
           s.organizationName.toLowerCase().includes(q) ||
           s.country.toLowerCase().includes(q) ||
-          s.fieldsOfStudy.some((f) => f.toLowerCase().includes(q)),
+          s.fieldsOfStudy.some((f) => f.toLowerCase().includes(q))
       );
     }
 
@@ -201,11 +245,15 @@ export class ManageScholaships implements OnInit {
   // VIEW
   // =========================
   viewScholarship(s: Scholarship): void {
-    console.log('Showing scholarship...');
     this.providerService.getScholarshipById(+s.id).subscribe({
       next: (res) => {
         this.currentScholarship = this.mapScholarship(res);
-        console.log('Showing scholarship', res);
+        // Patch analytics from the already-loaded scholarship so the modal
+        // shows real numbers immediately without an extra request
+        const existing = this.scholarships.find((x) => x.id === s.id);
+        if (existing && this.currentScholarship) {
+          this.currentScholarship.analytics = { ...existing.analytics };
+        }
         this.showViewModal = true;
       },
     });
@@ -279,9 +327,7 @@ export class ManageScholaships implements OnInit {
     if (!confirm(`Delete ${this.selectedScholarships.length} scholarships?`)) return;
 
     Promise.all(
-      this.selectedScholarships.map((id) =>
-        this.providerService.deleteScholarship(+id).toPromise(),
-      ),
+      this.selectedScholarships.map((id) => this.providerService.deleteScholarship(+id).toPromise())
     ).then(() => {
       this.clearSelection();
       this.loadScholarships();
@@ -352,7 +398,7 @@ export class ManageScholaships implements OnInit {
    =============================== */
 
   getStatusClass(status: Scholarship['status']): string {
-    return status.toLowerCase(); // pending | approved | rejected | expired
+    return status.toLowerCase();
   }
 
   getDeadlineText(deadline: Date): string {
@@ -371,12 +417,11 @@ export class ManageScholaships implements OnInit {
   isDeadlineSoon(deadline: Date): boolean {
     const now = new Date();
     const daysUntilDeadline = Math.ceil(
-      (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+      (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
     );
     return daysUntilDeadline <= 30 && daysUntilDeadline > 0;
   }
 
-  //Helper method to formate date for input field
   formatDateForInput(date: Date): string {
     const d = new Date(date);
     const year = d.getFullYear();
@@ -385,7 +430,6 @@ export class ManageScholaships implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  // helper method to update deadline from input
   updateDeadline(dateString: string): void {
     if (this.editingScholarship) {
       this.editingScholarship.applicationDeadline = new Date(dateString);
@@ -397,6 +441,7 @@ export class ManageScholaships implements OnInit {
     const csvData = this.convertToCSV(this.filteredScholarships);
     this.downloadCSV(csvData, 'scholarships-export.csv');
   }
+
   private convertToCSV(data: Scholarship[]): string {
     const headers = [
       'Title',
@@ -412,7 +457,7 @@ export class ManageScholaships implements OnInit {
       headers.join(','),
       ...data.map((scholarship) =>
         [
-          '${scholarship.title}',
+          `"${scholarship.title}"`,
           scholarship.status,
           scholarship.country,
           scholarship.educationLevel,
@@ -420,11 +465,12 @@ export class ManageScholaships implements OnInit {
           scholarship.analytics.views,
           scholarship.analytics.applications,
           scholarship.dateCreated.toISOString().split('T')[0],
-        ].join(','),
+        ].join(',')
       ),
     ].join('\n');
     return csvContent;
   }
+
   private downloadCSV(csvContent: string, filename: string): void {
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -437,11 +483,9 @@ export class ManageScholaships implements OnInit {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   }
-  // Refresh data
+
   refreshData(): void {
-    console.log('Refreshing scholarship data...');
     this.loadScholarships();
-    this.applyFilters();
     this.showNotification('Data refreshed successfully', 'success');
   }
 

@@ -258,7 +258,6 @@ export class Scholarships {
 
   ngOnInit(): void {
     this.loadScholarships();
-    // Clear expired cache on init
     this.readinessService.clearExpiredCache();
   }
 
@@ -303,19 +302,16 @@ export class Scholarships {
   mapToUI(s: any): ScholarshipUI {
     const eligibility: string[] = [];
 
-    if (s.eligibility?.minGPA) {
-      eligibility.push(`Minimum GPA: ${s.eligibility.minGPA}`);
-    }
-    if (s.eligibility?.educationLevel?.length) {
+    if (s.eligibility?.minGPA) eligibility.push(`Minimum GPA: ${s.eligibility.minGPA}`);
+    if (s.eligibility?.educationLevel?.length)
       eligibility.push(`Level: ${s.eligibility.educationLevel.join(', ')}`);
-    }
-    if (s.eligibility?.fieldOfStudy?.length) {
+    if (s.eligibility?.fieldOfStudy?.length)
       eligibility.push(`Field: ${s.eligibility.fieldOfStudy.join(', ')}`);
-    }
-    if (s.eligibility?.countries?.length) {
+    if (s.eligibility?.countries?.length)
       eligibility.push(`Countries: ${s.eligibility.countries.join(', ')}`);
-    }
+
     const fields = this.normalizeToArray(s.fields_of_study);
+
     return {
       id: s.scholarship_id,
       title: s.title ?? 'Untitled Scholarship',
@@ -340,9 +336,6 @@ export class Scholarships {
     };
   }
 
-  /**
-   * Check if this scholarship is a good fit for the student
-   */
   checkScholarshipFit(scholarship: ScholarshipUI): void {
     this.isLoadingReadiness = true;
     this.readinessError = null;
@@ -352,9 +345,8 @@ export class Scholarships {
     this.readinessService
       .checkReadiness(scholarship.id)
       .pipe(
-        delay(800), // Minimum 800ms delay to show loading state
+        delay(800),
         finalize(() => {
-          // This runs whether success or error
           this.isLoadingReadiness = false;
         })
       )
@@ -370,25 +362,16 @@ export class Scholarships {
       });
   }
 
-  /**
-   * Close readiness panel
-   */
   closeReadinessPanel(): void {
     this.showReadinessPanel = false;
     this.readinessResult = null;
     this.readinessError = null;
   }
 
-  /**
-   * Get status color for UI
-   */
   getStatusColor(status: ReadinessResult['overallReadiness']): string {
     return this.readinessService.getStatusColor(status);
   }
 
-  /**
-   * Get status label for UI
-   */
   getStatusLabel(status: ReadinessResult['overallReadiness']): string {
     return this.readinessService.getStatusLabel(status);
   }
@@ -406,28 +389,16 @@ export class Scholarships {
           s.description.toLowerCase().includes(keyword)
       );
     }
-
-    if (this.filters.country) {
-      filtered = filtered.filter((s) => s.country === this.filters.country);
-    }
-
-    if (this.filters.level) {
-      filtered = filtered.filter((s) => s.level === this.filters.level);
-    }
-
-    if (this.filters.fundingType) {
+    if (this.filters.country) filtered = filtered.filter((s) => s.country === this.filters.country);
+    if (this.filters.level) filtered = filtered.filter((s) => s.level === this.filters.level);
+    if (this.filters.fundingType)
       filtered = filtered.filter((s) => s.fundingType === this.filters.fundingType);
-    }
-
-    if (this.filters.fieldOfStudy) {
+    if (this.filters.fieldOfStudy)
       filtered = filtered.filter((s) => s.fieldOfStudy === this.filters.fieldOfStudy);
-    }
-
-    if (this.filters.deadlineBefore) {
+    if (this.filters.deadlineBefore)
       filtered = filtered.filter(
         (s) => new Date(s.deadline) <= new Date(this.filters.deadlineBefore)
       );
-    }
 
     this.sortScholarships(filtered);
     this.filteredScholarships = filtered;
@@ -474,44 +445,40 @@ export class Scholarships {
 
   calculatePagination() {
     this.totalPages = Math.ceil(this.filteredScholarships.length / this.itemsPerPage);
-    if (this.currentPage > this.totalPages) {
-      this.currentPage = 1;
-    }
+    if (this.currentPage > this.totalPages) this.currentPage = 1;
   }
 
   getPaginatedScholarships(): ScholarshipUI[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return this.filteredScholarships.slice(start, end);
+    return this.filteredScholarships.slice(start, start + this.itemsPerPage);
   }
 
   goToPage(page: number) {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-    }
+    if (page >= 1 && page <= this.totalPages) this.currentPage = page;
   }
 
   nextPage() {
-    if (this.currentPage < this.totalPages) {
-      this.currentPage++;
-    }
+    if (this.currentPage < this.totalPages) this.currentPage++;
   }
-
   prevPage() {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-    }
+    if (this.currentPage > 1) this.currentPage--;
   }
 
   getPageNumbers(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
+  // ─── VIEW DETAILS ────────────────────────────────────────────────────────────
   viewScholarship(s: ScholarshipUI): void {
     this.selectedScholarship = s;
     this.loadRelatedScholarships(s);
-    // Reset readiness panel when viewing a new scholarship
     this.closeReadinessPanel();
+
+    // Record the view — fire-and-forget, errors are swallowed so they
+    // never interrupt the student's experience
+    this.scholarshipService.recordView(s.id).subscribe({
+      error: (err) => console.warn('Failed to record view:', err),
+    });
   }
 
   loadRelatedScholarships(s: ScholarshipUI): void {
@@ -564,9 +531,7 @@ export class Scholarships {
   }
 
   onSidebarAction(item: NavItem) {
-    if (item.action === 'logout') {
-      this.showLogoutModal = true;
-    }
+    if (item.action === 'logout') this.showLogoutModal = true;
   }
 
   confirmLogout() {

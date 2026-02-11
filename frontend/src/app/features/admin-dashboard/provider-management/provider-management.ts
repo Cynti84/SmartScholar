@@ -290,7 +290,9 @@ export class ProviderManagement {
       next: (res: any) => {
         const scholarships = res.data || [];
         provider.postedScholarship = scholarships.length;
-        provider.activeScholarships = scholarships.filter((s: any) => s.status === 'active').length;
+        provider.activeScholarships = scholarships.filter(
+          (s: any) => s.status === 'approved'
+        ).length;
       },
       error: (err) => {
         console.error('Failed to fetch provider scholarships', err);

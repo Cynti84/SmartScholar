@@ -7,6 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { NavItem } from '../../../shared/components/sidebar/sidebar';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { UserScholarshipService } from '../../../core/services/user-scholarship.service';
+import { ScholarshipService } from '../../../core/services/scholarship.service';
 
 export interface SavedScholarship {
   id: number;
@@ -44,6 +45,7 @@ export class Bookmarked {
     { label: 'Profile', route: '/student/profile' },
     { label: 'Logout', action: 'logout' },
   ];
+
   savedScholarships: SavedScholarship[] = [];
   filteredScholarships: SavedScholarship[] = [];
 
@@ -53,54 +55,48 @@ export class Bookmarked {
   searchTerm = '';
   selectedCategory = 'all';
   selectedStatus = 'all';
-  sortBy = 'saved_date'; // saved_date, deadline, amount, match_score
+  sortBy = 'saved_date';
 
-  // Categories
   categories: string[] = [];
 
-  // View mode
   viewMode: 'grid' | 'list' = 'grid';
 
-  // Stats
-  stats = {
-    total: 0,
-    active: 0,
-    expired: 0,
-    applied: 0,
-  };
+  stats = { total: 0, active: 0, expired: 0, applied: 0 };
 
-  // Selected scholarships for bulk actions
   selectedScholarshipIds: Set<number> = new Set();
-
   isSelectionMode = false;
+
+  selectedScholarship: SavedScholarship | null = null;
+
+  showLogoutModal = false;
 
   constructor(
     private router: Router,
     private authService: AuthService,
     private userScholarshipService: UserScholarshipService,
+    private scholarshipService: ScholarshipService
   ) {}
 
-  selectedScholarship: SavedScholarship | null = null;
+  // ─── VIEW DETAILS ────────────────────────────────────────────────────────────
+  openScholarshipDetails(scholarship: SavedScholarship, event?: Event): void {
+    if (event) event.stopPropagation();
 
-  // Add this method to open the scholarship details modal
-  openScholarshipDetails(scholarship: any, event?: Event): void {
-    if (event) {
-      event.stopPropagation();
-    }
     this.selectedScholarship = scholarship;
-    // Prevent body scroll when modal is open
     document.body.style.overflow = 'hidden';
+
+    // Record the view — fire-and-forget, errors are swallowed so they
+    // never interrupt the student's experience
+    this.scholarshipService.recordView(scholarship.scholarshipId).subscribe({
+      error: (err) => console.warn('Failed to record view:', err),
+    });
   }
 
-  // Add this method to close the scholarship details modal
   closeScholarshipDetails(): void {
     this.selectedScholarship = null;
-    // Re-enable body scroll
     document.body.style.overflow = 'auto';
   }
 
-  // Update your existing viewScholarship method to use the modal
-  viewScholarship(scholarship: any): void {
+  viewScholarship(scholarship: SavedScholarship): void {
     if (this.isSelectionMode) {
       this.toggleScholarshipSelection(scholarship.scholarshipId);
     } else {
@@ -108,12 +104,13 @@ export class Bookmarked {
     }
   }
 
-  // Optional: Add keyboard event listener to close modal on ESC key
-  // Add this in ngOnInit or constructor
-
+  // =========================
+  // INIT
+  // =========================
   ngOnInit(): void {
     this.loadSavedScholarships();
   }
+
   loadSavedScholarships(): void {
     this.isLoading = true;
 
@@ -123,9 +120,8 @@ export class Bookmarked {
           .filter((b: any) => b.scholarship)
           .map(
             (b: any): SavedScholarship => ({
-              id: b.id, // bookmark id ✅
-              scholarshipId: b.scholarship.scholarship_id, // scholarship id ✅
-
+              id: b.id,
+              scholarshipId: b.scholarship.scholarship_id,
               title: b.scholarship.title,
               provider: b.scholarship.organization_name,
               description: b.scholarship.description,
@@ -134,14 +130,12 @@ export class Bookmarked {
               amount: String(b.scholarship?.scholarship_type),
               status: this.computeStatus(b.scholarship),
               savedDate: new Date(b.bookmarkedAt),
-
               providerLogo: b.scholarship.banner_url ?? undefined,
-
               tags: Array.isArray(b.scholarship.fields_of_study)
                 ? b.scholarship.fields_of_study
                 : typeof b.scholarship.fields_of_study === 'string'
-                  ? b.scholarship.fields_of_study.split(',')
-                  : [],
+                ? b.scholarship.fields_of_study.split(',')
+                : [],
               eligibility:
                 typeof b.scholarship.eligibility_criteria === 'string'
                   ? b.scholarship.eligibility_criteria
@@ -149,22 +143,19 @@ export class Bookmarked {
                       .map((e: string) => e.trim())
                       .filter(Boolean)
                   : [],
-
               requiredDocuments: Array.isArray(b.scholarship.required_documents)
                 ? b.scholarship.required_documents
                 : typeof b.scholarship.required_documents === 'string'
-                  ? b.scholarship.required_documents.split(',')
-                  : undefined,
-
+                ? b.scholarship.required_documents.split(',')
+                : undefined,
               applicationUrl: b.scholarship.application_url ?? undefined,
-            }),
+            })
           );
 
         this.filteredScholarships = [...this.savedScholarships];
         this.extractCategories();
         this.calculateStats();
         this.applyFilters();
-
         this.isLoading = false;
       },
       error: () => {
@@ -177,16 +168,9 @@ export class Bookmarked {
   computeStatus(scholarship: any): 'active' | 'expired' | 'applied' {
     const deadline = new Date(scholarship.deadline);
     const now = new Date();
-
-    if (deadline < now) {
-      return 'expired';
-    }
-
-    // later you can improve this if student has applied
+    if (deadline < now) return 'expired';
     return 'active';
   }
-
-  // Simulate API call with mock data
 
   extractCategories(): void {
     const uniqueCategories = new Set(this.savedScholarships.map((s) => s.category));
@@ -203,59 +187,47 @@ export class Bookmarked {
   applyFilters(): void {
     let filtered = [...this.savedScholarships];
 
-    // Search filter
     if (this.searchTerm) {
       const search = this.searchTerm.toLowerCase();
       filtered = filtered.filter(
         (s) =>
           s.title.toLowerCase().includes(search) ||
           s.provider.toLowerCase().includes(search) ||
-          s.description.toLowerCase().includes(search),
+          s.description.toLowerCase().includes(search)
       );
     }
 
-    // Category filter
-    if (this.selectedCategory !== 'all') {
+    if (this.selectedCategory !== 'all')
       filtered = filtered.filter((s) => s.category === this.selectedCategory);
-    }
 
-    // Status filter
-    if (this.selectedStatus !== 'all') {
+    if (this.selectedStatus !== 'all')
       filtered = filtered.filter((s) => s.status === this.selectedStatus);
-    }
 
-    // Sort
     this.sortScholarships(filtered);
-
     this.filteredScholarships = filtered;
   }
+
   private fundingPriority(amount?: string): number {
     if (!amount) return 99;
-
     const value = amount.toLowerCase();
-
     if (value.includes('fully')) return 1;
     if (value.includes('partial')) return 2;
     if (value.includes('partly')) return 2;
     if (value.includes('not')) return 3;
-
     return 99;
   }
+
   sortScholarships(scholarships: SavedScholarship[]): void {
     scholarships.sort((a, b) => {
       switch (this.sortBy) {
         case 'saved_date':
           return new Date(b.savedDate).getTime() - new Date(a.savedDate).getTime();
-
         case 'deadline':
           return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
-
-        case 'amount': // funding type
+        case 'amount':
           return this.fundingPriority(a.amount) - this.fundingPriority(b.amount);
-
         case 'match_score':
           return (b.matchScore ?? 0) - (a.matchScore ?? 0);
-
         default:
           return 0;
       }
@@ -265,11 +237,9 @@ export class Bookmarked {
   onSearchChange(): void {
     this.applyFilters();
   }
-
   onFilterChange(): void {
     this.applyFilters();
   }
-
   onSortChange(): void {
     this.applyFilters();
   }
@@ -277,26 +247,20 @@ export class Bookmarked {
   toggleViewMode(): void {
     this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
   }
-  //unsavescholarship
+
   unsaveScholarship(scholarship: SavedScholarship, event?: Event): void {
     event?.stopPropagation();
 
-    if (!confirm(`Remove "${scholarship.title}" from saved scholarships?`)) {
-      return;
-    }
+    if (!confirm(`Remove "${scholarship.title}" from saved scholarships?`)) return;
 
     this.userScholarshipService.removeBookmark(scholarship.scholarshipId).subscribe({
       next: () => {
-        // 1️⃣ Remove from source list
         this.savedScholarships = this.savedScholarships.filter(
-          (s) => s.scholarshipId !== scholarship.scholarshipId,
+          (s) => s.scholarshipId !== scholarship.scholarshipId
         );
-
-        // 2️⃣ Rebuild filtered list + stats
         this.calculateStats();
         this.applyFilters();
 
-        // 3️⃣ 🔥 CLOSE MODAL IF THIS WAS THE OPEN SCHOLARSHIP
         if (
           this.selectedScholarship &&
           this.selectedScholarship.scholarshipId === scholarship.scholarshipId
@@ -309,10 +273,6 @@ export class Bookmarked {
       },
     });
   }
-
-  // viewScholarship(scholarship: SavedScholarship): void {
-  //   this.router.navigate(['/student/scholarships', scholarship.scholarshipId]);
-  // }
 
   goToApplyPage(scholarshipId: number): void {
     this.router.navigate(['/student/apply', scholarshipId]);
@@ -344,16 +304,11 @@ export class Bookmarked {
 
   toggleSelectionMode(): void {
     this.isSelectionMode = !this.isSelectionMode;
-    if (!this.isSelectionMode) {
-      this.selectedScholarshipIds.clear();
-    }
+    if (!this.isSelectionMode) this.selectedScholarshipIds.clear();
   }
 
   toggleScholarshipSelection(scholarshipId: number, event?: Event): void {
-    if (event) {
-      event.stopPropagation();
-    }
-
+    if (event) event.stopPropagation();
     if (this.selectedScholarshipIds.has(scholarshipId)) {
       this.selectedScholarshipIds.delete(scholarshipId);
     } else {
@@ -376,7 +331,7 @@ export class Bookmarked {
 
     if (confirm(`Remove ${this.selectedScholarshipIds.size} scholarships from saved?`)) {
       this.savedScholarships = this.savedScholarships.filter(
-        (s) => !this.selectedScholarshipIds.has(s.scholarshipId),
+        (s) => !this.selectedScholarshipIds.has(s.scholarshipId)
       );
       this.calculateStats();
       this.applyFilters();
@@ -386,23 +341,17 @@ export class Bookmarked {
   }
 
   exportSaved(): void {
-    console.log('Exporting saved scholarships...');
     alert('Export feature: Download CSV/PDF of your saved scholarships');
   }
 
   Math = Math;
 
-  showLogoutModal = false;
-
   onSidebarAction(item: NavItem) {
-    if (item.action === 'logout') {
-      this.showLogoutModal = true;
-    }
+    if (item.action === 'logout') this.showLogoutModal = true;
   }
 
   confirmLogout() {
     this.showLogoutModal = false;
-
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/auth/login']),
       error: () => this.router.navigate(['/auth/login']),

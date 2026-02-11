@@ -313,8 +313,8 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 
         .requirements {
           background: $bg-light;
-          padding: 1rem;
           border-radius: 8px;
+          padding: 0.5rem;
           border-left: 4px solid $primary-color;
 
           h4 {

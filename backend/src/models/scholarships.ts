@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 import { User } from "./users";
 import { MatchResult } from "./match_result";
+import { ScholarshipView } from "./scholarshipView";
 import { Application } from "./applications";
 import { Bookmark } from "./Bookmark";
 import { JSONB } from "sequelize";
@@ -148,4 +149,7 @@ export class Scholarship {
 
   @OneToMany(() => MatchResult, (matchResult) => matchResult.scholarship)
   matchResults?: MatchResult[];
+
+  @OneToMany(() => ScholarshipView, (view) => view.scholarship)
+  views?: ScholarshipView[];
 }

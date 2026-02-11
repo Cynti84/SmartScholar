@@ -16,24 +16,6 @@
             </h1>
             <p class="subtitle">Your bookmarked opportunities for later review</p>
           </div>
-          <!-- <div class="header-actions">
-            <button
-              class="btn btn-outline"
-              (click)="exportSaved()"
-              *ngIf="savedScholarships.length > 0"
-            >
-              <span class="icon">📥</span>
-              Export
-            </button>
-            <button
-              class="btn btn-secondary"
-              (click)="toggleSelectionMode()"
-              *ngIf="savedScholarships.length > 0"
-            >
-              <span class="icon">{{ isSelectionMode ? '✕' : '☑' }}</span>
-              {{ isSelectionMode ? 'Cancel' : 'Select' }}
-            </button>
-          </div> -->
         </div>
 
         <!-- Stats Bar -->
@@ -46,22 +28,12 @@
             <span class="stat-value">{{ stats.active }}</span>
             <span class="stat-label">Active</span>
           </div>
-          <!-- <div class="stat-item applied">
-            <span class="stat-value">{{ stats.applied }}</span>
-            <span class="stat-label">Applied</span>
-          </div> -->
           <div class="stat-item expired">
             <span class="stat-value">{{ stats.expired }}</span>
             <span class="stat-label">Expired</span>
           </div>
         </div>
       </div>
-
-      <!-- Loading State -->
-      <!-- <div *ngIf="isLoading" class="loading-container">
-        <div class="spinner"></div>
-        <p>Loading your saved scholarships...</p>
-      </div> -->
 
       <!-- Main Content -->
       <div *ngIf="!isLoading" class="main-content">
@@ -170,7 +142,7 @@
                 <div class="provider-info">
                   <div class="provider-name">{{ scholarship.provider }}</div>
                   <div class="saved-date">
-                    Saved {{ scholarship.savedDate | date: 'MMM d, yyyy' }}
+                    Saved {{ scholarship.savedDate | date : 'MMM d, yyyy' }}
                   </div>
                 </div>
               </div>
@@ -228,8 +200,8 @@
                   selectedScholarship?.status === 'applied'
                     ? 'Already Applied'
                     : selectedScholarship?.status === 'expired'
-                      ? 'Expired'
-                      : 'Apply Now'
+                    ? 'Expired'
+                    : 'Apply Now'
                 }}
               </button>
             </div>
@@ -342,14 +314,6 @@
         </ul>
       </div>
 
-      <!-- Eligibility Requirements -->
-      <!-- <div class="detail-section" *ngIf="selectedScholarship.eligibility">
-        <h3 class="section-title">Eligibility Requirements</h3>
-        <ul class="requirements-list">
-          <li *ngFor="let requirement of selectedScholarship.eligibility">{{ requirement }}</li>
-        </ul>
-      </div> -->
-
       <!-- Required Documents -->
       <div class="detail-section" *ngIf="selectedScholarship.requiredDocuments">
         <h3 class="section-title">Required Documents</h3>
@@ -384,7 +348,7 @@
           <div class="info-item">
             <span class="info-label">Saved Date:</span>
             <span class="info-value">{{
-              selectedScholarship.savedDate | date: 'MMM d, yyyy'
+              selectedScholarship.savedDate | date : 'MMM d, yyyy'
             }}</span>
           </div>
           <div class="info-item" *ngIf="selectedScholarship.applicationUrl">
@@ -414,8 +378,8 @@
           selectedScholarship.status === 'applied'
             ? 'Already Applied'
             : selectedScholarship.status === 'expired'
-              ? 'Expired'
-              : 'Apply Now'
+            ? 'Expired'
+            : 'Apply Now'
         }}
       </button>
     </div>

@@ -30,6 +30,7 @@ import {
   getEmailPreferences,
   updateEmailPreferences,
 } from "../controllers/email-preference.controller";
+import { recordScholarshipView } from "../controllers/scholarshipAnalytics.controller";
 
 import { MatchingController } from "../controllers/matching.controller";
 
@@ -156,6 +157,13 @@ router.get(
   "/scholarships/:id",
   AuthMiddleware.authenticate,
   getScholarshipById
+);
+
+// called when a student opens a scholarship detail page
+router.post(
+  "/scholarships/:id/view",
+  AuthMiddleware.authenticate,
+  recordScholarshipView
 );
 
 export default router;
