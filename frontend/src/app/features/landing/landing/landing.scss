@@ -10,6 +10,7 @@ $white: #ffffff;
 $border-light: #e5e7eb;
 $shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 
 // Reset and base styles
 * {
@@ -23,6 +24,9 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   line-height: 1.6;
   color: $text-dark;
   background: $white;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 // Header Styles
@@ -38,8 +42,84 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 // Hero Section
 .hero-section {
   padding: 4rem 0 6rem;
-  background: linear-gradient(135deg, $bg-light 0%, $white 100%);
+  background: linear-gradient(
+    135deg,
+    #f9fafb 0%,
+    #f3f4f6 40%,
+    #ffffff 60%,
+    #ffffff 100% // White
+  );
+  position: relative;
+  overflow: hidden;
+
+  // Animated gradient orbs
+  &::before {
+    content: '';
+    position: absolute;
+    top: -10%;
+    left: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: floatOrb1 20s ease-in-out infinite;
+    filter: blur(60px);
+    z-index: 0;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: floatOrb2 25s ease-in-out infinite;
+    filter: blur(70px);
+    z-index: 0;
+  }
+
+  // Mesh gradient overlay
+  .hero-mesh {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.06) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.05) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(34, 211, 238, 0.06) 0px, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
 }
+
+@keyframes floatOrb1 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(50px, -30px) scale(1.1);
+  }
+  66% {
+    transform: translate(-30px, 20px) scale(0.9);
+  }
+}
+
+@keyframes floatOrb2 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(-40px, 30px) scale(1.05);
+  }
+  66% {
+    transform: translate(20px, -40px) scale(0.95);
+  }
+}
+
 /* Hero entrance animations */
 .hero-title {
   animation: slideDown 0.8s ease forwards;
@@ -48,14 +128,291 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 .hero-description {
   animation: fadeUp 0.9s ease forwards;
   animation-delay: 0.2s;
+  opacity: 0;
 }
 
-/* Floating hero image */
+.hero-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-content {
+  margin-bottom: 3rem;
+
+  .hero-title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: $text-dark;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    background: linear-gradient(135deg, $text-dark 0%, $primary-color 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-description {
+    font-size: 1.125rem;
+    color: $text-light;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+}
+
+// ===========================
+// Hero SVG Illustration Styles
+// ===========================
+
 .hero-image {
-  animation: float 6s ease-in-out infinite;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: scale(1.02);
+  }
 }
 
-/* Keyframes */
+.hero-svg {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.1));
+}
+
+// Background circles animation
+.bg-circle {
+  transition: all 0.6s ease;
+
+  &.circle-1 {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  &.circle-2 {
+    animation: float 8s ease-in-out infinite;
+    animation-delay: -2s;
+  }
+
+  &.circle-3 {
+    animation: float 7s ease-in-out infinite;
+    animation-delay: -4s;
+  }
+}
+
+.hero-svg:hover .bg-circle {
+  &.circle-1 {
+    transform: translate(10px, -10px);
+    opacity: 0.8;
+  }
+
+  &.circle-2 {
+    transform: translate(-15px, 10px);
+    opacity: 0.7;
+  }
+
+  &.circle-3 {
+    transform: translate(8px, -8px);
+    opacity: 0.8;
+  }
+}
+
+// Graduation cap animations
+.grad-cap-group {
+  transform-origin: 400px 200px;
+  animation: swing 4s ease-in-out infinite;
+}
+
+.tassel {
+  transform-origin: 400px 160px;
+  animation: tasselSwing 3s ease-in-out infinite;
+}
+
+.hero-svg:hover .grad-cap-group {
+  animation: bounce 0.6s ease;
+}
+
+// Books animation
+.books-group {
+  animation: stackBounce 5s ease-in-out infinite;
+}
+
+.book {
+  transition: transform 0.3s ease;
+}
+
+.hero-svg:hover .book-1 {
+  transform: translateX(-3px);
+}
+
+.hero-svg:hover .book-2 {
+  transform: translateX(2px);
+}
+
+.hero-svg:hover .book-3 {
+  transform: translateX(-2px);
+}
+
+// Student figure animations
+.student-figure {
+  animation: bob 3s ease-in-out infinite;
+}
+
+.hand-wave {
+  transform-origin: 464px 365px;
+  animation: wave 2s ease-in-out infinite;
+}
+
+.hero-svg:hover .student-figure {
+  animation: jump 0.8s ease;
+}
+
+// Floating icons
+.icon {
+  animation: floatIcon 4s ease-in-out infinite;
+
+  &.icon-1 {
+    animation-delay: 0s;
+  }
+
+  &.icon-2 {
+    animation-delay: -1.5s;
+  }
+
+  &.icon-3 {
+    animation-delay: -3s;
+  }
+}
+
+.hero-svg:hover .icon {
+  transform: scale(1.2) rotate(15deg);
+  transition: all 0.4s ease;
+}
+
+// Decorative lines
+.deco-line {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: drawLine 3s ease-in-out infinite;
+
+  &.line-2 {
+    animation-delay: -1.5s;
+  }
+}
+
+/* SVG Keyframes */
+@keyframes swing {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes tasselSwing {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+@keyframes stackBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes wave {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(20deg);
+  }
+  75% {
+    transform: rotate(-20deg);
+  }
+}
+
+@keyframes floatIcon {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(10deg);
+  }
+}
+
+@keyframes drawLine {
+  0%,
+  100% {
+    stroke-dashoffset: 200;
+  }
+  50% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes jump {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-30px);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+/* Base animation keyframes */
 @keyframes slideDown {
   from {
     opacity: 0;
@@ -100,53 +457,35 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   transform: translateY(0);
 }
 
-.hero-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  text-align: center;
-}
-
-.hero-content {
-  margin-bottom: 3rem;
-
-  .hero-title {
-    font-size: 3rem;
-    font-weight: 700;
-    color: $text-dark;
-    margin-bottom: 1.5rem;
-    line-height: 1.1;
-    letter-spacing: -0.025em;
-  }
-
-  .hero-description {
-    font-size: 1.125rem;
-    color: $text-light;
-    max-width: 600px;
-    margin: 0 auto;
-    line-height: 1.7;
-  }
-}
-
-.hero-image {
-  max-width: 800px;
-  margin: 0 auto;
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: $shadow-lg;
-
-  .hero-img {
-    width: 100%;
-    height: 400px;
-    object-fit: cover;
-    display: block;
-  }
-}
-
 // Scholarships Section
 .scholarships-section {
   padding: 6rem 0;
-  background: $white;
+  background: linear-gradient(180deg, #ffffff 0%, #f9fafb 50%, #f3f4f6 100%);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, $border-light, transparent);
+  }
+
+  // Subtle pattern overlay
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(
+        circle at 20% 80%,
+        rgba(59, 130, 246, 0.03) 0%,
+        transparent 50%
+      ),
+      radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+  }
 }
 
 .section-container {
@@ -162,13 +501,28 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   text-align: center;
   margin-bottom: 4rem;
   letter-spacing: -0.025em;
+  position: relative;
+  width: 100%;
+  display: block;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, $primary-color, #8b5cf6);
+    border-radius: 2px;
+  }
 }
 
 .scholarships-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 2rem;
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -177,47 +531,146 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   border-radius: 1rem;
   overflow: hidden;
   box-shadow: $shadow;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   border: 1px solid $border-light;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  animation: fadeInUp 0.6s ease forwards;
+  opacity: 0;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: $shadow-lg;
+    transform: translateY(-8px);
+    box-shadow: $shadow-xl;
+    border-color: $primary-color;
+
+    .card-image img {
+      transform: scale(1.08);
+    }
+
+    .card-overlay {
+      opacity: 1;
+    }
+
+    .card-btn {
+      background: $primary-color;
+      transform: translateX(4px);
+
+      .btn-icon {
+        transform: translateX(4px);
+      }
+    }
+
+    .card-badge {
+      transform: scale(1.05);
+    }
+  }
+
+  .card-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: linear-gradient(135deg, $primary-color, #8b5cf6);
+    color: $white;
+    padding: 0.375rem 0.875rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    z-index: 10;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+    transition: transform 0.3s ease;
   }
 
   .card-image {
     height: 200px;
     overflow: hidden;
+    position: relative;
 
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform 0.3s ease;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
-  }
 
-  &:hover .card-image img {
-    transform: scale(1.05);
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
   }
 
   .card-content {
     padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 0.75rem;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
 
     .card-country {
       font-size: 1.25rem;
       font-weight: 600;
       color: $text-dark;
-      margin-bottom: 0.75rem;
+      flex: 1;
+      line-height: 1.3;
+    }
+
+    .country-icon {
+      font-size: 1.75rem;
+      width: 1.75rem;
+      height: 1.75rem;
+      color: $primary-color;
+      animation: rotate 3s ease-in-out infinite;
+      flex-shrink: 0;
     }
 
     .card-description {
       color: $text-light;
       font-size: 0.875rem;
       line-height: 1.6;
-      margin-bottom: 1.5rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-footer {
+      margin-top: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid $border-light;
+    }
+
+    .card-location {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      color: $text-light;
+      font-size: 0.875rem;
+      font-weight: 500;
+
+      .location-icon {
+        font-size: 1.125rem;
+        width: 1.125rem;
+        height: 1.125rem;
+        color: $primary-color;
+      }
     }
 
     .card-btn {
@@ -225,31 +678,67 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
       color: $white;
       border: none;
       padding: 0.625rem 1.25rem;
-      border-radius: 0.375rem;
+      border-radius: 0.5rem;
       font-weight: 500;
       font-size: 0.875rem;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      white-space: nowrap;
 
-      &:hover {
-        background: $text-light;
-        transform: translateY(-1px);
+      .btn-icon {
+        transition: transform 0.3s ease;
+        font-size: 1.25rem;
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      &:hover .btn-icon {
+        transform: translateX(4px);
       }
     }
   }
 }
 
-.scholarship-card::after {
+@keyframes rotate {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(15deg);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scholarship-card::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: 1rem;
-  background: radial-gradient(circle at top, rgba(59, 130, 246, 0.15), transparent 60%);
+  background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent 60%);
   opacity: 0;
   transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
-.scholarship-card:hover::after {
+.scholarship-card:hover::before {
   opacity: 1;
 }
 
@@ -262,6 +751,16 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 
 // Responsive Design
 @media (max-width: 768px) {
+  .hero-section {
+    padding: 3rem 0 4rem;
+
+    &::before,
+    &::after {
+      width: 300px;
+      height: 300px;
+    }
+  }
+
   .nav-container {
     padding: 0 1rem;
     flex-direction: column;
@@ -274,30 +773,82 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   }
 
   .hero-container {
-    padding: 0 1rem;
+    padding: 0 1.5rem;
+    width: 100%;
+  }
+
+  .hero-content {
+    margin-bottom: 2rem;
   }
 
   .hero-title {
-    font-size: 2rem;
+    font-size: 2rem !important;
+    line-height: 1.2;
   }
 
   .hero-description {
-    font-size: 1rem;
+    font-size: 1rem !important;
+  }
+
+  .hero-image {
+    padding: 1rem 0;
+    max-width: 100%;
+  }
+
+  .hero-svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .scholarships-section {
+    padding: 4rem 0;
   }
 
   .section-container {
-    padding: 0 1rem;
+    padding: 0 1.5rem;
+    width: 100%;
+  }
+
+  .section-title {
+    font-size: 1.875rem;
+    margin-bottom: 2.5rem;
   }
 
   .scholarships-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+    width: 100%;
+  }
+
+  .scholarship-card {
+    width: 100%;
+    margin: 0;
+
+    .card-content {
+      padding: 1.25rem;
+    }
+
+    .card-footer {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+
+      .card-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+
+  .footer {
+    padding: 2rem 0;
   }
 
   .footer-container {
     flex-direction: column;
     text-align: center;
     gap: 2rem;
+    padding: 0 1.5rem;
   }
 
   .footer-links {
@@ -305,8 +856,49 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   }
 }
 
+// Extra small screens
+@media (max-width: 480px) {
+  .hero-section {
+    padding: 2rem 0 3rem;
+  }
+
+  .hero-container {
+    padding: 0 1rem;
+  }
+
+  .hero-title {
+    font-size: 1.75rem !important;
+  }
+
+  .hero-description {
+    font-size: 0.9375rem !important;
+  }
+
+  .section-container {
+    padding: 0 1rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .scholarship-card {
+    .card-image {
+      height: 180px;
+    }
+
+    .card-country {
+      font-size: 1.125rem;
+    }
+
+    .card-description {
+      font-size: 0.8125rem;
+    }
+  }
+}
+
 // ===================
-// Animations Section
+// Skeleton Animations
 // ===================
 
 // Shimmer keyframes
