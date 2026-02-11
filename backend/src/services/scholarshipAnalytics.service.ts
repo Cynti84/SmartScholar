@@ -5,6 +5,9 @@ import {
 import { Application } from "../models/applications";
 import { AppDataSource } from "../utils/db";
 import { Scholarship } from "../models/scholarships";
+import { ScholarshipViewRepository } from "../repositories/scholarshipView.repository";
+import { ScholarshipView } from "../models/scholarshipView";
+import { BookmarkRepository } from "../repositories/bookmark.repository";
 
 const applicationRepo = AppDataSource.getRepository(Application);
 export class ScholarshipAnalyticsService {
@@ -285,6 +288,72 @@ export class ScholarshipAnalyticsService {
     return {
       title: result.title,
       deadline: result.deadline,
+    };
+  }
+
+  /**
+   * Record a unique view. Uses INSERT ... ON CONFLICT DO NOTHING so calling
+   * it multiple times for the same (userId, scholarshipId) pair is safe.
+   */
+  async recordView(userId: number, scholarshipId: number): Promise<void> {
+    await ScholarshipViewRepository.createQueryBuilder()
+      .insert()
+      .into(ScholarshipView)
+      .values({ userId, scholarshipId })
+      .orIgnore() // ON CONFLICT DO NOTHING — enforced by the @Unique constraint
+      .execute();
+  }
+
+  /**
+   * Total unique views for a single scholarship (provider-scoped for safety).
+   */
+  async getViewCount(
+    providerId: number,
+    scholarshipId: number
+  ): Promise<{ count: number }> {
+    const count = await ScholarshipViewRepository.createQueryBuilder("sv")
+      .innerJoin("sv.scholarship", "s")
+      .where("sv.scholarshipId = :scholarshipId", { scholarshipId })
+      .andWhere("s.provider_id = :providerId", { providerId })
+      .getCount();
+
+    return { count };
+  }
+
+  /**
+   * Total bookmarks for a single scholarship (provider-scoped).
+   */
+  async getBookmarkCount(
+    providerId: number,
+    scholarshipId: number
+  ): Promise<{ count: number }> {
+    const count = await BookmarkRepository.createQueryBuilder("b")
+      .innerJoin("b.scholarship", "s")
+      .where("b.scholarshipId = :scholarshipId", { scholarshipId })
+      .andWhere("s.provider_id = :providerId", { providerId })
+      .getCount();
+
+    return { count };
+  }
+
+  /**
+   * All three analytics for a single scholarship in one query.
+   * Used by the manage-scholarships page to populate the analytics column.
+   */
+  async getScholarshipAnalytics(
+    providerId: number,
+    scholarshipId: number
+  ): Promise<{ views: number; bookmarks: number; applications: number }> {
+    const [views, bookmarks, applications] = await Promise.all([
+      this.getViewCount(providerId, scholarshipId),
+      this.getBookmarkCount(providerId, scholarshipId),
+      this.getApplicationCount(providerId, scholarshipId),
+    ]);
+
+    return {
+      views: views.count,
+      bookmarks: bookmarks.count,
+      applications: applications.totalApplications,
     };
   }
 }
