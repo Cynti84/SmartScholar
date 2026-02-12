@@ -58,11 +58,31 @@ export class ProviderProfileService {
     });
 
     if (!profile) throw new Error("Provider profile not found");
+    if (data.preferences) {
+      profile.preferences = {
+        ...profile.preferences, // keep existing prefs
+        ...data.preferences, // override with new prefs
+      };
+      delete data.preferences; // remove from data so Object.assign doesn't overwrite
+    }
 
     Object.assign(profile, data);
 
     return await this.providerRepo.save(profile);
   }
+  // src/services/providerProfile.service.ts
+  // async updatePreferences(userId: number, preferences: any) {
+  //   const profile = await this.providerRepo.findOne({
+  //     where: { user: { id: userId } },
+  //   });
+
+  //   if (!profile) throw new Error("Provider profile not found");
+
+  //   // Merge existing preferences with new ones
+  //   profile.preferences = { ...profile.preferences, ...preferences };
+
+  //   return await this.providerRepo.save(profile);
+  // }
 
   /**
    * Delete provider profile
