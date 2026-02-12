@@ -91,7 +91,7 @@
           <option value="pending">Pending</option>
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>
-          <option value="expired">Expired</option>
+          <!-- <option value="expired">Expired</option> -->
         </select>
 
         <select [(ngModel)]="sortBy" (change)="applyFilters()" class="filter-select">
@@ -177,7 +177,7 @@
                       <span class="icon">
                         <mat-icon style="font-size: 20px; color: #555"> calendar_today </mat-icon>
                       </span>
-                      Created {{ scholarship.dateCreated | date: 'MMM dd, yyyy' }}
+                      Created {{ scholarship.dateCreated | date : 'MMM dd, yyyy' }}
                     </span>
                   </div>
                 </div>
@@ -192,7 +192,7 @@
               <td class="deadline-cell">
                 <div class="deadline-info">
                   <span class="deadline-date">{{
-                    scholarship.applicationDeadline | date: 'MMM dd, yyyy'
+                    scholarship.applicationDeadline | date : 'MMM dd, yyyy'
                   }}</span>
                   <span
                     class="deadline-status"
@@ -420,7 +420,7 @@
               <div class="date-item">
                 <span class="date-label">Application Deadline:</span>
                 <span class="date-value">{{
-                  currentScholarship.applicationDeadline | date: 'MMMM dd, yyyy'
+                  currentScholarship.applicationDeadline | date : 'MMMM dd, yyyy'
                 }}</span>
                 <span
                   class="deadline-status"
@@ -433,7 +433,7 @@
               <div class="date-item">
                 <span class="date-label">Date Created:</span>
                 <span class="date-value">{{
-                  currentScholarship.dateCreated | date: 'MMMM dd, yyyy'
+                  currentScholarship.dateCreated | date : 'MMMM dd, yyyy'
                 }}</span>
               </div>
             </div>
@@ -726,7 +726,7 @@
       <div class="card-deadline">
         <span class="deadline-label">Deadline:</span>
         <span class="deadline-date">{{
-          scholarship.applicationDeadline | date: 'MMM dd, yyyy'
+          scholarship.applicationDeadline | date : 'MMM dd, yyyy'
         }}</span>
         <span
           class="deadline-status"
@@ -759,7 +759,7 @@
           <span class="analytics-value">{{ scholarship.analytics.applications }}</span>
         </div>
       </div>
-      <span class="created-date">{{ scholarship.dateCreated | date: 'MMM dd' }}</span>
+      <span class="created-date">{{ scholarship.dateCreated | date : 'MMM dd' }}</span>
     </div>
   </div>
 </ng-template>

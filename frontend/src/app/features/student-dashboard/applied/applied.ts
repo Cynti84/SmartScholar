@@ -69,7 +69,7 @@ export class Applied implements OnInit {
               amount: scholarship.amount,
               appliedDate: app.appliedAt ? new Date(app.appliedAt) : new Date(),
               deadline,
-              status: this.mapStatus(app.status as 'pending' | 'accepted' | 'rejected', deadline),
+              status: this.mapStatus(app.status as 'pending' | 'approved' | 'rejected', deadline),
               description: scholarship.description,
               requirements: scholarship.requirements || [],
               field: scholarship.field || 'General',
@@ -86,12 +86,13 @@ export class Applied implements OnInit {
   }
 
   mapStatus(
-    backendStatus: 'pending' | 'accepted' | 'rejected',
+    backendStatus: 'pending' | 'approved' | 'rejected',
     deadline: Date
-  ): 'active' | 'expired' | 'pending' {
+  ): 'active' | 'expired' | 'pending' | 'approved' {
+    if (deadline < new Date()) return 'expired'; // deadline check comes FIRST
+    if (backendStatus === 'approved') return 'approved';
     if (backendStatus === 'pending') return 'pending';
-    if (deadline < new Date()) return 'expired';
-    return 'active';
+    return 'expired'; // rejected also falls here as it's effectively dead
   }
 
   constructor(

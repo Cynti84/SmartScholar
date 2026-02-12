@@ -219,16 +219,19 @@ export const updateStudentProfile = async (req: Request, res: Response) => {
     }
 
     // --- New fields ---
-    if (req.body.date_of_birth) {
-      updatedData.date_of_birth = new Date(req.body.date_of_birth);
+    // Change these from truthy checks to undefined checks
+    if (req.body.date_of_birth !== undefined) {
+      updatedData.date_of_birth = req.body.date_of_birth
+        ? new Date(req.body.date_of_birth)
+        : undefined;
     }
 
-    if (req.body.gender) {
-      updatedData.gender = req.body.gender; // "male" | "female" | "other"
+    if (req.body.gender !== undefined) {
+      updatedData.gender = req.body.gender || undefined;
     }
 
-    if (req.body.income_level) {
-      updatedData.income_level = req.body.income_level; // "low" | "middle" | "any"
+    if (req.body.income_level !== undefined) {
+      updatedData.income_level = req.body.income_level || undefined;
     }
 
     if (req.body.is_disabled !== undefined) {
@@ -248,6 +251,20 @@ export const updateStudentProfile = async (req: Request, res: Response) => {
       updatedData.profile_image_url = undefined;
     }
 
+    // --- GPA Range ---
+    if (req.body.gpa_min !== undefined) {
+      updatedData.gpa_min =
+        req.body.gpa_min === "" || req.body.gpa_min === null
+          ? (null as any)
+          : parseFloat(req.body.gpa_min);
+    }
+
+    if (req.body.gpa_max !== undefined) {
+      updatedData.gpa_max =
+        req.body.gpa_max === "" || req.body.gpa_max === null
+          ? (null as any)
+          : parseFloat(req.body.gpa_max);
+    }
     profileRepo.merge(profile, updatedData);
     const updated = await profileRepo.save(profile);
 
