@@ -17,7 +17,19 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const access = this.auth.getAccessToken();
-    // console.log('AuthInteceptor -> token:', access)
+    if (
+      req.url.includes('/auth/login') ||
+      req.url.includes('/auth/register') ||
+      req.url.includes('/auth/signup') ||
+      !access
+    ) {
+      return next.handle(req).pipe(
+        catchError((err) => {
+          // Only propagate actual server errors
+          return throwError(() => err);
+        }),
+      );
+    }
     const authReq = access ? req.clone({ setHeaders: { Authorization: `Bearer ${access}` } }) : req;
 
     return next.handle(authReq).pipe(
@@ -26,7 +38,7 @@ export class AuthInterceptor implements HttpInterceptor {
           return this.handle401(authReq, next);
         }
         return throwError(() => err);
-      })
+      }),
     );
   }
 
@@ -60,7 +72,7 @@ export class AuthInterceptor implements HttpInterceptor {
         this.isRefreshing = false;
         this.auth.logout().subscribe();
         return throwError(() => err);
-      })
+      }),
     );
   }
 }

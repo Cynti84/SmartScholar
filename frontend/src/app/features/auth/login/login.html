@@ -98,7 +98,9 @@
               >
             </div>
           </div>
-
+          <div *ngIf="loginError" class="error-message server-error">
+            {{ loginError }}
+          </div>
           <!-- Submit Button -->
           <button
             type="submit"
@@ -125,6 +127,14 @@
               Loggin in...
             </span>
           </button>
+
+          <div class="login-form">
+            <!-- ... your login form ... -->
+
+            <div class="forgot-password-link">
+              <a routerLink="/auth/forgot-password">Forgot your password?</a>
+            </div>
+          </div>
 
           <div class="signup-link">
             <span class="signup-text">Don't have an account?</span>
