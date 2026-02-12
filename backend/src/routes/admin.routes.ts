@@ -79,7 +79,8 @@ router.get("/seed-admin", async (req, res) => {
   }
 
   try {
-    const hashedPassword = "AdminStrongPassword123";
+    const hashedPassword =
+      "$2b$12$KxwdTzJ4ImMQgUFlNbD1WeCV4numyRSoCms953Pcwo0sn8q6XrEzC";
 
     const admin = await UserRepository.create({
       firstName: "Admin",
