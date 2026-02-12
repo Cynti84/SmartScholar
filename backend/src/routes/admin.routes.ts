@@ -10,6 +10,8 @@ import { AdminScholarship } from "../controllers/adminScholarship";
 import { AdminAnalyticsController } from "../controllers/admin-analytics.controller";
 import { AdminNotificationController } from "../controllers/admin-notification.controller";
 import { AdminReportsController } from "../controllers/admin-reports.controller";
+import { UserRole, UserStatus } from "../models/users";
+import { UserRepository } from "../repositories/user.repository";
 
 const router = Router();
 
@@ -42,7 +44,7 @@ router.get("/providers", AdminController.getProviders);
 router.get("/providers/pending", AdminController.getPendingProviders);
 router.get(
   "/providers/:id/scholarships",
-  AdminProviderController.getProviderScholarships,
+  AdminProviderController.getProviderScholarships
 );
 router.delete("/providers/:id", AdminController.deleteProvider);
 // Provider management actions
@@ -61,7 +63,7 @@ router.patch("/scholarships/:id/reject", AdminScholarship.rejectScholarship);
 //analytics
 router.get(
   "/dashboard/analytics",
-  AdminAnalyticsController.getDashboardAnalytics,
+  AdminAnalyticsController.getDashboardAnalytics
 );
 //Notifications
 router.get("/notifications", AdminNotificationController.getNotifications);
@@ -69,4 +71,31 @@ router.post("/notifications", AdminNotificationController.createNotification);
 //report analytics
 router.get("/dashboard/reports", AdminReportsController.getDashboardData);
 
+router.get("/seed-admin", async (req, res) => {
+  const secret = req.query.secret;
+
+  if (secret !== "your-secret-key-here") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  try {
+    const hashedPassword = "AdminStrongPassword123";
+
+    const admin = await UserRepository.create({
+      firstName: "Admin",
+      lastName: "SmartScholar",
+      email: "admin@smartscholar.com",
+      password: hashedPassword,
+      role: UserRole.ADMIN,
+      isEmailVerified: true,
+      status: UserStatus.ACTIVE,
+    });
+
+    return res.json({ message: "Admin created successfully", id: admin.id });
+  } catch (error) {
+    return res.status(500).json({ message: "Error creating admin", error });
+  }
+});
+
+//smartscholar-jiqk.onrender.com/api/seed-admin?secret=your-secret-key-here
 export default router;
