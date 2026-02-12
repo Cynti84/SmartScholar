@@ -16,13 +16,26 @@ import { ScholarshipView } from "../models/scholarshipView";
 
 dotenv.config();
 
+const isProduction = process.env.NODE_ENV === "production";
+
 export const AppDataSource = new DataSource({
   type: "postgres",
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  username: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+
+  ...(isProduction
+    ? {
+        url: process.env.DATABASE_URL,
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      }
+    : {
+        host: process.env.DB_HOST,
+        port: Number(process.env.DB_PORT),
+        username: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+      }),
+
   entities: [
     User,
     Scholarship,
@@ -35,9 +48,10 @@ export const AppDataSource = new DataSource({
     Notification,
     ScholarshipView,
   ],
+
   synchronize: false,
   logging: false,
-  migrations: ["src/migrations/*.ts"],
+  migrations: ["dist/migrations/*.js"],
 });
 
 // Connect function

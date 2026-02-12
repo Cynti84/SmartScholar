@@ -27,8 +27,38 @@ const app = express();
 //3. load variables
 const PORT = process.env.PORT || 5000;
 
+// Allow multiple origins for production
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:4200",
+  /\.vercel\.app$/,
+].filter(Boolean) as (string | RegExp)[];
+
 //4. enable cors
-app.use(cors());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+
+      // Check if origin is allowed
+      const isAllowed = allowedOrigins.some((allowed) => {
+        if (typeof allowed === "string") {
+          return allowed === origin;
+        }
+        // RegExp
+        return allowed.test(origin);
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 //5. Connect to DB
 connectDB();
