@@ -20,7 +20,8 @@ export interface StudentProfile {
   financial_need?: boolean;
   income_level?: 'low' | 'middle' | 'any';
   is_disabled?: boolean;
-  gpa_range?: string;
+  gpa_min?: number | null;
+  gpa_max?: number | null;
 }
 
 @Injectable({
@@ -29,10 +30,7 @@ export interface StudentProfile {
 export class StudentProfileService {
   private apiUrl = `${environment.apiUrl}/student`;
 
-  constructor(
-    private http: HttpClient,
-    private authService: AuthService,
-  ) {}
+  constructor(private http: HttpClient, private authService: AuthService) {}
 
   /**
    * Get authorization headers
@@ -79,8 +77,19 @@ export class StudentProfileService {
   updateProfile(profile: Partial<StudentProfile> | FormData): Observable<ApiResponse> {
     const isFormData = profile instanceof FormData;
 
+    if (!isFormData) {
+      // Use a custom replacer to keep null values in the JSON body
+      const body = JSON.parse(
+        JSON.stringify(profile, (_, value) => (value === undefined ? null : value))
+      );
+
+      return this.http.put<ApiResponse>(`${this.apiUrl}/update-profile`, body, {
+        headers: this.getHeaders(false),
+      });
+    }
+
     return this.http.put<ApiResponse>(`${this.apiUrl}/update-profile`, profile, {
-      headers: this.getHeaders(isFormData),
+      headers: this.getHeaders(true),
     });
   }
 
@@ -108,7 +117,7 @@ export class StudentProfileService {
     return this.http.post<ApiResponse>(
       `${this.apiUrl}/2fa/enable`,
       {},
-      { headers: this.getHeaders() },
+      { headers: this.getHeaders() }
     );
   }
 
@@ -116,7 +125,7 @@ export class StudentProfileService {
     return this.http.post<ApiResponse>(
       `${this.apiUrl}/2fa/verify-2fa`,
       { token },
-      { headers: this.getHeaders() },
+      { headers: this.getHeaders() }
     );
   }
 
@@ -124,14 +133,14 @@ export class StudentProfileService {
     return this.http.post<ApiResponse>(
       `${this.apiUrl}/2fa/disable-2fa`,
       { token },
-      { headers: this.getHeaders() },
+      { headers: this.getHeaders() }
     );
   }
 
   get2FAStatus(): Observable<{ success: boolean; data: { enabled: boolean } }> {
     return this.http.get<{ success: boolean; data: { enabled: boolean } }>(
       `${this.apiUrl}/2fa/status`,
-      { headers: this.getHeaders() },
+      { headers: this.getHeaders() }
     );
   }
 

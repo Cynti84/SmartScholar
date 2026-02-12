@@ -207,7 +207,7 @@ export class Profile implements OnInit {
   constructor(
     private studentProfileService: StudentProfileService,
     private authService: AuthService,
-    private router: Router,
+    private router: Router
   ) {
     this.activeTab = 'profile';
   }
@@ -249,6 +249,7 @@ export class Profile implements OnInit {
     this.studentProfileService.getProfile().subscribe({
       next: (profile) => {
         this.studentProfile = { ...profile }; // force new reference
+        this.syncGpaRangeFromProfile();
         this.profileLoaded = true;
 
         this.calculateProfileCompletion(); // 👈 recalc here
@@ -263,6 +264,22 @@ export class Profile implements OnInit {
       },
     });
   }
+  private syncGpaRangeFromProfile(): void {
+    const min = this.studentProfile.gpa_min;
+    const max = this.studentProfile.gpa_max;
+
+    if (min === null || min === undefined || max === null || max === undefined) {
+      this.selectedGpaRange = '';
+      return;
+    }
+
+    // Reverse lookup: numbers → dropdown key
+    const match = Object.entries(this.gpaRangeMap).find(
+      ([_, range]) => range.min === min && range.max === max
+    );
+
+    this.selectedGpaRange = match ? match[0] : '';
+  }
 
   // load user
 
@@ -273,10 +290,26 @@ export class Profile implements OnInit {
     this.profileErrors = [];
     this.isSaving = true;
 
-    this.studentProfileService.updateProfile(this.studentProfile).subscribe({
+    // Build payload manually so null values survive serialization
+    const payload: Record<string, any> = {
+      country: this.studentProfile.country,
+      academic_level: this.studentProfile.academic_level,
+      field_of_study: this.studentProfile.field_of_study,
+      interest: this.studentProfile.interest,
+      gender: this.studentProfile.gender,
+      date_of_birth: this.studentProfile.date_of_birth,
+      income_level: this.studentProfile.income_level,
+      is_disabled: this.studentProfile.is_disabled,
+      // Explicitly include gpa — use undefined only if truly unset
+      gpa_min: this.studentProfile.gpa_min !== undefined ? this.studentProfile.gpa_min : null,
+      gpa_max: this.studentProfile.gpa_max !== undefined ? this.studentProfile.gpa_max : null,
+    };
+
+    this.studentProfileService.updateProfile(payload).subscribe({
       next: () => {
         alert('Profile updated successfully');
         this.isEditingProfile = false;
+        this.loadStudentProfile();
       },
       error: (err) => {
         this.profileErrors.push(err.error?.message || 'Failed to update profile');
@@ -357,6 +390,7 @@ export class Profile implements OnInit {
   cancelEdit(): void {
     this.isEditingProfile = false;
     this.loadStudentProfile(); // reset changes
+    this.syncGpaRangeFromProfile();
   }
 
   // =========================
@@ -372,25 +406,46 @@ export class Profile implements OnInit {
 
     const file = input.files[0];
 
-    // Preview (keep this)
+    // Preview
     const reader = new FileReader();
     reader.onload = () => {
       this.imagePreview = reader.result as string;
     };
     reader.readAsDataURL(file);
 
-    // 🔑 FormData
     const formData = new FormData();
-
-    // IMPORTANT: name MUST match backend -> profileImage
     formData.append('profileImage', file);
 
-    // append other fields if needed
+    // Append ALL current profile fields so nothing gets wiped
     formData.append('country', this.studentProfile.country ?? '');
     formData.append('academic_level', this.studentProfile.academic_level ?? '');
+    formData.append('field_of_study', this.studentProfile.field_of_study ?? '');
+    formData.append('interest', this.studentProfile.interest ?? '');
+    formData.append('gender', this.studentProfile.gender ?? '');
+    formData.append('date_of_birth', this.studentProfile.date_of_birth?.toString() ?? '');
+    formData.append('income_level', this.studentProfile.income_level ?? '');
+    formData.append('is_disabled', String(this.studentProfile.is_disabled ?? false));
+    formData.append(
+      'gpa_min',
+      this.studentProfile.gpa_min !== null && this.studentProfile.gpa_min !== undefined
+        ? String(this.studentProfile.gpa_min)
+        : ''
+    );
+    formData.append(
+      'gpa_max',
+      this.studentProfile.gpa_max !== null && this.studentProfile.gpa_max !== undefined
+        ? String(this.studentProfile.gpa_max)
+        : ''
+    );
 
-    this.studentProfileService.updateProfile(formData).subscribe((res) => {
-      this.studentProfile = res.data;
+    this.studentProfileService.updateProfile(formData).subscribe({
+      next: (res) => {
+        this.studentProfile = res.data;
+        this.syncGpaRangeFromProfile(); // keep dropdown in sync after image upload
+      },
+      error: (err) => {
+        console.error('Failed to upload profile image', err);
+      },
     });
   }
 
@@ -408,9 +463,26 @@ export class Profile implements OnInit {
       },
     });
   }
+  selectedGpaRange: string = '';
 
-  onGpaRangeChange() {
-    console.log('Selected GPA Range:', this.studentProfile.gpa_range);
+  private gpaRangeMap: Record<string, { min: number | null; max: number | null }> = {
+    below_2_5: { min: 0.0, max: 2.49 },
+    '2_5_2_99': { min: 2.5, max: 2.99 },
+    '3_0_3_49': { min: 3.0, max: 3.49 },
+    '3_5_4_0': { min: 3.5, max: 4.0 },
+  };
+
+  onGpaRangeChange(): void {
+    if (!this.selectedGpaRange) {
+      this.studentProfile.gpa_min = null;
+      this.studentProfile.gpa_max = null;
+      return;
+    }
+
+    const range = this.gpaRangeMap[this.selectedGpaRange];
+
+    this.studentProfile.gpa_min = range.min;
+    this.studentProfile.gpa_max = range.max;
   }
   // =========================
   // PASSWORD MANAGEMENT

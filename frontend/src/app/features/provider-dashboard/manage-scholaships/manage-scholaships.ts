@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, JsonPipe } from '@angular/common';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -284,15 +284,21 @@ export class ManageScholaships implements OnInit {
 
   saveEditedScholarship(): void {
     if (!this.editingScholarship) return;
+    const s = this.editingScholarship;
 
     const formData = new FormData();
-    Object.entries(this.editingScholarship).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        formData.append(key, Array.isArray(value) ? JSON.stringify(value) : String(value));
-      }
-    });
+    formData.append('title', s.title);
+    formData.append('short_summary', s.shortSummary);
+    formData.append('organization_name', s.organizationName);
+    formData.append('country', s.country);
+    formData.append('education_level', s.educationLevel);
+    formData.append('scholarship_type', s.scholarshipType);
+    formData.append('fields_of_study', JSON.stringify(s.fieldsOfStudy));
+    // send a clean ISO date string, not a locale-formated one
+    const deadline = new Date(s.applicationDeadline);
+    formData.append('deadline', deadline.toISOString().split('T')[0]);
 
-    this.providerService.updateScholarship(+this.editingScholarship.id, formData).subscribe({
+    this.providerService.updateScholarship(+s.id, formData).subscribe({
       next: () => {
         this.showNotification('Scholarship updated', 'success');
         this.closeEditModal();
