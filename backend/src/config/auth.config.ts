@@ -30,4 +30,5 @@ export const authConfig = {
       pass: process.env.EMAIL_PASSWORD,
     },
   },
+  frontendUrl: process.env.FRONTEND_URL || "http://localhost:4200",
 };

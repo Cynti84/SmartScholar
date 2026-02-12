@@ -105,10 +105,10 @@ export class EmailUtil {
           <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%); 
+            .header { background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); 
                       color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
             .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-            .button { display: inline-block; padding: 12px 30px; background: #f56565; 
+            .button { display: inline-block; padding: 12px 30px; background: #764ba2 ; 
                      color: white; text-decoration: none; border-radius: 5px; 
                      margin: 20px 0; font-weight: bold; }
             .warning { background: #fff3cd; border-left: 4px solid #ffc107; 
@@ -168,7 +168,9 @@ export class EmailUtil {
     firstName: string,
     role: string,
   ): Promise<void> {
-    const dashboardUrl = `${authConfig.verification.baseUrl}/dashboard`;
+    const dashboardPath =
+      role.toLowerCase() === "student" ? "/student" : "/provider";
+    const dashboardUrl = `${authConfig.frontendUrl}${dashboardPath}`;
 
     const mailOptions = {
       from: authConfig.email.from,
@@ -181,10 +183,10 @@ export class EmailUtil {
             <style>
               body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); 
+              .header { background: linear-gradient(135deg, #667eea  0%, #764ba2  100%); 
                         color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
               .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-              .button { display: inline-block; padding: 12px 30px; background: #48bb78; 
+              .button { display: inline-block; padding: 12px 30px; background: #ffffff ; 
                        color: white; text-decoration: none; border-radius: 5px; 
                        margin: 20px 0; font-weight: bold; }
               .features { background: white; padding: 20px; border-radius: 5px; margin: 20px 0; }
@@ -207,8 +209,8 @@ export class EmailUtil {
                       ? `
                     <div class="feature-item">📚 Browse thousands of scholarships</div>
                     <div class="feature-item"> Submit scholarship applications</div>
-                    <div class="feature-item"> Track your application status</div>
-                    <div class="feature-item"> Get notifications for new opportunities</div>
+                    <div class="feature-item"> Bookmark scholarship</div>
+                    <div class="feature-item"> Get AI help</div>
                   `
                       : `
                     <div class="feature-item"> Post scholarship opportunities</div>
@@ -219,7 +221,7 @@ export class EmailUtil {
                   }
                 </div>
                 <center>
-                  <a href="${dashboardUrl}" class="button">Go to Dashboard</a>
+                   <a href="${dashboardUrl}" class="button">Go to Dashboard</a>
                 </center>
                 <p>If you have any questions or need assistance, our support team is here to help!</p>
                 <p>Best regards,<br>The SmartScholar Team</p>
