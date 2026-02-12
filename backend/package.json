@@ -1,8 +1,8 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "SmartScholar Backend API",
+  "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn src/server.ts",
     "build": "tsc",
@@ -14,7 +14,15 @@
     "migration:run": "npm run typeorm -- migration:run -d src/utils/db.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d src/utils/db.ts"
   },
-  "keywords": [],
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  },
+  "keywords": [
+    "scholarship",
+    "education",
+    "api"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
