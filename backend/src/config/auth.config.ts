@@ -11,12 +11,12 @@ export const authConfig = {
   },
   verification: {
     tokenExpiry: 24 * 60 * 60 * 1000, // 24 hours
-    baseUrl: process.env.BACKEND_URL || "http://localhost:5000",
+    baseUrl: process.env.BACKEND_URL || "http://localhost:10000",
     path: "/api/auth/verify-email",
   },
   passwordReset: {
     tokenExpiry: 60 * 60 * 1000, // 1 hour
-    baseUrl: process.env.BACKEND_URL || "http://localhost:5000",
+    baseUrl: process.env.BACKEND_URL || "http://localhost:10000",
     path: "/api/auth/reset-password",
   },
   email: {

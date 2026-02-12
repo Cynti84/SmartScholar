@@ -23,7 +23,7 @@ export class EmailUtil {
   static async sendVerificationEmail(
     email: string,
     firstName: string,
-    verificationToken: string,
+    verificationToken: string
   ): Promise<void> {
     const verificationUrl = `${authConfig.verification.baseUrl}/api/auth/verify-email?token=${verificationToken}`;
 
@@ -90,9 +90,9 @@ export class EmailUtil {
   static async sendPasswordResetEmail(
     email: string,
     firstName: string,
-    resetToken: string,
+    resetToken: string
   ): Promise<void> {
-    const resetUrl = `http://localhost:4200/auth/reset-password/${resetToken}`;
+    const resetUrl = `${authConfig.frontendUrl}/auth/reset-password/${resetToken}`;
 
     const mailOptions = {
       from: authConfig.email.from,
@@ -166,7 +166,7 @@ export class EmailUtil {
   static async sendWelcomeEmail(
     email: string,
     firstName: string,
-    role: string,
+    role: string
   ): Promise<void> {
     const dashboardPath =
       role.toLowerCase() === "student" ? "/student" : "/provider";
