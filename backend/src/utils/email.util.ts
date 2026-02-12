@@ -23,7 +23,7 @@ export class EmailUtil {
   static async sendVerificationEmail(
     email: string,
     firstName: string,
-    verificationToken: string
+    verificationToken: string,
   ): Promise<void> {
     const verificationUrl = `${authConfig.verification.baseUrl}/api/auth/verify-email?token=${verificationToken}`;
 
@@ -90,66 +90,66 @@ export class EmailUtil {
   static async sendPasswordResetEmail(
     email: string,
     firstName: string,
-    resetToken: string
+    resetToken: string,
   ): Promise<void> {
-    const resetUrl = `${authConfig.passwordReset.baseUrl}/reset-password?token=${resetToken}`;
+    const resetUrl = `http://localhost:4200/auth/reset-password/${resetToken}`;
 
     const mailOptions = {
       from: authConfig.email.from,
       to: email,
       subject: "Reset Your SmartScholar Password",
       html: `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%); 
-                        color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-              .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-              .button { display: inline-block; padding: 12px 30px; background: #f56565; 
-                       color: white; text-decoration: none; border-radius: 5px; 
-                       margin: 20px 0; font-weight: bold; }
-              .warning { background: #fff3cd; border-left: 4px solid #ffc107; 
-                        padding: 15px; margin: 15px 0; border-radius: 5px; }
-              .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <h1> Password Reset Request</h1>
-              </div>
-              <div class="content">
-                <p>Hello ${firstName},</p>
-                <p>We received a request to reset your SmartScholar password.</p>
-                <p>Click the button below to reset your password:</p>
-                <center>
-                  <a href="${resetUrl}" class="button">Reset Password</a>
-                </center>
-                <p>Or copy and paste this link into your browser:</p>
-                <p style="background: white; padding: 10px; border-radius: 5px; word-break: break-all;">
-                  ${resetUrl}
-                </p>
-                <div class="warning">
-                  <strong> Important:</strong>
-                  <ul>
-                    <li>This link will expire in 1 hour</li>
-                    <li>If you didn't request this reset, please ignore this email</li>
-                    <li>Your password will remain unchanged</li>
-                  </ul>
-                </div>
-                <p>For security reasons, we recommend choosing a strong password that you haven't used before.</p>
-                <p>Best regards,<br>The SmartScholar Team</p>
-              </div>
-              <div class="footer">
-                <p>© ${new Date().getFullYear()} SmartScholar. All rights reserved.</p>
-              </div>
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%); 
+                      color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .button { display: inline-block; padding: 12px 30px; background: #f56565; 
+                     color: white; text-decoration: none; border-radius: 5px; 
+                     margin: 20px 0; font-weight: bold; }
+            .warning { background: #fff3cd; border-left: 4px solid #ffc107; 
+                      padding: 15px; margin: 15px 0; border-radius: 5px; }
+            .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1> Password Reset Request</h1>
             </div>
-          </body>
-        </html>
-      `,
+            <div class="content">
+              <p>Hello ${firstName},</p>
+              <p>We received a request to reset your SmartScholar password.</p>
+              <p>Click the button below to reset your password:</p>
+              <center>
+                <a href="${resetUrl}" class="button">Reset Password</a>
+              </center>
+              <p>Or copy and paste this link into your browser:</p>
+              <p style="background: white; padding: 10px; border-radius: 5px; word-break: break-all;">
+                ${resetUrl}
+              </p>
+              <div class="warning">
+                <strong> Important:</strong>
+                <ul>
+                  <li>This link will expire in 1 hour</li>
+                  <li>If you didn't request this reset, please ignore this email</li>
+                  <li>Your password will remain unchanged</li>
+                </ul>
+              </div>
+              <p>For security reasons, we recommend choosing a strong password that you haven't used before.</p>
+              <p>Best regards,<br>The SmartScholar Team</p>
+            </div>
+            <div class="footer">
+              <p>© ${new Date().getFullYear()} SmartScholar. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `,
     };
 
     try {
@@ -166,7 +166,7 @@ export class EmailUtil {
   static async sendWelcomeEmail(
     email: string,
     firstName: string,
-    role: string
+    role: string,
   ): Promise<void> {
     const dashboardUrl = `${authConfig.verification.baseUrl}/dashboard`;
 

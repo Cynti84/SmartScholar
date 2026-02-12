@@ -32,6 +32,16 @@ export interface user {
   role: string;
 }
 
+interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -77,7 +87,7 @@ export class AuthService {
         if (access && refresh) {
           this.storeTokens(access, refresh);
         }
-      })
+      }),
     );
   }
 
@@ -85,11 +95,8 @@ export class AuthService {
     return this.http.post(`${this.API_URL}/forgot-password`, { email });
   }
 
-  resetPassword(token: string, password: string): Observable<any> {
-    return this.http.post(`${this.API_URL}/reset-password`, {
-      token,
-      password,
-    });
+  resetPassword(token: string, password: string, confirmPassword: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/reset-password`, { token, password, confirmPassword });
   }
 
   changePassword(currentPassword: string, newPassword: string): Observable<any> {
@@ -101,7 +108,7 @@ export class AuthService {
       },
       {
         headers: this.getHeaders(),
-      }
+      },
     );
   }
 
@@ -129,7 +136,7 @@ export class AuthService {
       catchError((err) => {
         this.clearTokens();
         return throwError(() => err);
-      })
+      }),
     );
   }
 
@@ -142,7 +149,7 @@ export class AuthService {
         // ignore backend errors but still clear locally
         return [];
       }),
-      tap(() => this.clearTokens())
+      tap(() => this.clearTokens()),
     );
   }
   // get me added thursday

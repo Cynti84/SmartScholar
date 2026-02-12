@@ -21,6 +21,7 @@ interface LoginFormData {
 export class Login {
   showPassword = false;
   isLoading = false;
+  loginError: string | null = null;
 
   formData: LoginFormData = {
     email: '',
@@ -31,7 +32,7 @@ export class Login {
     private router: Router,
     private auth: AuthService,
     private providerAuth: ProviderService,
-    private studentAuth: StudentProfileService
+    private studentAuth: StudentProfileService,
   ) {}
 
   togglePassword(): void {
@@ -60,17 +61,16 @@ export class Login {
       },
 
       error: (err) => {
-        console.error('Login failed:', err);
+        this.isLoading = false;
 
-        let msg = 'Login failed. Please try again.';
-        if (err?.error?.message) msg = err.error.message;
+        console.log('LOGIN ERROR FULL:', err);
 
-        // common errors
-        if (msg.toLowerCase().includes('invalid')) {
-          msg = 'Invalid email or password.';
+        // backend message comes here
+        if (err?.error?.message) {
+          this.loginError = err.error.message;
+        } else {
+          this.loginError = 'Login failed. Please try again.';
         }
-
-        this.showError(msg);
       },
 
       complete: () => {
