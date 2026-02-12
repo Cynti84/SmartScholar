@@ -1,7 +1,269 @@
-<app-dashboard-layout [title]="'Applied Scholarships'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Applied Works!!</h2>
-        <!-- student content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout
+  [title]="'Applied Scholarships'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
+  <section>
+    <!-- applied-scholarships.component.html -->
+    <div class="scholarship-container">
+      <!-- Header Section -->
+      <div class="header">
+        <h1>My Applied Scholarships</h1>
+        <p class="subtitle">Track your scholarship applications and deadlines</p>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="stats-grid">
+        <div
+          class="stat-card total"
+          (click)="filterScholarships('all')"
+          [class.active]="selectedFilter === 'all'"
+        >
+          <div class="stat-icon">
+            <mat-icon>description</mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>{{ totalApplied }}</h3>
+            <p>Total Applied</p>
+          </div>
+        </div>
+        <!-- 
+        <div
+          class="stat-card active-card"
+          (click)="filterScholarships('approved')"
+          [class.active]="selectedFilter === 'approved'"
+        >
+          <div class="stat-icon">
+            <mat-icon style="color: green">check_circle</mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>{{ activeCount }}</h3>
+            <p>Active</p>
+          </div>
+        </div> -->
+
+        <!-- <div
+          class="stat-card pending-card"
+          (click)="filterScholarships('pending')"
+          [class.active]="selectedFilter === 'pending'"
+        >
+          <div class="stat-icon">
+            <mat-icon style="color: orange">hourglass_empty</mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>{{ pendingCount }}</h3>
+            <p>Pending</p>
+          </div>
+        </div> -->
+
+        <div
+          class="stat-card expired-card"
+          (click)="filterScholarships('expired')"
+          [class.active]="selectedFilter === 'expired'"
+        >
+          <div class="stat-icon">
+            <mat-icon style="color: red">block</mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>{{ expiredCount }}</h3>
+            <p>Expired</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Info -->
+      <div class="filter-info" *ngIf="selectedFilter !== 'all'">
+        <p>Showing {{ filteredScholarships.length }} {{ selectedFilter }} scholarship(s)</p>
+        <button class="clear-filter" (click)="filterScholarships('all')">Show All</button>
+      </div>
+
+      <!-- Scholarships List -->
+      <div class="scholarships-list">
+        <div class="scholarship-card" *ngFor="let scholarship of filteredScholarships">
+          <div class="card-header">
+            <div class="header-left">
+              <h2>{{ scholarship.name }}</h2>
+              <p class="provider">{{ scholarship.provider }}</p>
+            </div>
+            <div class="header-right">
+              <span class="amount">{{ scholarship.amount }}</span>
+              <!-- <span class="status-badge" [ngClass]="getStatusClass(scholarship.status)">
+                {{ scholarship.status | titlecase }}
+              </span> -->
+            </div>
+          </div>
+
+          <div class="card-body">
+            <p class="description">{{ scholarship.description }}</p>
+
+            <div class="details-grid">
+              <div class="detail-item">
+                <span class="label">Field:</span>
+                <span class="value">{{ scholarship.field }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Applied:</span>
+                <span class="value">{{ scholarship.appliedDate | date : 'MMM dd, yyyy' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Deadline:</span>
+                <span class="value">{{ scholarship.deadline | date : 'MMM dd, yyyy' }}</span>
+              </div>
+              <div class="detail-item" *ngIf="scholarship.status === 'active'">
+                <span class="label">Days Remaining:</span>
+                <span class="value days-remaining"
+                  >{{ getDaysRemaining(scholarship.deadline) }} days</span
+                >
+              </div>
+            </div>
+
+            <div class="requirements">
+              <p>Ensure to check your email regularly to be informed of your application result.</p>
+            </div>
+          </div>
+
+          <!-- <div class="card-footer">
+            <button class="btn btn-secondary" (click)="viewDetails(scholarship)">
+              View Details
+            </button>
+            <button class="btn btn-primary" (click)="trackStatus(scholarship)">Track Status</button>
+          </div> -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="filteredScholarships.length === 0">
+          <!-- <div class="empty-icon">📚</div> -->
+          <h3>No {{ selectedFilter !== 'all' ? selectedFilter : '' }} scholarships found</h3>
+          <p>
+            {{
+              selectedFilter !== 'all'
+                ? 'Try selecting a different filter'
+                : 'Start applying to scholarships to see them here'
+            }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Detail Modal -->
+      <div class="modal-overlay" *ngIf="isModalOpen" (click)="closeModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()" *ngIf="selectedScholarship">
+          <div class="modal-header">
+            <h2>{{ selectedScholarship.name }}</h2>
+            <button class="close-btn" (click)="closeModal()">×</button>
+          </div>
+
+          <div class="modal-body">
+            <div class="modal-section">
+              <div class="provider-info">
+                <span class="provider-label">Provider:</span>
+                <span class="provider-name">{{ selectedScholarship.provider }}</span>
+              </div>
+              <div class="amount-status">
+                <div class="amount-display">
+                  <span class="amount-label">Scholarship Amount</span>
+                  <span class="amount-value">{{ formatCurrency(selectedScholarship.amount) }}</span>
+                </div>
+                <span
+                  class="status-badge-large"
+                  [ngClass]="getStatusClass(selectedScholarship.status)"
+                >
+                  {{ selectedScholarship.status | titlecase }}
+                </span>
+              </div>
+            </div>
+
+            <div class="modal-section">
+              <h3>Description</h3>
+              <p class="description-text">{{ selectedScholarship.description }}</p>
+            </div>
+
+            <div class="modal-section info-grid">
+              <div class="info-card">
+                <span class="info-label">Field of Study</span>
+                <span class="info-value">{{ selectedScholarship.field }}</span>
+              </div>
+              <div class="info-card">
+                <span class="info-label">Application Date</span>
+                <span class="info-value">{{
+                  selectedScholarship.appliedDate | date : 'MMMM dd, yyyy'
+                }}</span>
+              </div>
+              <div class="info-card">
+                <span class="info-label">Deadline</span>
+                <span class="info-value">{{
+                  selectedScholarship.deadline | date : 'MMMM dd, yyyy'
+                }}</span>
+              </div>
+              <div class="info-card" *ngIf="selectedScholarship.status === 'active'">
+                <span class="info-label">Days Remaining</span>
+                <span class="info-value highlight"
+                  >{{ getDaysRemaining(selectedScholarship.deadline) }} days</span
+                >
+              </div>
+            </div>
+
+            <div class="modal-section">
+              <h3>Requirements & Eligibility</h3>
+              <div class="requirements-list">
+                <div class="requirement-item" *ngFor="let req of selectedScholarship.requirements">
+                  <span class="check-icon">✓</span>
+                  <span class="requirement-text">{{ req }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- <div class="modal-section timeline-section">
+              <h3>Application Timeline</h3>
+              <div class="timeline">
+                <div class="timeline-item completed">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <span class="timeline-title">Application Submitted</span>
+                    <span class="timeline-date">{{
+                      selectedScholarship.appliedDate | date : 'MMM dd, yyyy'
+                    }}</span>
+                  </div>
+                </div>
+                <div
+                  class="timeline-item"
+                  [ngClass]="selectedScholarship.status === 'active' ? 'active' : 'pending'"
+                >
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <span class="timeline-title">Under Review</span>
+                    <span class="timeline-date">Current Status</span>
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <span class="timeline-title">Decision Expected</span>
+                    <span class="timeline-date">{{
+                      selectedScholarship.deadline | date : 'MMM dd, yyyy'
+                    }}</span>
+                  </div>
+                </div>
+              </div>
+            </div> -->
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-secondary" (click)="closeModal()">Close</button>
+            <button class="btn btn-primary" (click)="trackStatus(selectedScholarship)">
+              Track Status
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>
+
+<app-confirm-modal
+  *ngIf="showLogoutModal"
+  title="Log out"
+  message="Are you sure you want to log out of SmartScholar?"
+  (confirm)="confirmLogout()"
+  (cancel)="cancelLogout()"
+></app-confirm-modal>

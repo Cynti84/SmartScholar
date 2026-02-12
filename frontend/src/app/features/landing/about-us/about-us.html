@@ -5,23 +5,23 @@
   </header>
 
   <!-- Main Content -->
-  <main class="main-content">
+  <main class="main-content fade-in">
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="hero-container">
         <div class="hero-content">
           <h1 class="hero-title">About SmartScholar</h1>
           <p class="hero-description">
-            Empowering students worldwide with access to quality education through 
-            comprehensive scholarship opportunities and innovative learning solutions.
+            Empowering students worldwide with access to quality education through comprehensive
+            scholarship opportunities and innovative learning solutions.
           </p>
         </div>
         <div class="hero-image">
-          <img 
-            src="about-hero.jpg" 
+          <img
+            src="about-hero.jpg"
             alt="Students studying together"
             onError="this.src='https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&h=500&fit=crop&crop=center'"
-          >
+          />
         </div>
       </div>
     </section>
@@ -33,27 +33,29 @@
           <div class="content-text">
             <h2 class="section-title">Our Mission</h2>
             <p class="section-description">
-              At SmartScholar, we believe that education should be accessible to everyone, 
-              regardless of their financial background. Our mission is to bridge the gap 
-              between talented students and life-changing educational opportunities.
+              At SmartScholar, we believe that education should be accessible to everyone,
+              regardless of their financial background. Our mission is to bridge the gap between
+              talented students and life-changing educational opportunities.
             </p>
             <div class="feature-list">
               <div class="feature-item">
-                <div class="feature-icon">🎯</div>
+                <div class="feature-icon"><mat-icon>track_changes</mat-icon></div>
                 <div class="feature-content">
                   <h3>Targeted Matching</h3>
-                  <p>We connect students with scholarships that match their profile and aspirations.</p>
+                  <p>
+                    We connect students with scholarships that match their profile and aspirations.
+                  </p>
                 </div>
               </div>
               <div class="feature-item">
-                <div class="feature-icon">🌍</div>
+                <div class="feature-icon"><mat-icon>public</mat-icon></div>
                 <div class="feature-content">
                   <h3>Global Reach</h3>
                   <p>Access to international scholarships and study abroad opportunities.</p>
                 </div>
               </div>
               <div class="feature-item">
-                <div class="feature-icon">💡</div>
+                <div class="feature-icon"><mat-icon>lightbulb</mat-icon></div>
                 <div class="feature-content">
                   <h3>Smart Technology</h3>
                   <p>AI-powered recommendations to find the best educational opportunities.</p>
@@ -62,11 +64,11 @@
             </div>
           </div>
           <div class="content-image">
-            <img 
-              src="mission-image.jpg" 
+            <img
+              src="mission-image.jpg"
               alt="Students collaborating"
               onError="this.src='https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=600&fit=crop&crop=center'"
-            >
+            />
           </div>
         </div>
       </div>
@@ -92,7 +94,9 @@
         <h2 class="section-title">Our Core Values</h2>
         <div class="values-grid">
           <div class="value-card" *ngFor="let value of coreValues">
-            <div class="value-icon">{{ value.icon }}</div>
+            <div class="value-icon">
+              <mat-icon>{{ value.icon }}</mat-icon>
+            </div>
             <h3 class="value-title">{{ value.title }}</h3>
             <p class="value-description">{{ value.description }}</p>
           </div>
@@ -101,20 +105,21 @@
     </section>
 
     <!-- Team Section -->
-    <section class="team-section">
+    <!-- <section class="team-section">
       <div class="section-container">
         <h2 class="section-title">Meet Our Team</h2>
         <p class="section-subtitle">
-          Passionate educators and technologists working together to transform education accessibility.
+          Passionate educators and technologists working together to transform education
+          accessibility.
         </p>
         <div class="team-grid">
           <div class="team-member" *ngFor="let member of teamMembers">
             <div class="member-image">
-              <img 
-                [src]="member.image" 
+              <img
+                [src]="member.image"
                 [alt]="member.name"
                 (error)="getTeamPlaceholder(member.name)"
-              >
+              />
             </div>
             <div class="member-info">
               <h3 class="member-name">{{ member.name }}</h3>
@@ -124,7 +129,7 @@
           </div>
         </div>
       </div>
-    </section>
+    </section> -->
 
     <!-- CTA Section -->
     <section class="cta-section">
@@ -132,12 +137,11 @@
         <div class="cta-content">
           <h2 class="cta-title">Ready to Start Your Journey?</h2>
           <p class="cta-description">
-            Join thousands of students who have found their perfect educational opportunity through SmartScholar.
+            Join thousands of students who have found their perfect educational opportunity through
+            SmartScholar.
           </p>
           <div class="cta-buttons">
-            <button class="btn btn-primary" (click)="onGetStarted()">
-              Get Started Today
-            </button>
+            <button class="btn btn-primary" (click)="onGetStarted()">Get Started Today</button>
             <button class="btn btn-outline" (click)="onExploreScholarships()">
               Explore Scholarships
             </button>

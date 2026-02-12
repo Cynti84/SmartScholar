@@ -2,9 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 
 interface SignupFormData {
-  fullname: string;
+  firstname: string;
+  lastname: string;
   email: string;
   password: string;
   role: string;
@@ -22,14 +24,15 @@ export class Signup {
   isLoading: boolean = false;
 
   formData: SignupFormData = {
-    fullname: '',
+    firstname: '',
+    lastname: '',
     email: '',
     password: '',
     role: '',
     agreeToTerms: false,
   };
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
 
   /**
    * Toggle password visibility
@@ -53,26 +56,30 @@ export class Signup {
         return;
       }
 
-      // Simulate API call delay
-      await this.delay(2000);
-
-      // Here you would typically make an API call to register the user
-      const signupData = {
-        fullName: this.formData.fullname,
+      // Prepare payload for backend
+      const payload = {
+        firstName: this.formData.firstname,
+        lastName: this.formData.lastname,
         email: this.formData.email,
         password: this.formData.password,
         role: this.formData.role,
-        agreeToTerms: this.formData.agreeToTerms,
-        timestamp: new Date().toISOString(),
       };
 
-      console.log('Signup data:', signupData);
+      // Call backend signup API
+      this.authService.signup(payload).subscribe({
+        next: (response) => {
+          console.log('Signup success:', response);
 
-      // Simulate successful registration
-      this.handleSuccessfulSignup();
-    } catch (error) {
-      console.error('Signup error:', error);
-      this.handleSignupError(error);
+          // Move to next step (profile setup)
+          this.handleSuccessfulSignup();
+        },
+
+        error: (error) => {
+          console.error('Signup error:', error);
+          console.error('Validation errors', error.error);
+          this.handleSignupError(error);
+        },
+      });
     } finally {
       this.isLoading = false;
     }
@@ -82,9 +89,15 @@ export class Signup {
    * Validate form data
    */
   private validateForm(): boolean {
-    // Check if all required fields are filled
-    if (!this.formData.fullname.trim()) {
-      this.showError('Please enter your full name');
+    // Check if first name is filled
+    if (!this.formData.firstname.trim()) {
+      this.showError('Please enter your first name');
+      return false;
+    }
+
+    // Check if last name is filled
+    if (!this.formData.lastname.trim()) {
+      this.showError('Please enter your last name');
       return false;
     }
 
@@ -134,58 +147,15 @@ export class Signup {
    */
   private handleSuccessfulSignup(): void {
     // Show success message
-    this.showSuccess(
-      'Account created successfully! Please complete your profile setup.'
-    );
+    this.showSuccess('Account created successfully! Please verify your email to login.');
 
-    const tempUserData = {
-      fullname: this.formData.fullname,
-      email: this.formData.email,
-      role: this.formData.role
-    }
-    localStorage.setItem('tempUserData', JSON.stringify(tempUserData))
-    
-
-    // Clear form
     // this.resetForm();
 
-    // Continue to role-specific signup page
     setTimeout(() => {
-      this.continueToProfileSetup()
+      this.router.navigate(['/auth/login']);
     }, 2000);
   }
 
-  /**
-   * Continue to role-specific profile setup page
-   */
-
-  private continueToProfileSetup(): void{
-    if (!this.formData.role) {
-      this.showError('No role selected. Please try again.')
-      return;
-    }
-    if (this.formData.role === 'student') {
-      this.router.navigate(['/auth/signup/student'], {
-        queryParams: {
-          email: this.formData.email,
-          fullname: this.formData.fullname,
-          step: 'profile-setup'
-        },
-      })
-    } else if (this.formData.role === 'provider') {
-      this.router.navigate(['/auth/signup/provider'], {
-        queryParams: {
-          email: this.formData.email,
-          fullname: this.formData.fullname,
-          step: 'profile-setup'
-        }
-      })
-    } else {
-      //handle any other roles or fallback
-      console.error('Invalid role selected:', this.formData.role)
-      this.showError('Invalid role selected. Please try again')
-    }
-  }
 
   /**
    * Handle signup errors
@@ -208,19 +178,6 @@ export class Signup {
     this.showError(errorMessage);
   }
 
-  /**
-   * Reset form to initial state
-   */
-  private resetForm(): void {
-    this.formData = {
-      fullname: '',
-      email: '',
-      password: '',
-      role: '',
-      agreeToTerms: false,
-    };
-    this.showPassword = false;
-  }
 
   /**
    * Show error message (you can integrate with a toast service)
@@ -251,12 +208,6 @@ export class Signup {
     alert(message); // Temporary solution
   }
 
-  /**
-   * Utility function to create delays
-   */
-  private delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
 
   /**
    * Handle social login (if needed in the future)
@@ -265,13 +216,6 @@ export class Signup {
     console.log(`Social login with ${provider}`);
     // Implement social login logic here
   }
-
-  /**
-   * Navigate to login page
-   */
-  // navigateToLogin(): void {
-  //   this.router.navigate(['/login']);
-  // }
 
   /**
    * Get password strength indicator
@@ -302,7 +246,8 @@ export class Signup {
    */
   hasUnsavedChanges(): boolean {
     return !!(
-      this.formData.fullname ||
+      this.formData.firstname ||
+      this.formData.lastname ||
       this.formData.email ||
       this.formData.password ||
       this.formData.role ||

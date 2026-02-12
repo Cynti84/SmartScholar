@@ -2,7 +2,7 @@
   <div class="login-container">
     <!-- Left Side - Form -->
     <div class="form-section">
-      <div class="form-wrapper">
+      <div class="form-wrapper fade-in">
         <div class="form-header">
           <h1 class="form-title">
             Welcome Back
@@ -98,7 +98,9 @@
               >
             </div>
           </div>
-
+          <div *ngIf="loginError" class="error-message server-error">
+            {{ loginError }}
+          </div>
           <!-- Submit Button -->
           <button
             type="submit"
@@ -125,12 +127,25 @@
               Loggin in...
             </span>
           </button>
+
+          <div class="login-form">
+            <!-- ... your login form ... -->
+
+            <div class="forgot-password-link">
+              <a routerLink="/auth/forgot-password">Forgot your password?</a>
+            </div>
+          </div>
+
+          <div class="signup-link">
+            <span class="signup-text">Don't have an account?</span>
+            <a routerLink="/auth/signup" class="signup-link-btn">Sign up</a>
+          </div>
         </form>
       </div>
     </div>
 
     <!-- Right Side - Image -->
-    <div class="image-section">
+    <div class="image-section fade-in">
       <div class="image-container">
         <img
           src="image1.png"

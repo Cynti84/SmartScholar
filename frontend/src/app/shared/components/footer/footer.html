@@ -1,23 +1,20 @@
 <div class="footer-container">
-      <!-- Logo Section -->
-      <div class="footer-brand">
-        <div class="footer-logo">
-          <span class="footer-logo-text">SS</span>
-        </div>
-      </div>
+  <!-- Logo Section -->
+  <div class="footer-brand">
+    <div class="footer-logo">
+      <span class="footer-logo-text">SS</span>
+    </div>
+  </div>
 
-      <!-- Links Section -->
-      <div class="footer-links">
-        <a 
-          *ngFor="let link of footerLinks" 
-          [routerLink]="link.route" 
-          class="footer-link">
-          {{ link.label }}
-        </a>
-      </div>
+  <!-- Links Section -->
+  <div class="footer-links">
+    <a *ngFor="let link of footerLinks" [routerLink]="link.route" class="footer-link">
+      {{ link.label }}
+    </a>
+  </div>
 
-      <!-- Social Links -->
-      <div class="footer-social">
+  <!-- Social Links -->
+  <!-- <div class="footer-social">
         <a 
           *ngFor="let social of socialLinks"
           [href]="social.url"
@@ -27,5 +24,5 @@
           [attr.aria-label]="social.label">
           <i [class]="social.icon"></i>
         </a>
-      </div>
-    </div>
+      </div> -->
+</div>

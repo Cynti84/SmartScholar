@@ -1,7 +1,528 @@
-<app-dashboard-layout [title]="'Dashboard Overview'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Student dashboard Works!!</h2>
-        <!-- student content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout
+  [title]="'Dashboard Overview'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
+  <section>
+    <div class="dashboard-container">
+      <!-- Welcome Section -->
+      <div class="welcome-section">
+        <h1 class="welcome-title">Welcome back, {{ studentName }}!</h1>
+        <p class="welcome-subtitle">Here's your scholarship overview for today</p>
+      </div>
+
+      <!-- Overview Cards -->
+      <div class="overview-grid">
+        <!-- TOTAL SCHOLARSHIPS -->
+        <div class="stat-card primary">
+          <div class="stat-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+              <path d="M6 12v5c3 3 9 3 12 0v-5" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-value">{{ stats.activeScholarships }}</h3>
+            <p class="stat-label">Total Scholarships</p>
+          </div>
+        </div>
+
+        <!-- APPLIED SCHOLARSHIPS -->
+        <div class="stat-card success">
+          <div class="stat-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-value">{{ stats.applied }}</h3>
+            <p class="stat-label">Applied Scholarships</p>
+          </div>
+        </div>
+
+        <!-- BOOKMARKED SCHOLARSHIPS -->
+        <div class="stat-card warning">
+          <div class="stat-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-value">{{ stats.bookmarked }}</h3>
+            <p class="stat-label">Bookmarked Scholarships</p>
+          </div>
+        </div>
+
+        <!-- RECOMMENDED SCHOLARSHIPS -->
+        <div class="stat-card approved">
+          <div class="stat-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+              />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-value">{{ stats.recommended }}</h3>
+            <p class="stat-label">Recommended Scholarships</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <h2 class="section-title">Quick Actions</h2>
+        <div class="actions-grid">
+          <button class="action-btn primary" (click)="onApplyNow()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            <span>Apply Now</span>
+          </button>
+          <button class="action-btn secondary" (click)="onViewSaved()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+            <span>View Saved</span>
+          </button>
+          <button class="action-btn tertiary" (click)="onEditProfile()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span>Edit Profile</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Recommended Scholarships -->
+      <div class="recommended-section">
+        <div class="section-header">
+          <h2 class="section-title">Recommended For You</h2>
+          <span class="ai-badge">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+              />
+            </svg>
+            AI Powered
+          </span>
+        </div>
+
+        <!-- Empty state -->
+        <div *ngIf="recommendedScholarships.length === 0" class="empty-state">
+          <p>No recommendations yet. Complete your profile to get personalised scholarships.</p>
+        </div>
+
+        <!-- Scholarship cards grid -->
+        <div class="scholarships-grid" *ngIf="recommendedScholarships.length > 0">
+          <div
+            class="scholarship-card"
+            *ngFor="let scholarship of visibleRecommendedScholarships; let i = index"
+            [style.animationDelay]="
+              i >= initialDisplayCount ? (i - initialDisplayCount) * 80 + 'ms' : '0ms'
+            "
+            [class.card-reveal]="showAllRecommended && i >= initialDisplayCount"
+          >
+            <div class="card-header">
+              <div
+                *ngIf="scholarship.matchScore !== undefined"
+                class="match-badge"
+                [class.high-match]="scholarship.matchScore >= 85"
+              >
+                {{ scholarship.matchScore | number : '1.0-0' }}% Match
+              </div>
+            </div>
+
+            <h3 class="scholarship-title">{{ scholarship.title }}</h3>
+            <p class="scholarship-provider">
+              {{ scholarship.organization_name }}
+            </p>
+
+            <div class="scholarship-details">
+              <div class="detail-item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                <span>{{ scholarship.country }}</span>
+              </div>
+
+              <!-- Field of Study -->
+              <div class="detail-item" *ngIf="scholarship.fieldOfStudy">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg>
+                <span class="badge field">{{ scholarship.fieldOfStudy }}</span>
+              </div>
+
+              <div class="detail-item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                <span class="deadline">
+                  {{ getDaysRemaining(scholarship.deadline) }} days left
+                </span>
+              </div>
+            </div>
+            <button class="view-btn" (click)="openScholarshipDetails(scholarship, $event)">
+              View Details
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Show More / Show Less button -->
+        <div class="show-more-wrapper" *ngIf="recommendedScholarships.length > initialDisplayCount">
+          <button
+            class="show-more-btn"
+            [class.expanded]="showAllRecommended"
+            (click)="toggleShowMore()"
+          >
+            <span class="show-more-btn__label">
+              {{ showAllRecommended ? 'Show Less' : 'Show More' }}
+            </span>
+            <span class="show-more-btn__remaining" *ngIf="!showAllRecommended">
+              +{{ recommendedScholarships.length - initialDisplayCount }} more
+            </span>
+            <svg
+              class="show-more-btn__arrow"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Detail View -->
+      <div
+        class="scholarship-details-modal"
+        *ngIf="selectedScholarship"
+        (click)="closeScholarshipDetails()"
+      >
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <!-- close button -->
+          <button class="close-btn" (click)="closeScholarshipDetails()"><span>✕</span></button>
+
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <div class="provider-section">
+              <div class="provider-logo" *ngIf="selectedScholarship.providerLogo">
+                <img
+                  [src]="selectedScholarship.providerLogo"
+                  [alt]="selectedScholarship.provider"
+                />
+              </div>
+
+              <div class="provider-logo placeholder" *ngIf="!selectedScholarship.providerLogo">
+                {{ selectedScholarship.provider.charAt(0) }}
+              </div>
+
+              <div class="provider-info">
+                <div class="provider-name">{{ selectedScholarship.provider }}</div>
+                <div class="status-badge" [class]="selectedScholarship.status">
+                  {{ selectedScholarship.status | uppercase }}
+                </div>
+              </div>
+            </div>
+
+            <h2 class="scholarship-title">{{ selectedScholarship.title }}</h2>
+            <div class="scholarship-meta">
+              <span class="category-badge">{{ selectedScholarship.category }}</span>
+              <span class="amount">{{ selectedScholarship.amount }}</span>
+              <span class="match-score" *ngIf="selectedScholarship.matchScore"
+                >{{ selectedScholarship.matchScore }}% Match</span
+              >
+            </div>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="modal-body">
+            <!-- Description -->
+            <div class="detail-section">
+              <h3 class="section-title">Description</h3>
+              <p class="section-content">{{ selectedScholarship.description }}</p>
+            </div>
+
+            <!-- AI Trigger Button -->
+            <div class="ai-trigger">
+              <button
+                class="ai-btn"
+                *ngIf="!aiExplanation && !loadingExplanation && selectedMatchId"
+                (click)="loadModalExplanation(selectedMatchId)"
+              >
+                <mat-icon class="sparkle-icon">auto_awesome</mat-icon>
+                <span class="label">Why was this recommended for you?</span>
+              </button>
+
+              <button class="ai-btn loading" *ngIf="loadingExplanation" disabled>
+                <span class="spinner"></span>
+                <span class="label">Analyzing your match…</span>
+              </button>
+            </div>
+
+            <!-- AI Recommendation Explanation Card -->
+            <div class="ai-explanation-card" *ngIf="aiExplanation as explanation">
+              <!-- Match Strength Badge -->
+              <div class="match-strength-header">
+                <div class="strength-badge" [class]="explanation.matchStrength">
+                  <mat-icon class="badge-icon">stars</mat-icon>
+                  <span class="strength-label">
+                    {{ getMatchStrengthLabel(explanation.matchStrength) }}
+                  </span>
+                </div>
+
+                <div
+                  class="match-stats"
+                  *ngIf="explanation.matchedCount && explanation.totalCriteria"
+                >
+                  <span class="stats-text">
+                    {{ explanation.matchedCount }}/{{ explanation.totalCriteria }} criteria matched
+                  </span>
+                </div>
+              </div>
+
+              <!-- Main Explanation Section -->
+              <div class="explanation-main">
+                <h3 class="explanation-title">
+                  <mat-icon class="title-icon">track_changes</mat-icon>
+                  <span>Why This Scholarship is Perfect for You</span>
+                </h3>
+
+                <div class="explanation-content">
+                  <p class="explanation-text">{{ explanation.whyRecommended }}</p>
+                </div>
+
+                <!-- Personalized Note (if available) -->
+                <div class="personalized-note" *ngIf="explanation.personalizedNote">
+                  <mat-icon class="note-icon">tips_and_updates</mat-icon>
+                  <p class="note-text">{{ explanation.personalizedNote }}</p>
+                </div>
+              </div>
+
+              <!-- Improvement Tips Section -->
+              <div class="improvement-section" *ngIf="explanation.improvementTips?.length">
+                <button
+                  class="improvement-toggle"
+                  (click)="toggleImproveTips()"
+                  [class.expanded]="showImproveTips"
+                >
+                  <span class="toggle-icon" [class.rotated]="showImproveTips">
+                    <mat-icon>chevron_right</mat-icon>
+                  </span>
+                  <span class="toggle-title">
+                    <mat-icon class="title-icon">rocket_launch</mat-icon>
+                    <span>Ways to Strengthen Your Application</span>
+                  </span>
+                  <span class="tips-count">{{ explanation.improvementTips.length }} tips</span>
+                </button>
+
+                <div class="improvement-content" *ngIf="showImproveTips">
+                  <div class="tips-list">
+                    <div
+                      class="tip-item"
+                      *ngFor="let tip of explanation.improvementTips; let i = index"
+                    >
+                      <div class="tip-number">{{ i + 1 }}</div>
+                      <p class="tip-text">{{ tip }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Call to Action -->
+              <div class="explanation-cta">
+                <div class="cta-content">
+                  <mat-icon class="cta-icon">school</mat-icon>
+                  <span class="cta-text">Ready to take the next step?</span>
+                </div>
+                <button
+                  class="cta-button"
+                  (click)="goToApplyPage(selectedScholarship!.scholarshipId)"
+                >
+                  <span>Start Application</span>
+                  <mat-icon>arrow_forward</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Error State -->
+            <div class="ai-error-card" *ngIf="explanationError">
+              <mat-icon class="error-icon">warning</mat-icon>
+              <p class="error-text">{{ explanationError }}</p>
+              <button class="retry-btn" (click)="loadModalExplanation(selectedMatchId!)">
+                Try Again
+              </button>
+            </div>
+
+            <!-- Eligibility -->
+            <div class="detail-section" *ngIf="selectedScholarship.eligibility?.length">
+              <h2>Eligibility Criteria</h2>
+              <ul class="criteria-list">
+                <li *ngFor="let criterion of selectedScholarship.eligibility">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  {{ criterion }}
+                </li>
+              </ul>
+            </div>
+
+            <!-- Tags -->
+            <div
+              class="detail-section"
+              *ngIf="selectedScholarship.tags && selectedScholarship.tags.length > 0"
+            >
+              <h3 class="section-title">Tags</h3>
+              <div class="tags">
+                <span *ngFor="let tag of selectedScholarship.tags" class="tag">{{ tag }}</span>
+              </div>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="detail-section">
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Saved Date:</span>
+                  <span class="info-value">{{
+                    selectedScholarship.savedDate | date : 'MMM d, yyyy'
+                  }}</span>
+                </div>
+                <div class="info-item" *ngIf="selectedScholarship.applicationUrl">
+                  <span class="info-label">Application URL:</span>
+                  <a [href]="selectedScholarship.applicationUrl" target="_blank" class="info-link">
+                    Visit Application Page →
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="modal-footer">
+            <button
+              class="btn btn-primary"
+              [disabled]="
+                selectedScholarship.status === 'applied' || selectedScholarship.status === 'expired'
+              "
+              (click)="goToApplyPage(selectedScholarship!.scholarshipId)"
+            >
+              {{
+                selectedScholarship.status === 'applied'
+                  ? 'Already Applied'
+                  : selectedScholarship.status === 'expired'
+                  ? 'Expired'
+                  : 'Apply Now'
+              }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>
+<app-ai-chat></app-ai-chat>
+
+<app-confirm-modal
+  *ngIf="showLogoutModal"
+  title="Log out"
+  message="Are you sure you want to log out of SmartScholar?"
+  (confirm)="confirmLogout()"
+  (cancel)="cancelLogout()"
+></app-confirm-modal>

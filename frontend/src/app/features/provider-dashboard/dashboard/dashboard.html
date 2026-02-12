@@ -1,7 +1,188 @@
-<app-dashboard-layout [title]="'Dashboard Overview'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Provider dashboard Works!!</h2>
-        <!-- provider content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout
+  [title]="'Dashboard Overview'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
+  <section class="dashboard-container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+      <!-- Decorative background layers -->
+      <div class="hero-bg-ring hero-bg-ring--1"></div>
+      <div class="hero-bg-ring hero-bg-ring--2"></div>
+      <div class="hero-bg-ring hero-bg-ring--3"></div>
+
+      <div class="hero-text">
+        <span class="hero-eyebrow">Dashboard Overview</span>
+        <h1>Hello there 👋</h1>
+        <p>Here's an overview of your scholarships and applications today.</p>
+        <span class="date">{{ today | date : 'fullDate' }}</span>
+      </div>
+
+      <!-- Animated visual cluster -->
+      <div class="hero-visuals" aria-hidden="true">
+        <div class="orb orb--primary"></div>
+        <div class="orb orb--secondary"></div>
+        <div class="orb orb--accent"></div>
+        <div class="ring ring--1"></div>
+        <div class="ring ring--2"></div>
+        <div class="particle particle--1"></div>
+        <div class="particle particle--2"></div>
+        <div class="particle particle--3"></div>
+        <div class="particle particle--4"></div>
+      </div>
+    </div>
+
+    <!-- Stats Cards Grid -->
+    <div class="stats-grid">
+      <app-card
+        class="stat-card approved-card"
+        icon="check_circle"
+        title="Approved Scholarship"
+        [value]="approvedScholarships.count"
+        [percentage]="approvedScholarships.percentage"
+        [trend]="approvedScholarships.trend"
+      ></app-card>
+
+      <app-card
+        class="stat-card pending-card"
+        icon="pending_actions"
+        title="Pending Scholarship"
+        [value]="pendingScholarships.count"
+        [percentage]="pendingScholarships.percentage"
+        [trend]="pendingScholarships.trend"
+      ></app-card>
+
+      <app-card
+        class="stat-card applied-card"
+        title="Students Applied"
+        icon="groups"
+        [value]="studentsApplied.count"
+        [percentage]="studentsApplied.percentage"
+        [trend]="studentsApplied.trend"
+      ></app-card>
+
+      <app-card
+        class="stat-card total-card"
+        icon="menu_book"
+        title="Total Scholarships"
+        [value]="totalScholarships.count"
+        [percentage]="totalScholarships.percentage"
+        [trend]="totalScholarships.trend"
+      ></app-card>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="main-content-grid">
+      <!-- Application Response Chart -->
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>Application Response</h3>
+          <button class="download-btn" (click)="downloadReport()" *ngIf="hasAnyScholarship">
+            <span class="download-icon">⬇</span>
+            Download Report
+          </button>
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div class="empty-state" *ngIf="showEmptyState">
+          <div class="empty-icon">
+            <mat-icon style="font-size: 40px; color: #6a1b9a"> menu_book </mat-icon>
+          </div>
+          <h4>No data yet</h4>
+          <p>
+            You haven't posted any scholarships yet. Once you do, you'll start seeing application
+            insights here.
+          </p>
+          <button class="primary-btn" (click)="onPost()">Post your first scholarship</button>
+        </div>
+
+        <!-- CHART STATE -->
+        <div class="chart-container" *ngIf="hasAnyScholarship">
+          <div class="chart-canvas-wrapper">
+            <canvas #dashboardChart></canvas>
+          </div>
+
+          <div class="chart-legend">
+            <div class="legend-item" *ngFor="let item of dashboardChartData">
+              <span class="legend-color" [style.backgroundColor]="item.color"></span>
+              <span class="legend-label">{{ item.label }}</span>
+              <span class="legend-value">{{ item.value }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Scholarship Table -->
+      <div class="table-card">
+        <div class="card-header">
+          <h3>Recent Scholarship</h3>
+          <div class="filter-tabs">
+            <button
+              class="filter-tab"
+              [class.active]="activeFilter === 'monthly'"
+              (click)="setFilter('monthly')"
+            >
+              Monthly
+            </button>
+            <button
+              class="filter-tab"
+              [class.active]="activeFilter === 'weekly'"
+              (click)="setFilter('weekly')"
+            >
+              Weekly
+            </button>
+            <button
+              class="filter-tab"
+              [class.active]="activeFilter === 'today'"
+              (click)="setFilter('today')"
+            >
+              Today
+            </button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="scholarships-table">
+            <thead>
+              <tr>
+                <th>Scholarship</th>
+                <th>Date Posted</th>
+                <th>No of Application</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let scholarship of filteredScholarships">
+                <td class="scholarship-name">{{ scholarship.name }}</td>
+                <td class="date-posted">
+                  {{ scholarship.datePosted | date : 'dd-M-yyyy' }}
+                </td>
+                <td class="application-count">
+                  {{ scholarship.applicationCount }}
+                </td>
+                <td class="status-cell">
+                  <span
+                    class="status-badge"
+                    [class.active]="scholarship.status === 'Active'"
+                    [class.inactive]="scholarship.status === 'Inactive'"
+                  >
+                    {{ scholarship.status }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>
+
+<app-confirm-modal
+  *ngIf="showLogoutModal"
+  title="Log out"
+  message="Are you sure you want to log out of SmartScholar?"
+  (confirm)="confirmLogout()"
+  (cancel)="cancelLogout()"
+></app-confirm-modal>

@@ -1,7 +1,593 @@
-<app-dashboard-layout [title]="'Student Management'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Student Management works!!</h2>
-        <!-- admin content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout
+  [title]="'Student Management'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
+  <section>
+    <div class="student-management" id="students-export">
+      <!-- Header -->
+      <div class="header">
+        <div class="header-content">
+          <!-- <h1>Student Management</h1> -->
+          <p class="subtitle">Manage student accounts and track their scholarship applications</p>
+        </div>
+        <div class="header-actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [disabled]="isExporting"
+            (click)="exportStudents()"
+          >
+            <mat-icon *ngIf="!isExporting">file_download</mat-icon>
+            {{ isExporting ? 'Exporting…' : 'Export Data' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="stats-cards">
+        <div class="stat-card total">
+          <div class="stat-icon"><mat-icon style="color: #4299e1">bar_chart</mat-icon></div>
+          <div class="stat-details">
+            <div class="stat-label">Total Students</div>
+            <div class="stat-value">{{ stats.total }}</div>
+          </div>
+        </div>
+        <div class="stat-card active">
+          <div class="stat-icon"><mat-icon style="color: #10b981">check_circle</mat-icon></div>
+          <div class="stat-details">
+            <div class="stat-label">Active</div>
+            <div class="stat-value">{{ stats.active }}</div>
+          </div>
+        </div>
+        <!-- <div class="stat-card pending">
+          <div class="stat-icon"><mat-icon style="color: #f59e0b">hourglass_top</mat-icon></div>
+          <div class="stat-details">
+            <div class="stat-label">Pending Approval</div>
+            <div class="stat-value">{{ stats.pending }}</div>
+          </div>
+        </div> -->
+        <div class="stat-card suspended">
+          <div class="stat-icon"><mat-icon style="color: #ef4444">block</mat-icon></div>
+          <div class="stat-details">
+            <div class="stat-label">Suspended</div>
+            <div class="stat-value">{{ stats.suspended }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters Section -->
+      <div class="filters-section">
+        <div class="search-box">
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+            placeholder="Search by name, email, or university..."
+            class="search-input"
+          />
+        </div>
+
+        <div class="filters">
+          <select [(ngModel)]="selectedStatus" (change)="onFilterChange()" class="filter-select">
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <!-- <option value="pending">Pending</option> -->
+            <option value="suspended">Suspended</option>
+          </select>
+
+          <select [(ngModel)]="selectedField" (change)="onFilterChange()" class="filter-select">
+            <option value="all">All Fields of Study</option>
+            <option *ngFor="let field of fieldsOfStudy" [value]="field">
+              {{ field }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Results Info -->
+      <div class="results-info">
+        Showing {{ (currentPage - 1) * itemsPerPage + 1 }} -
+        {{ Math.min(currentPage * itemsPerPage, filteredStudents.length) }}
+        of {{ filteredStudents.length }} students
+      </div>
+
+      <!-- Students Table -->
+      <div class="table-container">
+        <table class="students-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Academic Level</th>
+              <th>Major</th>
+              <!-- <th>GPA</th> -->
+              <th>Applications</th>
+              <th>Registered</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let student of getPaginatedStudents()">
+              <td class="student-cell">
+                <div class="student-info">
+                  <div class="student-avatar">
+                    {{ getInitials(student.firstName, student.lastName) }}
+                  </div>
+                  <div>
+                    <div class="student-name">{{ student.firstName }} {{ student.lastName }}</div>
+                    <div class="student-email">{{ student.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ student.academic_level }}</td>
+              <td>{{ student.field_of_study }}</td>
+              <!-- <td>
+                 <span class="gpa-badge" [class.high-gpa]="student.gpa >= 3.7">
+                  {{ student.gpa.toFixed(2) }}
+                </span> 
+              </td> -->
+              <td class="applications-cell">
+                <div class="application-stats">
+                  <span class="total">{{ student.applicationsCount }} applied</span>
+                  <!-- <span class="accepted">{{ student.acceptedScholarships }} accepted</span> -->
+                </div>
+              </td>
+              <td>{{ formatDate(student.registrationDate) }}</td>
+              <td>
+                <span [class]="'status-badge ' + getStatusClass(student.status)">
+                  {{ student.status | uppercase }}
+                </span>
+              </td>
+              <td class="actions-cell">
+                <button
+                  (click)="viewStudentDetails(student)"
+                  class="btn btn-view"
+                  title="View Details"
+                >
+                  View
+                </button>
+                <button
+                  *ngIf="student.status === 'pending'"
+                  (click)="confirmApprove(student)"
+                  class="btn btn-approve"
+                  title="Approve"
+                >
+                  Approve
+                </button>
+                <button
+                  *ngIf="student.status === 'pending'"
+                  (click)="confirmDecline(student)"
+                  class="btn btn-decline"
+                  title="Decline"
+                >
+                  Decline
+                </button>
+                <button
+                  *ngIf="student.status === 'active'"
+                  (click)="confirmSuspend(student)"
+                  class="btn btn-suspend"
+                  title="Suspend"
+                >
+                  Suspend
+                </button>
+                <button
+                  *ngIf="student.status === 'suspended'"
+                  (click)="confirmActivate(student)"
+                  class="btn btn-activate"
+                  title="Activate"
+                >
+                  Activate
+                </button>
+                <button
+                  class="btn btn-delete"
+                  title="Delete"
+                  (click)="openConfirmModal('decline', student)"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="filteredStudents.length === 0" class="empty-state">
+          <div class="empty-icon"><mat-icon style="color: #4299e1">search</mat-icon></div>
+          <h3>No students found</h3>
+          <p>Try adjusting your search or filter criteria</p>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="getTotalPages() > 1">
+        <button
+          (click)="changePage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          class="pagination-btn"
+        >
+          ← Previous
+        </button>
+
+        <div class="pagination-numbers">
+          <button
+            *ngFor="let page of [].constructor(getTotalPages()); let i = index"
+            (click)="changePage(i + 1)"
+            [class.active]="currentPage === i + 1"
+            class="pagination-number"
+          >
+            {{ i + 1 }}
+          </button>
+        </div>
+
+        <button
+          (click)="changePage(currentPage + 1)"
+          [disabled]="currentPage === getTotalPages()"
+          class="pagination-btn"
+        >
+          Next →
+        </button>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>
+
+<!-- logout confirm modal -->
+<app-confirm-modal
+  *ngIf="showLogoutModal"
+  title="Log out"
+  message="Are you sure you want to log out of SmartScholar?"
+  (confirm)="confirmLogout()"
+  (cancel)="cancelLogout()"
+></app-confirm-modal>
+
+<!-- Student Details Modal -->
+<div class="modal-overlay" *ngIf="showDetailsModal" (click)="closeDetailsModal()">
+  <div class="modal-content details-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <mat-icon style="color: #4299e1; vertical-align: middle">person</mat-icon>Student Profile
+      </h2>
+      <button class="close-btn" (click)="closeDetailsModal()">×</button>
+    </div>
+
+    <div class="modal-body" *ngIf="selectedStudent">
+      <!-- Student Overview -->
+      <div class="student-overview">
+        <div class="overview-header">
+          <div class="student-avatar-large">
+            {{ getInitials(selectedStudent.firstName, selectedStudent.lastName) }}
+          </div>
+          <div class="overview-info">
+            <h3>{{ selectedStudent.firstName }} {{ selectedStudent.lastName }}</h3>
+            <span [class]="'status-badge ' + getStatusClass(selectedStudent.status)">
+              {{ selectedStudent.status | uppercase }}
+            </span>
+          </div>
+        </div>
+        <div class="quick-stats">
+          <div class="quick-stat">
+            <span class="stat-icon"> <mat-icon style="color: #ffffff">school</mat-icon></span>
+            <span>{{ selectedStudent.academic_level }}</span>
+          </div>
+          <div class="quick-stat">
+            <span class="stat-icon"><mat-icon style="color: #ffffff">menu_book</mat-icon></span>
+            <span>{{ selectedStudent.field_of_study }}</span>
+          </div>
+          <div class="quick-stat">
+            <!-- <span class="stat-icon"><mat-icon style="color: #ffffff">bar_chart</mat-icon></span> -->
+            <!-- <span>GPA: {{ selectedStudent.gpa.toFixed(2) }}</span> -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Personal Information -->
+      <div class="info-section">
+        <h4>
+          <mat-icon style="color: #4299e1; vertical-align: middle">person</mat-icon>Personal
+          Information
+        </h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Full Name</label>
+            <span>{{ selectedStudent.firstName }} {{ selectedStudent.lastName }}</span>
+          </div>
+          <div class="info-item">
+            <label>Email</label>
+            <span>{{ selectedStudent.email }}</span>
+          </div>
+          <!-- <div class="info-item">
+            <label>Phone</label>
+            <span>{{ selectedStudent.phone }}</span>
+          </div> -->
+          <div class="info-item">
+            <label>Age</label>
+            <span>{{ calculateAge(selectedStudent.dateOfBirth) }} years</span>
+          </div>
+          <!-- <div class="info-item full-width">
+            <label>Address</label>
+            <span>{{ selectedStudent.address }}</span>
+          </div> -->
+        </div>
+      </div>
+
+      <!-- Academic Information -->
+      <div class="info-section">
+        <h4>
+          <mat-icon style="color: #4299e1; vertical-align: middle">school</mat-icon>Academic
+          Information
+        </h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Academic Level</label>
+            <span>{{ selectedStudent.academic_level }}</span>
+          </div>
+          <div class="info-item">
+            <label>Major</label>
+            <span>{{ selectedStudent.field_of_study }}</span>
+          </div>
+          <!-- <div class="info-item">
+            <label>GPA</label>
+            <span class="gpa-value" [class.high-gpa]="selectedStudent.gpa >= 3.7">
+              {{ selectedStudent.gpa.toFixed(2) }}
+            </span>
+          </div> -->
+          <!-- <div class="info-item">
+            <label>Expected Graduation</label>
+            <span>{{ selectedStudent.graduationYear }}</span>
+          </div> -->
+        </div>
+      </div>
+
+      <!-- Account Information -->
+      <div class="info-section">
+        <h4>
+          <mat-icon style="color: #4299e1; vertical-align: middle">account_circle</mat-icon>Account
+          Information
+        </h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Registration Date</label>
+            <span>{{ formatDate(selectedStudent.registrationDate) }}</span>
+          </div>
+          <div class="info-item">
+            <label>Last Login</label>
+            <span>{{ getTimeSinceLogin(selectedStudent.lastLogin) }}</span>
+          </div>
+          <div class="info-item">
+            <label>Account Status</label>
+            <span [class]="'status-badge ' + getStatusClass(selectedStudent.status)">
+              {{ selectedStudent.status | uppercase }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Application Statistics -->
+      <div class="info-section">
+        <h4>
+          <mat-icon style="color: #4299e1; vertical-align: middle">school</mat-icon>Scholarship
+          Statistics
+        </h4>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-number">{{ selectedStudent.applicationsCount }}</div>
+            <div class="stat-label">Total Applications</div>
+          </div>
+          <!-- <div class="stat-box">
+            <div class="stat-number">{{ selectedStudent.acceptedScholarships }}</div>
+            <div class="stat-label">Accepted</div>
+          </div> -->
+          <!-- <div class="stat-box">
+            <div class="stat-number">
+              {{ selectedStudent.applicationsCount - selectedStudent.acceptedScholarships }}
+            </div>
+            <div class="stat-label">Pending/Rejected</div>
+          </div> -->
+        </div>
+      </div>
+
+      <!-- Recent Applications -->
+      <!-- <div class="info-section">
+        <h4>
+          <mat-icon style="color: #4299e1; vertical-align: middle">description</mat-icon>Recent
+          Applications
+        </h4>
+        <div class="applications-list">
+          <div *ngFor="let app of studentApplications" class="application-item">
+            <div class="app-icon"><mat-icon style="color: #ffffff">description</mat-icon></div>
+            <div class="app-content">
+              <div class="app-title">{{ app.scholarshipTitle }}</div>
+              <div class="app-provider">{{ app.provider }}</div>
+              <div class="app-meta">
+                <span class="app-amount">${{ app.amount.toLocaleString() }}</span>
+                <span class="app-date">Applied: {{ formatDate(app.appliedDate) }}</span>
+              </div>
+            </div>
+            <div class="app-status">
+              <span [class]="'app-status-badge ' + getApplicationStatusClass(app.status)">
+                {{ app.status.replace('_', ' ') | uppercase }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div> -->
+    </div>
+
+    <div class="modal-footer">
+      <button
+        (click)="closeDetailsModal()"
+        style="
+          background-color: #6c757d;
+          color: #ffffff;
+          border: none;
+          padding: 10px 18px;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-left: 24px;
+          transition: background-color 0.2s ease;
+        "
+        onmouseover="this.style.backgroundColor = '#5a6268'"
+        onmouseout="this.style.backgroundColor = '#6c757d'"
+      >
+        Close
+      </button>
+
+      <!-- Approve -->
+      <!-- <button
+        *ngIf="selectedStudent?.status === 'pending'"
+        (click)="openConfirmModal('approve', selectedStudent!)"
+        class="btn btn-success"
+      >
+        Approve Student
+      </button> -->
+
+      <!-- Suspend -->
+      <button
+        *ngIf="selectedStudent?.status === 'active'"
+        (click)="openConfirmModal('suspend', selectedStudent!)"
+        style="
+          background-color: #dc3545;
+          color: #ffffff;
+          border: none;
+          padding: 10px 18px;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-left: 24px;
+          transition: background-color 0.2s ease;
+        "
+        onmouseover="this.style.backgroundColor = '#b02a37'"
+        onmouseout="this.style.backgroundColor = '#dc3545'"
+      >
+        Suspend Account
+      </button>
+
+      <!-- Activate -->
+      <button
+        *ngIf="selectedStudent?.status === 'suspended'"
+        (click)="openConfirmModal('activate', selectedStudent!)"
+        class="btn btn-success"
+      >
+        Activate Account
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showConfirmModal" (click)="closeConfirmModal()">
+  <div class="modal-content confirm-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirm Action</h2>
+      <button class="close-btn" (click)="closeConfirmModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="confirm-content">
+        <div class="confirm-icon" [class]="confirmAction">
+          <span *ngIf="confirmAction === 'approve'">✓</span>
+          <span *ngIf="confirmAction === 'decline'">✕</span>
+          <span *ngIf="confirmAction === 'suspend'">🚫</span>
+          <span *ngIf="confirmAction === 'activate'">✓</span>
+        </div>
+
+        <h3>
+          {{
+            confirmAction === 'approve'
+              ? 'Approve Student'
+              : confirmAction === 'decline'
+                ? 'Decline Student'
+                : confirmAction === 'suspend'
+                  ? 'Suspend Account'
+                  : 'Activate Account'
+          }}
+        </h3>
+
+        <p *ngIf="confirmAction === 'approve'">
+          Are you sure you want to approve
+          <strong>{{ selectedStudent?.firstName }} {{ selectedStudent?.lastName }}</strong
+          >? They will gain full access to the platform.
+        </p>
+        <p *ngIf="confirmAction === 'decline'">
+          Are you sure you want to decline
+          <strong>{{ selectedStudent?.firstName }} {{ selectedStudent?.lastName }}</strong
+          >? This action cannot be undone and they will need to re-register.
+        </p>
+        <p *ngIf="confirmAction === 'suspend'">
+          Are you sure you want to suspend
+          <strong>{{ selectedStudent?.firstName }} {{ selectedStudent?.lastName }}</strong
+          >? They will lose access to their account but data will be preserved.
+        </p>
+        <p *ngIf="confirmAction === 'activate'">
+          Are you sure you want to activate
+          <strong>{{ selectedStudent?.firstName }} {{ selectedStudent?.lastName }}</strong
+          >? They will regain full access to the platform.
+        </p>
+
+        <div
+          class="reason-input"
+          *ngIf="confirmAction === 'suspend' || confirmAction === 'decline'"
+        >
+          <label>Reason (optional)</label>
+          <textarea
+            [(ngModel)]="confirmReason"
+            placeholder="Provide a reason for this action..."
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 1rem;
+        border-top: 1px solid #e2e8f0;
+      "
+    >
+      <!-- Cancel Button -->
+      <button
+        (click)="closeConfirmModal()"
+        style="
+          background-color: #e2e8f0;
+          color: #1a202c;
+          border: none;
+          padding: 0.5rem 1rem;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 500;
+          transition: background 0.2s;
+        "
+        onmouseover="this.style.backgroundColor = '#cbd5e0'"
+        onmouseout="this.style.backgroundColor = '#e2e8f0'"
+      >
+        Cancel
+      </button>
+
+      <!-- Confirm/Delete Button -->
+      <button
+        (click)="executeConfirmAction()"
+        style="
+          background-color: #f56565;
+          color: white;
+          border: none;
+          padding: 0.5rem 1rem;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 500;
+          transition: background 0.2s;
+        "
+        onmouseover="this.style.backgroundColor = '#e53e3e'"
+        onmouseout="this.style.backgroundColor = '#f56565'"
+      >
+        {{ confirmAction === 'decline' ? 'Delete' : (confirmAction | titlecase) }}
+      </button>
+    </div>
+  </div>
+</div>

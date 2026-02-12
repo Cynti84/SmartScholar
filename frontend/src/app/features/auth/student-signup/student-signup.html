@@ -1,12 +1,12 @@
 <!-- signup-student.component.html -->
-<div class="signup-container">
+<div class="signup-container fade-in">
   <div class="signup-content">
     <!-- Left Section -->
     <div class="left-section">
       <div class="welcome-content">
         <h1 class="greeting">Hey there 👋</h1>
-        <p class="subtitle">Set up your student profile to get personalized dashboard</p>
-        
+        <p class="subtitle">Set up your student profile to get a personalized dashboard</p>
+
         <form (ngSubmit)="onSubmit()" class="profile-form">
           <!-- Country -->
           <div class="form-group">
@@ -17,7 +17,8 @@
                 [(ngModel)]="profileData.country"
                 name="country"
                 required
-                class="form-select">
+                class="form-select"
+              >
                 <option value="" disabled>Select your country</option>
                 <option *ngFor="let country of countries" [value]="country">
                   {{ country }}
@@ -29,18 +30,40 @@
 
           <!-- Education Level -->
           <div class="form-group">
-            <label for="educationLevel">Education level*</label>
+            <label for="academicLevel">Education level*</label>
             <div class="select-wrapper">
               <select
-                id="educationLevel"
-                [(ngModel)]="profileData.educationLevel"
-                name="educationLevel"
+                id="academicLevel"
+                [(ngModel)]="profileData.academic_level"
+                name="academic_level"
                 required
-                class="form-select">
+                class="form-select"
+              >
                 <option value="" disabled>Select your education level</option>
                 <option *ngFor="let level of educationLevels" [value]="level">
                   {{ level }}
                 </option>
+              </select>
+              <i class="dropdown-icon"></i>
+            </div>
+          </div>
+
+          <!-- GPA Range -->
+          <div class="form-group">
+            <label for="gpaRange">GPA Range (Optional)</label>
+            <div class="select-wrapper">
+              <select
+                id="gpaRange"
+                name="gpaRange"
+                [(ngModel)]="selectedGpaRange"
+                (change)="onGpaRangeChange()"
+                class="form-select"
+              >
+                <option value="">Prefer not to say</option>
+                <option value="below_2_5">Below 2.5</option>
+                <option value="2_5_2_99">2.5 – 2.99</option>
+                <option value="3_0_3_49">3.0 – 3.49</option>
+                <option value="3_5_4_0">3.5 – 4.0</option>
               </select>
               <i class="dropdown-icon"></i>
             </div>
@@ -52,10 +75,11 @@
             <div class="select-wrapper">
               <select
                 id="fieldOfStudy"
-                [(ngModel)]="profileData.fieldOfStudy"
-                name="fieldOfStudy"
+                [(ngModel)]="profileData.field_of_study"
+                name="field_of_study"
                 required
-                class="form-select">
+                class="form-select"
+              >
                 <option value="" disabled>Select your field</option>
                 <option *ngFor="let field of fieldsOfStudy" [value]="field">
                   {{ field }}
@@ -74,7 +98,8 @@
                 [(ngModel)]="profileData.interest"
                 name="interest"
                 required
-                class="form-select">
+                class="form-select"
+              >
                 <option value="" disabled>Select your interest</option>
                 <option *ngFor="let interest of interests" [value]="interest">
                   {{ interest }}
@@ -82,6 +107,67 @@
               </select>
               <i class="dropdown-icon"></i>
             </div>
+          </div>
+
+          <!-- Date of Birth -->
+          <div class="form-group">
+            <label for="dob">Date of Birth*</label>
+            <input
+              type="date"
+              id="dob"
+              name="date_of_birth"
+              [(ngModel)]="profileData.date_of_birth"
+              required
+              class="form-input"
+            />
+          </div>
+
+          <!-- Gender -->
+          <div class="form-group">
+            <label>Gender*</label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="gender" value="male" [(ngModel)]="profileData.gender" />
+                Male
+              </label>
+
+              <label class="radio-option">
+                <input type="radio" name="gender" value="female" [(ngModel)]="profileData.gender" />
+                Female
+              </label>
+
+              <label class="radio-option">
+                <input type="radio" name="gender" value="other" [(ngModel)]="profileData.gender" />
+                Other
+              </label>
+            </div>
+          </div>
+
+          <!-- Financial Need -->
+          <div class="form-group">
+            <label for="income_level"> Income Level </label>
+            <div class="select_wrapper">
+              <select
+                required
+                name="income_level"
+                id="income_level"
+                class="form-select"
+                [(ngModel)]="profileData.income_level"
+              >
+                <option value="" disabled>Select your income level</option>
+                <option value="low">Low income</option>
+                <option value="middle">Middle income</option>
+                <option value="any">Any / Prefer not to say</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Disability Status -->
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" name="is_disabled" [(ngModel)]="profileData.is_disabled" />
+              I have a disability
+            </label>
           </div>
 
           <!-- Profile Image Upload -->
@@ -93,17 +179,21 @@
                 id="profileImage"
                 (change)="onProfileImageSelect($event)"
                 accept="image/*"
-                hidden>
-              <div 
-                class="file-upload-box"
-                (click)="triggerFileInput('profileImage')">
-                <span class="upload-text" *ngIf="!profileData.profileImage">Browse</span>
-                <div class="file-info" *ngIf="profileData.profileImage">
-                  <span class="file-name">{{ getFileName(profileData.profileImage) }}</span>
-                  <button 
-                    type="button" 
+                hidden
+              />
+
+              <div class="file-upload-box" (click)="triggerFileInput('profileImage')">
+                <span class="upload-text" *ngIf="!profileData.profileImageFile"> Browse </span>
+
+                <div class="file-info" *ngIf="profileData.profileImageFile">
+                  <span class="file-name">
+                    {{ getFileName(profileData.profileImageFile) }}
+                  </span>
+                  <button
+                    type="button"
                     class="remove-file"
-                    (click)="removeFile('profile'); $event.stopPropagation()">
+                    (click)="removeFile('profile'); $event.stopPropagation()"
+                  >
                     ×
                   </button>
                 </div>
@@ -120,17 +210,21 @@
                 id="cvFile"
                 (change)="onCvFileSelect($event)"
                 accept=".pdf,.doc,.docx"
-                hidden>
-              <div 
-                class="file-upload-box"
-                (click)="triggerFileInput('cvFile')">
-                <span class="upload-text" *ngIf="!profileData.cvFile">Browse</span>
+                hidden
+              />
+
+              <div class="file-upload-box" (click)="triggerFileInput('cvFile')">
+                <span class="upload-text" *ngIf="!profileData.cvFile"> Browse </span>
+
                 <div class="file-info" *ngIf="profileData.cvFile">
-                  <span class="file-name">{{ getFileName(profileData.cvFile) }}</span>
-                  <button 
-                    type="button" 
+                  <span class="file-name">
+                    {{ getFileName(profileData.cvFile) }}
+                  </span>
+                  <button
+                    type="button"
                     class="remove-file"
-                    (click)="removeFile('cv'); $event.stopPropagation()">
+                    (click)="removeFile('cv'); $event.stopPropagation()"
+                  >
                     ×
                   </button>
                 </div>
@@ -139,13 +233,14 @@
           </div>
 
           <!-- Submit Button -->
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             class="submit-btn"
             [disabled]="isLoading"
-            [class.loading]="isLoading">
-            <span *ngIf="!isLoading">Complete and go to dashboard</span>
-            <span *ngIf="isLoading">Setting up your profile...</span>
+            [class.loading]="isLoading"
+          >
+            <span *ngIf="!isLoading"> Complete and go to dashboard </span>
+            <span *ngIf="isLoading"> Setting up your profile... </span>
           </button>
         </form>
       </div>
@@ -154,11 +249,12 @@
     <!-- Right Section -->
     <div class="right-section">
       <div class="hero-image">
-        <img 
-          src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1471&q=80" 
+        <img
+          src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f"
           alt="Students collaborating"
-          class="hero-img">
+          class="hero-img"
+        />
       </div>
     </div>
   </div>
-</div> 
+</div>

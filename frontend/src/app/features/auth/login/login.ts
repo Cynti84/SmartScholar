@@ -2,6 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service'; // adjust path if needed
+import { ProviderService } from '../../../core/services/provider.service';
+import { StudentProfileService } from '../../../core/services/studentProfile';
 
 interface LoginFormData {
   email: string;
@@ -18,38 +21,62 @@ interface LoginFormData {
 export class Login {
   showPassword = false;
   isLoading = false;
-  formData: LoginFormData = { email: '', password: '' };
+  loginError: string | null = null;
 
-  constructor(private router: Router) {}
+  formData: LoginFormData = {
+    email: '',
+    password: '',
+  };
+
+  constructor(
+    private router: Router,
+    private auth: AuthService,
+    private providerAuth: ProviderService,
+    private studentAuth: StudentProfileService,
+  ) {}
 
   togglePassword(): void {
     this.showPassword = !this.showPassword;
   }
 
-  async onSubmit(): Promise<void> {
+  onSubmit(): void {
     if (this.isLoading) return;
 
     this.isLoading = true;
+
     if (!this.validateForm()) {
       this.isLoading = false;
       return;
     }
 
-    try {
-      // simulate backend request
-      await this.delay(2000);
+    // Prepare payload
+    const loginPayload = {
+      email: this.formData.email,
+      password: this.formData.password,
+    };
 
-      // mock login check (replace with API call)
-      if (this.formData.email === 'test@example.com' && this.formData.password === 'password123') {
-        this.handleSuccessfulLogin();
-      } else {
-        this.showError('Invalid email or password');
-      }
-    } catch (err) {
-      this.showError('An error occurred during login. Please try again.');
-    } finally {
-      this.isLoading = false;
-    }
+    this.auth.login(loginPayload).subscribe({
+      next: (res) => {
+        this.handleSuccessfulLogin(res.data.user);
+      },
+
+      error: (err) => {
+        this.isLoading = false;
+
+        console.log('LOGIN ERROR FULL:', err);
+
+        // backend message comes here
+        if (err?.error?.message) {
+          this.loginError = err.error.message;
+        } else {
+          this.loginError = 'Login failed. Please try again.';
+        }
+      },
+
+      complete: () => {
+        this.isLoading = false;
+      },
+    });
   }
 
   private validateForm(): boolean {
@@ -57,26 +84,62 @@ export class Login {
       this.showError('Please enter your email address');
       return false;
     }
+
     if (!this.isValidEmail(this.formData.email)) {
       this.showError('Please enter a valid email address');
       return false;
     }
+
     if (!this.formData.password) {
       this.showError('Please enter your password');
       return false;
     }
+
     return true;
   }
 
   private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
   }
 
-  private handleSuccessfulLogin(): void {
+  private handleSuccessfulLogin(user: any): void {
     this.showSuccess('Logged in successfully!');
-    this.resetForm();
-    setTimeout(() => this.router.navigate(['/dashboard']), 1000);
+
+    if (user.role === 'provider') {
+      this.providerAuth.getProvider().subscribe({
+        next: (profile) => {
+          // Provider profile exists → dashboard
+          this.router.navigate(['/provider']);
+        },
+        error: () => {
+          // No provider profile yet → onboarding
+          this.router.navigate(['/auth/signup/provider']);
+        },
+      });
+      return;
+    }
+
+    if (user.role === 'student') {
+      this.studentAuth.getProfile().subscribe({
+        next: () => {
+          // student profile exists -> dashboard
+          this.router.navigate(['/student']);
+        },
+        error: () => {
+          // No student profile -> onboarding
+          this.router.navigate(['/auth/signup/student']);
+        },
+      });
+      return;
+    }
+
+    if (user.role === 'admin') {
+      this.router.navigate(['/admin']);
+      return;
+    }
+
+    this.router.navigate(['/']);
   }
 
   private resetForm(): void {
@@ -85,16 +148,10 @@ export class Login {
   }
 
   private showError(message: string): void {
-    alert(message);
-    console.error('Login error:', message);
+    alert(message); // replace later with ToastService
   }
 
   private showSuccess(message: string): void {
     alert(message);
-    console.log('Login success:', message);
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise((res) => setTimeout(res, ms));
   }
 }

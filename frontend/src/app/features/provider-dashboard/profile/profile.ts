@@ -1,18 +1,505 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+  AbstractControl,
+} from '@angular/forms';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
+import { AuthService } from '../../../core/services/auth.service';
+import { Router } from '@angular/router';
+import { NavItem } from '../../../shared/components/sidebar/sidebar';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { ProviderService } from '../../../core/services/provider.service';
+
+interface Country {
+  name: string;
+}
+
+interface UploadedDocument {
+  name: string;
+  size: number;
+  file: File;
+}
+
+type VerificationStatus = 'pending' | 'verified' | 'rejected';
+
 @Component({
   selector: 'app-profile',
-  imports: [CommonModule, DashboardLayout],
+  imports: [CommonModule, DashboardLayout, ReactiveFormsModule, ConfirmModal],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
-export class Profile {
+export class Profile implements OnInit {
   menu = [
     { label: 'Overview', route: '/provider' },
     { label: 'Post Scholarships', route: '/provider/post' },
     { label: 'Manage Scholarships', route: '/provider/manage' },
     { label: 'Applicants', route: '/provider/applicants' },
     { label: 'Profile', route: '/provider/profile' },
+    { label: 'Logout', action: 'logout' },
   ];
+
+  @ViewChild('logoInput') logoInput!: ElementRef<HTMLInputElement>;
+
+  profileForm!: FormGroup;
+  passwordForm!: FormGroup;
+
+  // State variables
+  saving = false;
+  changingPassword = false;
+  deactivating = false;
+  emailChanged = false;
+  logoPreview: string | null = null;
+  uploadedDocuments: UploadedDocument[] = [];
+
+  selectedLogoFile: File | null = null;
+
+  removeLogoRequested = false;
+
+  // Modal states
+  showPasswordModal = false;
+  showDeactivateModal = false;
+
+  // Verification status
+  verificationStatus: VerificationStatus = 'pending';
+  rejectionReason = '';
+
+  // Countries list (sample - you can replace with your actual list)
+  countries: Country[] = [
+    { name: 'Algeria' },
+    { name: 'Australia' },
+    { name: 'Austria' },
+    { name: 'Belgium' },
+    { name: 'Botswana' },
+    { name: 'Bulgaria' },
+    { name: 'Cameroon' },
+    { name: 'Canada' },
+    { name: 'Croatia' },
+    { name: 'Cyprus' },
+    { name: 'Czech Republic' },
+    { name: 'Denmark' },
+    { name: 'Egypt' },
+    { name: 'Ethiopia' },
+    { name: 'Estonia' },
+    { name: 'Finland' },
+    { name: 'France' },
+    { name: 'Germany' },
+    { name: 'Ghana' },
+    { name: 'Hungary' },
+    { name: 'Ireland' },
+    { name: 'Italy' },
+    { name: 'Japan' },
+    { name: 'Kenya' },
+    { name: 'Latvia' },
+    { name: 'Lithuania' },
+    { name: 'Malta' },
+    { name: 'Malawi' },
+    { name: 'Morocco' },
+    { name: 'Netherlands' },
+    { name: 'New Zealand' },
+    { name: 'Nigeria' },
+    { name: 'Norway' },
+    { name: 'Poland' },
+    { name: 'Portugal' },
+    { name: 'Romania' },
+    { name: 'Rwanda' },
+    { name: 'Senegal' },
+    { name: 'Singapore' },
+    { name: 'Slovakia' },
+    { name: 'Slovenia' },
+    { name: 'South Africa' },
+    { name: 'South Korea' },
+    { name: 'Spain' },
+    { name: 'Sweden' },
+    { name: 'Switzerland' },
+    { name: 'Tanzania' },
+    { name: 'Tunisia' },
+    { name: 'Uganda' },
+    { name: 'United Kingdom' },
+    { name: 'United States' },
+    { name: 'Zambia' },
+    { name: 'Zimbabwe' },
+  ];
+
+  private originalFormData: any;
+  private originalEmail: string = '';
+
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router,
+    private providerService: ProviderService,
+  ) {
+    this.initializeForms();
+  }
+
+  ngOnInit() {
+    this.initializeForms();
+    this.loadProfileData();
+    this.watchEmailChanges();
+  }
+
+  private initializeForms() {
+    this.profileForm = this.fb.group({
+      organizationName: ['', [Validators.required, Validators.minLength(2)]],
+      providerType: ['', Validators.required],
+      country: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      phone: ['', Validators.pattern(/^[+]?[\d\s\-()]{7,20}$/)],
+      website: ['', [Validators.pattern(/^https?:\/\/.+\..+/)]],
+      socialLinks: [''],
+      twoFactorEnabled: [false],
+      notifyScholarshipExpiry: [true],
+      notifyNewApplications: [true],
+      notifySystemUpdates: [false],
+      defaultDashboardView: ['overview'],
+    });
+
+    this.passwordForm = this.fb.group(
+      {
+        currentPassword: ['', Validators.required],
+        newPassword: ['', [Validators.required, Validators.minLength(8)]],
+        confirmPassword: ['', Validators.required],
+      },
+      { validators: this.passwordMatchValidator },
+    );
+
+    // Store original form data for reset functionality
+    this.originalFormData = this.profileForm.value;
+  }
+
+  private passwordMatchValidator(group: AbstractControl): { [key: string]: any } | null {
+    const newPassword = group.get('newPassword')?.value;
+    const confirmPassword = group.get('confirmPassword')?.value;
+    return newPassword === confirmPassword ? null : { passwordMismatch: true };
+  }
+
+  private loadProfileData() {
+    this.providerService.getProvider().subscribe({
+      next: (res) => {
+        const provider = res;
+
+        this.profileForm.patchValue({
+          organizationName: provider.organization_name,
+          providerType: provider.organization_type,
+          country: provider.country,
+          email: provider.user.email,
+          phone: provider.phone,
+          notifyScholarshipExpiry: provider.preferences?.notifyScholarshipExpiry ?? true,
+          notifyNewApplications: provider.preferences?.notifyNewApplications ?? true,
+          notifySystemUpdates: provider.preferences?.notifySystemUpdates ?? false,
+          defaultDashboardView: provider.preferences?.defaultDashboardView ?? 'overview',
+        });
+
+        this.originalFormData = { ...this.profileForm.value };
+        this.originalEmail = provider.user.email;
+
+        this.verificationStatus = provider.verified ? 'verified' : 'pending';
+
+        this.logoPreview = provider.logo_url || null;
+      },
+      error: (err) => {
+        console.error('Failed to load provider profile', err);
+      },
+    });
+  }
+
+  private watchEmailChanges() {
+    this.profileForm.get('email')?.valueChanges.subscribe((newEmail) => {
+      this.emailChanged = newEmail !== this.originalEmail;
+    });
+  }
+
+  // Form validation helpers
+  isFieldInvalid(fieldName: string): boolean {
+    const field = this.profileForm.get(fieldName);
+    return !!(field && field.invalid && (field.dirty || field.touched));
+  }
+
+  isPasswordFieldInvalid(fieldName: string): boolean {
+    const field = this.passwordForm.get(fieldName);
+    if (fieldName === 'confirmPassword') {
+      return !!(
+        field &&
+        (field.invalid || this.passwordForm.hasError('passwordMismatch')) &&
+        (field.dirty || field.touched)
+      );
+    }
+    return !!(field && field.invalid && (field.dirty || field.touched));
+  }
+
+  // File upload handlers
+  onLogoSelected(event: Event) {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+
+    if (!file) return;
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      target.value = '';
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      target.value = '';
+      return;
+    }
+
+    // Store the file
+    this.selectedLogoFile = file;
+
+    // Show immediate preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.logoPreview = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeLogo() {
+    this.logoPreview = null;
+    this.selectedLogoFile = null;
+    this.removeLogoRequested = true;
+
+    if (this.logoInput?.nativeElement) {
+      this.logoInput.nativeElement.value = '';
+    }
+  }
+
+  // Method to trigger logo file input click
+  triggerLogoUpload() {
+    this.logoInput?.nativeElement.click();
+  }
+
+  // Method to trigger document file input click
+  triggerDocumentUpload() {
+    const docInput = document.querySelector(
+      'input[type="file"][accept=".pdf,.doc,.docx"]',
+    ) as HTMLInputElement;
+    if (docInput) {
+      docInput.click();
+    }
+  }
+
+  onDocumentSelected(event: Event) {
+    const target = event.target as HTMLInputElement;
+    const files = Array.from(target.files || []);
+
+    for (const file of files) {
+      // Validate file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        alert(`File ${file.name} is too large. Maximum size is 10MB.`);
+        continue;
+      }
+
+      // Validate file type
+      const allowedTypes = ['.pdf', '.doc', '.docx'];
+      const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+      if (!allowedTypes.includes(fileExtension)) {
+        alert(`File ${file.name} is not supported. Please upload PDF, DOC, or DOCX files.`);
+        continue;
+      }
+
+      // Check if file already exists
+      const existingFile = this.uploadedDocuments.find((doc) => doc.name === file.name);
+      if (existingFile) {
+        alert(`File ${file.name} is already uploaded.`);
+        continue;
+      }
+
+      this.uploadedDocuments.push({
+        name: file.name,
+        size: file.size,
+        file: file,
+      });
+    }
+
+    // Reset file input
+    target.value = '';
+  }
+
+  removeDocument(index: number) {
+    this.uploadedDocuments.splice(index, 1);
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  // Verification status helpers
+  getVerificationStatusText(): string {
+    switch (this.verificationStatus) {
+      case 'pending':
+        return 'Verification Pending';
+      case 'verified':
+        return 'Verified';
+      case 'rejected':
+        return 'Verification Rejected';
+      default:
+        return 'Unknown Status';
+    }
+  }
+
+  // Modal handlers
+  openPasswordModal() {
+    this.showPasswordModal = true;
+    this.passwordForm.reset();
+  }
+
+  closePasswordModal() {
+    this.showPasswordModal = false;
+    this.passwordForm.reset();
+  }
+
+  openDeactivateModal() {
+    this.showDeactivateModal = true;
+  }
+
+  closeDeactivateModal() {
+    this.showDeactivateModal = false;
+  }
+
+  // Form submission handlers
+  onSave() {
+    if (this.profileForm.invalid) {
+      Object.values(this.profileForm.controls).forEach((c) => c.markAsTouched());
+      return;
+    }
+
+    this.saving = true;
+
+    const formData = new FormData();
+    const value = this.profileForm.value;
+
+    formData.append('organization_name', value.organizationName);
+    formData.append('organization_type', value.providerType);
+    formData.append('country', value.country);
+    formData.append('phone', value.phone || '');
+    formData.append('email', value.email || '');
+
+    const preferences = {
+      notifyScholarshipExpiry: value.notifyScholarshipExpiry,
+      notifyNewApplications: value.notifyNewApplications,
+      notifySystemUpdates: value.notifySystemUpdates,
+      defaultDashboardView: value.defaultDashboardView,
+    };
+
+    // Convert preferences to JSON string because FormData can only send strings/blobs
+    formData.append('preferences', JSON.stringify(preferences));
+
+    if (this.selectedLogoFile) {
+      formData.append('logoFile', this.selectedLogoFile); //replace logo
+    } else if (this.removeLogoRequested) {
+      formData.append('remove_logo', 'true'); // delete logo
+    }
+
+    this.uploadedDocuments.forEach((doc) => {
+      formData.append('verificationDocument', doc.file);
+    });
+
+    this.providerService.updateProvider(formData).subscribe({
+      next: () => {
+        this.saving = false;
+        this.removeLogoRequested = false; //reset
+        this.originalFormData = { ...this.profileForm.value };
+        this.originalEmail = value.email;
+        this.emailChanged = false;
+        this.profileForm.markAsPristine();
+        alert('Profile updated successfully!');
+      },
+      error: (err) => {
+        console.error('Update failed', err);
+        this.saving = false;
+      },
+    });
+  }
+
+  onReset() {
+    this.profileForm.patchValue(this.originalFormData);
+    this.profileForm.markAsPristine();
+    this.profileForm.markAsUntouched();
+    this.emailChanged = false;
+
+    this.loadProfileData();
+    this.uploadedDocuments = [];
+  }
+
+  onPasswordChange() {
+    if (this.passwordForm.invalid) {
+      Object.values(this.passwordForm.controls).forEach((c) => c.markAsTouched());
+      return;
+    }
+
+    const { currentPassword, newPassword } = this.passwordForm.value;
+    this.changingPassword = true;
+
+    this.authService.changePassword(currentPassword, newPassword).subscribe({
+      next: () => {
+        this.changingPassword = false;
+        this.closePasswordModal();
+        alert('Password updated successfully!');
+      },
+      error: (err) => {
+        console.error('Password change failed', err);
+        this.changingPassword = false;
+        alert('Failed to change password');
+      },
+    });
+  }
+
+  onDeactivateAccount() {
+    this.deactivating = true;
+
+    this.providerService.deleteProvider().subscribe({
+      next: () => {
+        this.deactivating = false;
+        this.closeDeactivateModal();
+        alert('Account deactivated');
+        this.authService.logout().subscribe(() => {
+          this.router.navigate(['/auth/login']);
+        });
+      },
+      error: (err) => {
+        console.error('Deactivation failed', err);
+        this.deactivating = false;
+      },
+    });
+  }
+
+  // Helper method to prevent event propagation (used in template)
+  stopPropagation(event: Event) {
+    event.stopPropagation();
+  }
+
+  showLogoutModal = false;
+
+  onSidebarAction(item: NavItem) {
+    if (item.action === 'logout') {
+      this.showLogoutModal = true;
+    }
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login']),
+    });
+  }
+
+  cancelLogout() {
+    this.showLogoutModal = false;
+  }
 }

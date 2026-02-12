@@ -1,4 +1,4 @@
-// Variables
+// Variables (matching landing page)
 $primary-color: #3b82f6;
 $primary-dark: #1d4ed8;
 $primary-light: #dbeafe;
@@ -32,6 +32,8 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 // Container
@@ -61,11 +63,42 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding-bottom: 2rem;
 }
 
-// Hero Section
+// Hero Section (enhanced with gradient and orbs)
 .hero-section {
-  background: linear-gradient(135deg, $bg-light 0%, $white 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 25%, #e2e8f0 50%, #ffffff 100%);
   padding: 4rem 0 3rem;
   border-bottom: 1px solid $border-lighter;
+  position: relative;
+  overflow: hidden;
+
+  // Animated gradient orbs (matching landing page)
+  &::before {
+    content: '';
+    position: absolute;
+    top: -10%;
+    left: -5%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: floatOrb1 20s ease-in-out infinite;
+    filter: blur(60px);
+    z-index: 0;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -10%;
+    right: -5%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: floatOrb2 25s ease-in-out infinite;
+    filter: blur(70px);
+    z-index: 0;
+  }
 
   @media (min-width: 768px) {
     padding: 6rem 0 4rem;
@@ -76,6 +109,9 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: center;
   max-width: 700px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  animation: fadeInUp 0.8s ease forwards;
 }
 
 .hero-title {
@@ -84,6 +120,10 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: $text-dark;
   margin-bottom: 1rem;
   letter-spacing: -0.025em;
+  background: linear-gradient(135deg, $text-dark 0%, $primary-color 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 
   @media (min-width: 768px) {
     font-size: 3.5rem;
@@ -97,16 +137,20 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+  line-height: 1.7;
 
   @media (min-width: 768px) {
     font-size: 1.25rem;
   }
 }
 
-// Search Container
+// Search Container (enhanced)
 .search-container {
   max-width: 500px;
   margin: 0 auto;
+  animation: fadeInUp 0.8s ease forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
 }
 
 .search-wrapper {
@@ -122,6 +166,7 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: 1.25rem;
   color: $text-lighter;
   z-index: 2;
+  transition: $transition;
 }
 
 .search-input {
@@ -133,25 +178,36 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: $white;
   transition: $transition;
   outline: none;
+  box-shadow: $shadow;
 
   &:focus {
     border-color: $primary-color;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), $shadow-lg;
+    transform: translateY(-2px);
+
+    ~ .search-icon {
+      color: $primary-color;
+    }
   }
 
   &::placeholder {
     color: $text-lighter;
   }
+
+  &:hover {
+    border-color: darken($border-light, 5%);
+  }
 }
 
-// Categories Section
+// Categories Section (enhanced with sticky behavior and gradients)
 .categories-section {
-  background: $white;
+  background: linear-gradient(180deg, $white 0%, $bg-light 100%);
   padding: 2rem 0;
   border-bottom: 1px solid $border-lighter;
   position: sticky;
   top: 80px;
   z-index: 90;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .categories-nav {
@@ -177,8 +233,8 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: $bg-lighter;
-  border: 2px solid transparent;
+  background: $white;
+  border: 2px solid $border-light;
   border-radius: $radius-lg;
   font-size: 0.875rem;
   font-weight: 500;
@@ -187,31 +243,89 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transition: $transition;
   white-space: nowrap;
   min-width: fit-content;
+  box-shadow: $shadow;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
 
   &:hover {
     background: $primary-light;
     color: $primary-dark;
+    border-color: $primary-color;
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+
+    &::before {
+      opacity: 1;
+    }
+
+    .category-icon mat-icon {
+      transform: scale(1.1) rotate(5deg);
+    }
   }
 
   &.active {
-    background: $primary-color;
+    background: linear-gradient(135deg, $primary-color 0%, $primary-dark 100%);
     color: $white;
     border-color: $primary-dark;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+
+    &::before {
+      opacity: 0;
+    }
+
+    .category-icon mat-icon {
+      animation: bounce 0.6s ease;
+    }
   }
 }
 
 .category-icon {
-  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    transition: $transition;
+  }
 }
 
-// FAQ Section
+// FAQ Section (enhanced background)
 .faq-section {
   padding: 3rem 0;
+  background: linear-gradient(180deg, $bg-light 0%, $white 50%, $bg-light 100%);
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(
+        circle at 20% 30%,
+        rgba(59, 130, 246, 0.02) 0%,
+        transparent 50%
+      ),
+      radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+  }
 }
 
 .faq-content {
   max-width: 800px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .faq-list {
@@ -222,19 +336,31 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
 .faq-item {
   background: $white;
-  border: 1px solid $border-light;
+  border: 2px solid $border-light;
   border-radius: $radius-lg;
   overflow: hidden;
   transition: $transition;
+  box-shadow: $shadow;
+  animation: fadeInUp 0.6s ease forwards;
+  opacity: 0;
+
+  // Staggered animation
+  @for $i from 1 through 20 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.05}s;
+    }
+  }
 
   &:hover {
     box-shadow: $shadow-lg;
-    border-color: $primary-color;
+    border-color: lighten($primary-color, 20%);
+    transform: translateX(4px);
   }
 
   &.active {
     border-color: $primary-color;
-    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.1), $shadow-lg;
+    background: linear-gradient(180deg, $white 0%, rgba(59, 130, 246, 0.02) 100%);
   }
 }
 
@@ -250,14 +376,35 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   transition: $transition;
   color: $text-dark;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: $primary-color;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
 
   &:hover {
     background: $bg-light;
+
+    .question-text {
+      color: $primary-color;
+    }
   }
 
   .faq-item.active & {
-    background: $bg-light;
-    border-bottom: 1px solid $border-light;
+    background: rgba(59, 130, 246, 0.05);
+    border-bottom: 1px solid $border-lighter;
+
+    &::before {
+      opacity: 1;
+    }
   }
 }
 
@@ -266,6 +413,8 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-weight: 600;
   flex: 1;
   margin-right: 1rem;
+  transition: color 0.3s ease;
+  line-height: 1.4;
 }
 
 .chevron-icon {
@@ -284,11 +433,11 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 .faq-answer {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease-out;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.open {
-    max-height: 500px;
-    transition: max-height 0.5s ease-in;
+    max-height: 800px;
+    transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -296,6 +445,7 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 0 1.5rem 1.5rem;
   color: $text-light;
   line-height: 1.7;
+  animation: fadeIn 0.5s ease forwards;
 
   p {
     margin-bottom: 1rem;
@@ -311,15 +461,20 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
-// No Results
+// No Results (enhanced)
 .no-results {
   text-align: center;
   padding: 4rem 2rem;
+  animation: fadeInUp 0.6s ease forwards;
 }
 
 .no-results-content {
   max-width: 400px;
   margin: 0 auto;
+  padding: 2rem;
+  background: $white;
+  border-radius: $radius-lg;
+  border: 2px dashed $border-light;
 }
 
 .no-results-icon {
@@ -327,6 +482,7 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: 4rem;
   color: $text-lighter;
   margin: 0 auto 1.5rem;
+  animation: float 3s ease-in-out infinite;
 }
 
 .no-results h3 {
@@ -338,17 +494,20 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
 .no-results p {
   color: $text-light;
+  line-height: 1.6;
 }
 
-// Support Section
+// Support Section (enhanced card design)
 .support-section {
   margin-top: 4rem;
   padding-top: 3rem;
   border-top: 1px solid $border-lighter;
+  position: relative;
+  z-index: 1;
 }
 
 .support-card {
-  background: linear-gradient(135deg, $primary-color 0%, $primary-dark 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1e40af 100%);
   border-radius: $radius-lg;
   padding: 3rem;
   display: grid;
@@ -358,12 +517,15 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: $white;
   position: relative;
   overflow: hidden;
+  box-shadow: $shadow-xl;
+  animation: fadeInUp 0.6s ease forwards;
 
   @media (min-width: 768px) {
     grid-template-columns: 1fr auto;
     padding: 3rem 4rem;
   }
 
+  // Gradient overlay
   &::before {
     content: '';
     position: absolute;
@@ -371,7 +533,17 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     right: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  // Animated background pattern
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.3;
     pointer-events: none;
   }
 }
@@ -390,6 +562,7 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 1.125rem;
     opacity: 0.9;
     margin-bottom: 2rem;
+    line-height: 1.6;
   }
 }
 
@@ -397,6 +570,8 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 2;
 }
 
 .btn-primary,
@@ -408,32 +583,49 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   transition: $transition;
   border: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .btn-primary {
   background: $white;
   color: $primary-color;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
 
   &:hover {
     background: $bg-light;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 
 .btn-secondary {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.1);
   color: $white;
   border-color: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.5);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 
 .support-illustration {
   display: none;
+  position: relative;
+  z-index: 2;
 
   @media (min-width: 768px) {
     display: block;
@@ -443,7 +635,9 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 .support-icon {
   width: 120px;
   height: 120px;
-  opacity: 0.8;
+  opacity: 0.9;
+  animation: float 4s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 }
 
 // Footer
@@ -454,10 +648,93 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 2rem;
 }
 
+// Animations
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes floatOrb1 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(50px, -30px) scale(1.1);
+  }
+  66% {
+    transform: translate(-30px, 20px) scale(0.9);
+  }
+}
+
+@keyframes floatOrb2 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(-40px, 30px) scale(1.05);
+  }
+  66% {
+    transform: translate(20px, -40px) scale(0.95);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
 // Responsive Design
 @media (max-width: 767px) {
   .hero-section {
     padding: 3rem 0 2rem;
+
+    &::before,
+    &::after {
+      width: 250px;
+      height: 250px;
+    }
   }
 
   .categories-section {
@@ -485,15 +762,55 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     text-align: center;
   }
 
+  .support-content h3 {
+    font-size: 1.5rem;
+  }
+
+  .support-content p {
+    font-size: 1rem;
+  }
+
   .support-actions {
     justify-content: center;
+    flex-direction: column;
+
+    .btn-primary,
+    .btn-secondary {
+      width: 100%;
+    }
+  }
+
+  .faq-item:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .container {
+    padding: 0 1rem;
   }
 }
 
 // Accessibility
 @media (prefers-reduced-motion: reduce) {
-  * {
-    transition: none !important;
-    animation: none !important;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
+}
+
+// Smooth scrolling
+html {
+  scroll-behavior: smooth;
 }

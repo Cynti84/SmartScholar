@@ -1,7 +1,858 @@
-<app-dashboard-layout [title]="'Scholarship Management'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Scholarship management works!!</h2>
-        <!-- admin content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout
+  [title]="'ScholarshipManagement'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
+  <section>
+    <div class="scholarship-management">
+      <div class="header">
+        <!-- <h1 class="title">Scholarship Management</h1> -->
+        <div class="stats">
+          <div class="stat-item">
+            <span class="stat-number">{{ stats.totalScholarships }}</span>
+            <span class="stat-label">Total Scholarships</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ stats.activeScholarships }}</span>
+            <span class="stat-label">Approved</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ stats.pendingScholarships }}</span>
+            <span class="stat-label">Pending</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ stats.expiredScholarships }}</span>
+            <span class="stat-label">Expired</span>
+          </div>
+        </div>
+
+        <div class="fraud-detection-header">
+          <button
+            (click)="batchAnalyzePending()"
+            [disabled]="batchAnalyzing || stats.pendingScholarships === 0"
+            class="btn btn-fraud-analyze"
+            title="Analyze all pending scholarships for fraud"
+          >
+            <span *ngIf="!batchAnalyzing">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              Analyze All Pending ({{ stats.pendingScholarships }})
+            </span>
+            <span *ngIf="batchAnalyzing" class="analyzing-state">
+              <span class="spinner-small"></span>
+              Analyzing {{ stats.pendingScholarships }} scholarships...
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters Section -->
+      <div class="filters-section">
+        <form [formGroup]="filterForm" class="filters-form">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label for="searchTerm">Search</label>
+              <input
+                id="searchTerm"
+                type="text"
+                formControlName="searchTerm"
+                placeholder="Search by title, description, or provider..."
+                class="search-input"
+              />
+            </div>
+
+            <div class="filter-group">
+              <label for="provider">Provider</label>
+              <select id="provider" formControlName="provider" class="filter-select">
+                <option value="">All Providers</option>
+                <option *ngFor="let provider of providers" [value]="provider">
+                  {{ provider }}
+                </option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="Country">Country</label>
+              <select id="country" formControlName="country" class="filter-select">
+                <option value="">All Countries</option>
+                <option *ngFor="let country of countries" [value]="country">
+                  {{ country }}
+                </option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="status">Status</label>
+              <select id="status" formControlName="status" class="filter-select">
+                <option value="all">All Status</option>
+                <option value="approved">Approved</option>
+                <option value="pending">Pending</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+
+            <div class="filter-actions">
+              <button type="button" (click)="clearFilters()" class="btn btn-secondary">
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Results Summary -->
+      <div class="results-summary">
+        <p>
+          Showing {{ paginatedScholarships.length }} of
+          {{ filteredScholarships.length }} scholarships
+        </p>
+      </div>
+
+      <!-- Scholarships Table -->
+      <div class="table-container">
+        <table class="scholarships-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Provider</th>
+              <th>Country</th>
+              <th>Amount</th>
+              <th>Deadline</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let scholarship of paginatedScholarships" class="table-row">
+              <td class="title-cell">
+                <div class="title-content">
+                  <h3>{{ scholarship.title }}</h3>
+                  <p class="description">{{ scholarship.email }}</p>
+
+                  <!-- ✨ FRAUD DETECTION RISK BADGE -->
+                  <div class="risk-badge-container" *ngIf="scholarship.status === 'pending'">
+                    <!-- Loading State -->
+                    <div class="risk-loading" *ngIf="isFraudAnalysisLoading(scholarship.id)">
+                      <span class="loading-spinner"></span>
+                      <span class="loading-text">Analyzing...</span>
+                    </div>
+
+                    <!-- Risk Badge -->
+                    <div
+                      class="risk-badge-wrapper"
+                      *ngIf="getFraudAnalysis(scholarship.id) as analysis"
+                    >
+                      <span [class]="'risk-badge ' + getRiskBadgeClass(analysis.riskLevel)">
+                        <span class="risk-icon">{{ getRiskIcon(analysis.riskLevel) }}</span>
+                        <span class="risk-text">{{ analysis.riskLevel | uppercase }} RISK</span>
+                        <span class="risk-score">{{ analysis.riskScore }}/100</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ scholarship.provider }}</td>
+              <td>
+                <span class="category-badge">{{ scholarship.country }}</span>
+              </td>
+              <td class="amount-cell">{{ scholarship.scholarshipType }}</td>
+              <td>{{ formatDate(scholarship.deadline) }}</td>
+              <td>
+                <span [class]="'status-badge ' + getStatusClass(scholarship.status)">
+                  {{ scholarship.status | titlecase }}
+                </span>
+              </td>
+              <td class="actions-cell">
+                <div class="action-buttons">
+                  <button (click)="viewScholarship(scholarship)" class="btn btn-info btn-sm">
+                    View
+                  </button>
+
+                  <button
+                    *ngIf="scholarship.status === 'pending'"
+                    (click)="approveScholarship(scholarship)"
+                    class="btn btn-success btn-sm"
+                    title="Approve"
+                  >
+                    Approve
+                  </button>
+
+                  <button
+                    *ngIf="scholarship.status === 'pending'"
+                    (click)="declineScholarship(scholarship)"
+                    class="btn btn-warning btn-sm"
+                    title="Decline"
+                  >
+                    Decline
+                  </button>
+
+                  <button
+                    (click)="openEditModal(scholarship)"
+                    class="btn btn-primary btn-sm"
+                    title="Edit"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    (click)="openDeleteModal(scholarship)"
+                    class="btn btn-danger btn-sm"
+                    title="Delete"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Empty State -->
+        <div *ngIf="filteredScholarships.length === 0" class="empty-state">
+          <div class="empty-content">
+            <h3>No scholarships found</h3>
+            <p>Try adjusting your filters to see more results.</p>
+            <button (click)="clearFilters()" class="btn btn-primary">Clear All Filters</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-container" *ngIf="totalPages > 1">
+        <div class="pagination">
+          <button
+            (click)="goToPage(currentPage - 1)"
+            [disabled]="currentPage === 1"
+            class="btn btn-secondary"
+          >
+            Previous
+          </button>
+
+          <span class="page-numbers">
+            <button
+              *ngFor="let page of [].constructor(totalPages); let i = index"
+              (click)="goToPage(i + 1)"
+              [class.active]="currentPage === i + 1"
+              class="page-btn"
+            >
+              {{ i + 1 }}
+            </button>
+          </span>
+
+          <button
+            (click)="goToPage(currentPage + 1)"
+            [disabled]="currentPage === totalPages"
+            class="btn btn-secondary"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Modal -->
+    <div *ngIf="isViewModalOpen" class="modal-overlay" (click)="closeViewModal()">
+      <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-header-content">
+            <h2>Scholarship Details</h2>
+            <span
+              *ngIf="selectedScholarship"
+              [class]="'status-badge ' + getStatusClass(selectedScholarship.status)"
+            >
+              {{ selectedScholarship.status | titlecase }}
+            </span>
+          </div>
+          <button (click)="closeViewModal()" class="close-btn">&times;</button>
+        </div>
+
+        <div class="modal-body" *ngIf="selectedScholarship">
+          <!-- Scholarship Header -->
+          <div class="scholarship-header-card">
+            <div class="header-logo" *ngIf="selectedScholarship.logoUrl">
+              <img
+                [src]="selectedScholarship.logoUrl"
+                [alt]="selectedScholarship.title + ' logo'"
+              />
+            </div>
+            <div class="header-logo-placeholder" *ngIf="!selectedScholarship.logoUrl">
+              {{ selectedScholarship.organization_name?.charAt(0) || 'S' }}
+            </div>
+            <div class="header-info">
+              <h3>{{ selectedScholarship.title }}</h3>
+              <p class="organization">{{ selectedScholarship.provider }}</p>
+              <div class="header-meta">
+                <span class="meta-item">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  {{ selectedScholarship.country }}
+                </span>
+                <span class="meta-item">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  Deadline: {{ formatDate(selectedScholarship.deadline) }}
+                </span>
+                <span class="meta-item">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  Posted: {{ formatDate(selectedScholarship.createdDate) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Info Grid -->
+          <div class="quick-info-grid">
+            <div class="info-card">
+              <div class="info-label">Type</div>
+              <div class="info-value">{{ selectedScholarship.scholarshipType }}</div>
+            </div>
+            <div class="info-card">
+              <div class="info-label">Level</div>
+              <div class="info-value">
+                {{ selectedScholarship.fieldOfStudy.join(', ') || 'Not specified' }}
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="info-label">Contact</div>
+              <div class="info-value">{{ selectedScholarship.email || 'Not provided' }}</div>
+            </div>
+          </div>
+
+          <!-- Fraud Analysis Card (For Pending Only) -->
+          <div class="fraud-analysis-section" *ngIf="selectedScholarship.status === 'pending'">
+            <div class="fraud-analysis-card">
+              <div class="fraud-header">
+                <div class="fraud-title">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  <h4>AI Fraud Analysis</h4>
+                </div>
+                <button
+                  class="btn-refresh"
+                  (click)="refreshFraudAnalysis()"
+                  [disabled]="isFraudAnalysisLoading(selectedScholarship.id)"
+                  title="Refresh analysis"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <polyline points="1 4 1 10 7 10" />
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                  </svg>
+                  Refresh
+                </button>
+              </div>
+
+              <!-- Loading State -->
+              <div class="fraud-loading" *ngIf="isFraudAnalysisLoading(selectedScholarship.id)">
+                <div class="loading-spinner-large"></div>
+                <p>Analyzing scholarship for fraud indicators...</p>
+              </div>
+
+              <!-- Analysis Results -->
+              <div
+                class="fraud-content"
+                *ngIf="currentFraudAnalysis && !isFraudAnalysisLoading(selectedScholarship.id)"
+              >
+                <!-- Risk Score -->
+                <div class="risk-score-display">
+                  <div [class]="'risk-circle ' + getRiskBadgeClass(currentFraudAnalysis.riskLevel)">
+                    <div class="risk-score-number">{{ currentFraudAnalysis.riskScore }}</div>
+                    <div class="risk-score-label">/100</div>
+                  </div>
+                  <div class="risk-assessment">
+                    <div
+                      [class]="
+                        'risk-level-badge ' + getRiskBadgeClass(currentFraudAnalysis.riskLevel)
+                      "
+                    >
+                      {{ getRiskIcon(currentFraudAnalysis.riskLevel) }}
+                      {{ currentFraudAnalysis.riskLevel | uppercase }} RISK
+                    </div>
+                    <p class="risk-description">
+                      {{
+                        currentFraudAnalysis.riskLevel === 'high'
+                          ? 'This scholarship shows significant fraud indicators. Thorough verification recommended.'
+                          : currentFraudAnalysis.riskLevel === 'medium'
+                          ? 'Some concerns detected. Review carefully before approval.'
+                          : 'This scholarship appears legitimate. Standard verification applies.'
+                      }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- AI Explanation -->
+                <div class="ai-explanation-box">
+                  <h5>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    AI Assessment
+                  </h5>
+                  <p>{{ currentFraudAnalysis.aiExplanation }}</p>
+                </div>
+
+                <!-- Red Flags -->
+                <div class="red-flags-section" *ngIf="currentFraudAnalysis.redFlags.length > 0">
+                  <h5>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                      />
+                      <line x1="12" y1="9" x2="12" y2="13" />
+                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    Red Flags Detected ({{ currentFraudAnalysis.redFlags.length }})
+                  </h5>
+                  <div class="red-flags-list">
+                    <div
+                      class="red-flag-item"
+                      *ngFor="let flag of currentFraudAnalysis.redFlags"
+                      [class.severity-high]="flag.severity === 'high'"
+                      [class.severity-medium]="flag.severity === 'medium'"
+                      [class.severity-low]="flag.severity === 'low'"
+                    >
+                      <div class="flag-header">
+                        <span [class]="'severity-badge ' + getSeverityClass(flag.severity)">
+                          {{ flag.severity | uppercase }}
+                        </span>
+                        <span class="flag-category">{{ flag.category }}</span>
+                      </div>
+                      <p class="flag-description">{{ flag.description }}</p>
+                      <p class="flag-detected"><strong>Detected:</strong> {{ flag.detected }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- No Red Flags -->
+                <div class="no-red-flags" *ngIf="currentFraudAnalysis.redFlags.length === 0">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                  <p>No significant fraud indicators detected</p>
+                </div>
+
+                <!-- Recommendations -->
+                <div
+                  class="recommendations-section"
+                  *ngIf="currentFraudAnalysis.recommendations.length > 0"
+                >
+                  <h5>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                      <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+                    </svg>
+                    Recommended Actions
+                  </h5>
+                  <ul class="recommendations-list">
+                    <li *ngFor="let rec of currentFraudAnalysis.recommendations">{{ rec }}</li>
+                  </ul>
+                </div>
+
+                <!-- Verification Steps -->
+                <div
+                  class="verification-section"
+                  *ngIf="currentFraudAnalysis.verificationSteps.length > 0"
+                >
+                  <h5>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="9 11 12 14 22 4" />
+                      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                    </svg>
+                    Verification Checklist
+                  </h5>
+                  <ul class="verification-list">
+                    <li *ngFor="let step of currentFraudAnalysis.verificationSteps">{{ step }}</li>
+                  </ul>
+                </div>
+
+                <!-- Analysis Timestamp -->
+                <div class="analysis-timestamp">
+                  <small>Analyzed: {{ currentFraudAnalysis.analyzedAt | date : 'short' }}</small>
+                </div>
+              </div>
+
+              <!-- No Analysis Yet -->
+              <div
+                class="no-analysis"
+                *ngIf="!currentFraudAnalysis && !isFraudAnalysisLoading(selectedScholarship.id)"
+              >
+                <p>Click "Refresh" to analyze this scholarship</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Content Sections -->
+          <div class="content-section">
+            <h4 class="section-title">Short Summary</h4>
+            <p>{{ selectedScholarship.shortSummary }}</p>
+          </div>
+
+          <div class="content-section">
+            <h4 class="section-title">Description</h4>
+            <p>{{ selectedScholarship.description }}</p>
+          </div>
+
+          <div class="content-section">
+            <h4 class="section-title">Fields of Study</h4>
+            <div class="tags-container">
+              <span class="tag" *ngFor="let field of selectedScholarship.fieldOfStudy">{{
+                field
+              }}</span>
+            </div>
+          </div>
+
+          <div class="content-section">
+            <h4 class="section-title">Eligibility Criteria</h4>
+            <p>{{ selectedScholarship.eligibility }}</p>
+          </div>
+
+          <div class="content-section">
+            <h4 class="section-title">Application Instructions</h4>
+            <p>{{ selectedScholarship.requirements }}</p>
+          </div>
+
+          <div class="content-section" *ngIf="selectedScholarship.benefits">
+            <h4 class="section-title">Benefits</h4>
+            <p>{{ selectedScholarship.benefits }}</p>
+          </div>
+
+          <div class="content-section" *ngIf="selectedScholarship.applicationUrl">
+            <h4 class="section-title">Application Link</h4>
+            <a [href]="selectedScholarship.applicationUrl" target="_blank" class="external-link">
+              {{ selectedScholarship.applicationUrl }}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+            </a>
+          </div>
+
+          <div class="content-section" *ngIf="selectedScholarship.verificationDocs?.length">
+            <h4 class="section-title">Verification Documents</h4>
+            <ul class="documents-list">
+              <li *ngFor="let doc of selectedScholarship.verificationDocs">
+                <a [href]="doc.url" target="_blank">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                    <polyline points="13 2 13 9 20 9" />
+                  </svg>
+                  {{ doc.name }}
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div class="content-section" *ngIf="selectedScholarship.adminNotes">
+            <h4 class="section-title">Admin Notes</h4>
+            <div class="admin-notes-box">
+              <p>{{ selectedScholarship.adminNotes }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button (click)="closeViewModal()" class="btn btn-secondary">Close</button>
+          <div
+            class="action-buttons"
+            *ngIf="selectedScholarship && selectedScholarship.status === 'pending'"
+          >
+            <button
+              (click)="declineScholarship(selectedScholarship); closeViewModal()"
+              class="btn btn-warning"
+            >
+              Reject
+            </button>
+            <button
+              (click)="approveScholarship(selectedScholarship); closeViewModal()"
+              class="btn btn-success"
+            >
+              Approve
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div *ngIf="isEditModalOpen" class="modal-overlay" (click)="closeEditModal()">
+      <div class="modal-content large" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Edit Scholarship</h2>
+          <button (click)="closeEditModal()" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="editForm" (ngSubmit)="saveScholarship()">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="editTitle">Title *</label>
+                <input
+                  id="editTitle"
+                  type="text"
+                  formControlName="title"
+                  class="form-input"
+                  [class.error]="editForm.get('title')?.invalid && editForm.get('title')?.touched"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="editProvider">Provider *</label>
+                <input
+                  id="editProvider"
+                  type="text"
+                  formControlName="provider"
+                  class="form-input"
+                  [class.error]="
+                    editForm.get('provider')?.invalid && editForm.get('provider')?.touched
+                  "
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="editCategory">Category *</label>
+                <input
+                  id="editCategory"
+                  type="text"
+                  formControlName="category"
+                  class="form-input"
+                  [class.error]="
+                    editForm.get('category')?.invalid && editForm.get('category')?.touched
+                  "
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="editAmount">Sholaship type*</label>
+                <input
+                  id="editAmount"
+                  type="number"
+                  formControlName="amount"
+                  class="form-input"
+                  [class.error]="editForm.get('amount')?.invalid && editForm.get('amount')?.touched"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="editDeadline">Deadline *</label>
+                <input
+                  id="editDeadline"
+                  type="date"
+                  formControlName="deadline"
+                  class="form-input"
+                  [class.error]="
+                    editForm.get('deadline')?.invalid && editForm.get('deadline')?.touched
+                  "
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="editApplicationUrl">Application URL</label>
+                <input
+                  id="editApplicationUrl"
+                  type="url"
+                  formControlName="applicationUrl"
+                  class="form-input"
+                />
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="editDescription">Description *</label>
+              <textarea
+                id="editDescription"
+                formControlName="description"
+                rows="3"
+                class="form-textarea"
+                [class.error]="
+                  editForm.get('description')?.invalid && editForm.get('description')?.touched
+                "
+              >
+              </textarea>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="editEligibility">Eligibility *</label>
+              <textarea
+                id="editEligibility"
+                formControlName="eligibility"
+                rows="2"
+                class="form-textarea"
+                [class.error]="
+                  editForm.get('eligibility')?.invalid && editForm.get('eligibility')?.touched
+                "
+              >
+              </textarea>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="editRequirements">Requirements (comma separated)</label>
+              <textarea
+                id="editRequirements"
+                formControlName="requirements"
+                rows="2"
+                class="form-textarea"
+                placeholder="Transcript, Essay, Recommendation letters"
+              >
+              </textarea>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" (click)="closeEditModal()" class="btn btn-secondary">
+                Cancel
+              </button>
+              <button type="submit" [disabled]="editForm.invalid" class="btn btn-primary">
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div *ngIf="isDeleteModalOpen" class="modal-overlay" (click)="closeDeleteModal()">
+      <div class="modal-content small" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Confirm Deletion</h2>
+          <button (click)="closeDeleteModal()" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body" *ngIf="selectedScholarship">
+          <p>Are you sure you want to delete the scholarship:</p>
+          <strong>"{{ selectedScholarship.title }}"</strong>
+          <p class="warning">This action cannot be undone.</p>
+        </div>
+        <div class="modal-actions">
+          <button (click)="closeDeleteModal()" class="btn btn-secondary">Cancel</button>
+          <button (click)="confirmDelete()" class="btn btn-danger">Delete</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-dashboard-layout>
+
+<!-- logout confirm modal -->
+<app-confirm-modal
+  *ngIf="showLogoutModal"
+  title="Log out"
+  message="Are you sure you want to log out of SmartScholar?"
+  (confirm)="confirmLogout()"
+  (cancel)="cancelLogout()"
+></app-confirm-modal>

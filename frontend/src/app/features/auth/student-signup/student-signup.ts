@@ -2,13 +2,23 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-
-interface StudentProfileData {
+import { AuthService } from '../../../core/services/auth.service';
+import { StudentProfileService, StudentProfile } from '../../../core/services/studentProfile';
+interface StudentSignupForm {
   country: string;
-  educationLevel: string;
-  fieldOfStudy: string;
+  academic_level: string;
+  field_of_study: string;
   interest: string;
-  profileImage: File | null;
+
+  date_of_birth: string; // HTML date input = string
+  gender: 'male' | 'female' | 'other';
+  income_level?: 'low' | 'middle' | 'any';
+  is_disabled?: boolean | null;
+
+  gpa_min?: number | null;
+  gpa_max?: number | null;
+
+  profileImageFile: File | null;
   cvFile: File | null;
 }
 
@@ -22,40 +32,93 @@ export class StudentSignup {
   isLoading: boolean = false;
   tempUserData: any = {};
 
-  profileData: StudentProfileData = {
+  selectedGpaRange: string = '';
+
+  profileData: StudentSignupForm = {
     country: '',
-    educationLevel: '',
-    fieldOfStudy: '',
+    academic_level: '',
+    field_of_study: '',
     interest: '',
-    profileImage: null,
+
+    date_of_birth: '',
+    gender: 'male',
+    income_level: 'any',
+
+    profileImageFile: null,
     cvFile: null,
   };
 
   countries = [
-    'Kenya',
-    'Uganda',
-    'Tanzania',
-    'Rwanda',
-    'Burundi',
-    'South Sudan',
+    'Algeria',
+    'Australia',
+    'Austria',
+    'Belgium',
+    'Botswana',
+    'Bulgaria',
+    'Cameroon',
+    'Canada',
+    'Croatia',
+    'Cyprus',
+    'Czech Republic',
+    'Denmark',
+    'Egypt',
+    'Estonia',
     'Ethiopia',
-    'Somalia',
-    'Djibouti',
-    'Eritrea',
+    'Finland',
+    'France',
+    'Germany',
+    'Ghana',
+    'Hungary',
+    'Ireland',
+    'Italy',
+    'Japan',
+    'Kenya',
+    'Latvia',
+    'Lithuania',
+    'Malawi',
+    'Malta',
+    'Morocco',
+    'Netherlands',
+    'New Zealand',
+    'Nigeria',
+    'Norway',
+    'Poland',
+    'Portugal',
+    'Romania',
+    'Rwanda',
+    'Senegal',
+    'Singapore',
+    'Slovakia',
+    'Slovenia',
+    'South Africa',
+    'South Korea',
+    'Spain',
+    'Sweden',
+    'Switzerland',
+    'Tanzania',
+    'Tunisia',
+    'Uganda',
+    'United Kingdom',
+    'United States',
+    'Zambia',
+    'Zimbabwe',
   ];
 
   educationLevels = [
-    'High school student',
-    'High school graduate',
-    'Undergraduate student',
-    'Graduate student',
-    'Postgraduate student',
+    'High School / Secondary',
+    "Undergraduate / Bachelor's",
+    "Graduate / Master's",
+    'Doctorate / PhD',
+    'Postdoctoral',
+    'Professional Certification',
+    'Vocational / Technical',
+    'Other',
   ];
 
   fieldsOfStudy = [
     'Engineering',
     'Medicine',
-    'Computer Science',
+    'Technology',
     'Business',
     'Law',
     'Education',
@@ -70,21 +133,21 @@ export class StudentSignup {
   ];
 
   interests = [
-    'Science',
     'Technology',
-    'Arts',
-    'Sports',
-    'Music',
-    'Literature',
-    'Environment',
-    'Community Service',
-    'Research',
-    'Innovation',
-    'Leadership',
-    'Entrepreneurship',
+    'Engineering',
+    'Business_and_Economics',
+    'Health_and_Medicine',
+    'Natural_Sciences',
+    'Arts_and_Design',
+    'Social_Sciences_and_Humanities',
+    'General',
   ];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private studentProfileService: StudentProfileService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.loadTempUserData();
@@ -94,15 +157,37 @@ export class StudentSignup {
    * Load temporary user data from session/local storage
    */
   loadTempUserData(): void {
-    // In a real app, you'd get this from your auth service
-    // For now, we'll simulate getting data from the previous step
     const tempData = localStorage.getItem('tempUserData');
+
     if (tempData) {
       this.tempUserData = JSON.parse(tempData);
     } else {
-      // If no temp data, redirect back to initial signup
-      this.router.navigate(['/auth/signup']);
+      // fallback to authenticated user
+      const user = this.authService.getUserFromToken();
+      if (!user) {
+        this.router.navigate(['/auth/signup']);
+      }
     }
+  }
+
+  private gpaRangeMap: Record<string, { min: number | null; max: number | null }> = {
+    below_2_5: { min: 0.0, max: 2.49 },
+    '2_5_2_99': { min: 2.5, max: 2.99 },
+    '3_0_3_49': { min: 3.0, max: 3.49 },
+    '3_5_4_0': { min: 3.5, max: 4.0 },
+  };
+
+  onGpaRangeChange(): void {
+    if (!this.selectedGpaRange) {
+      this.profileData.gpa_min = null;
+      this.profileData.gpa_max = null;
+      return;
+    }
+
+    const range = this.gpaRangeMap[this.selectedGpaRange];
+
+    this.profileData.gpa_min = range.min;
+    this.profileData.gpa_max = range.max;
   }
 
   /**
@@ -123,7 +208,7 @@ export class StudentSignup {
         return;
       }
 
-      this.profileData.profileImage = file;
+      this.profileData.profileImageFile = file;
     }
   }
 
@@ -143,7 +228,7 @@ export class StudentSignup {
       if (!allowedTypes.includes(file.type)) {
         this.showError('Please select a PDF or Word document for your CV');
         return;
-      } 
+      }
 
       if (file.size > 10 * 1024 * 1024) {
         // 10MB limit
@@ -172,18 +257,28 @@ export class StudentSignup {
       return false;
     }
 
-    if (!this.profileData.educationLevel) {
+    if (!this.profileData.academic_level) {
       this.showError('Please select your education level');
       return false;
     }
 
-    if (!this.profileData.fieldOfStudy) {
+    if (!this.profileData.field_of_study) {
       this.showError('Please select your field of study');
       return false;
     }
 
     if (!this.profileData.interest) {
       this.showError('Please select your interest');
+      return false;
+    }
+
+    if (!this.profileData.date_of_birth) {
+      this.showError('Please enter your date of birth');
+      return false;
+    }
+
+    if (!this.profileData.gender) {
+      this.showError('Please select your gender');
       return false;
     }
 
@@ -195,45 +290,73 @@ export class StudentSignup {
    */
   async onSubmit(): Promise<void> {
     if (this.isLoading) return;
+    if (!this.validateForm()) return;
+
+    this.isLoading = true;
 
     try {
-      this.isLoading = true;
-
-      if (!this.validateForm()) {
-        this.isLoading = false;
-        return;
-      }
-
-      // Simulate API call delay
-      await this.delay(2000);
-
-      // Create FormData for file uploads
       const formData = new FormData();
-      formData.append('country', this.profileData.country);
-      formData.append('educationLevel', this.profileData.educationLevel);
-      formData.append('fieldOfStudy', this.profileData.fieldOfStudy);
-      formData.append('interest', this.profileData.interest);
 
-      if (this.profileData.profileImage) {
-        formData.append('profileImage', this.profileData.profileImage);
+      // --- Text fields ---
+      formData.append('country', this.profileData.country);
+      formData.append('academic_level', this.profileData.academic_level);
+      formData.append('field_of_study', this.profileData.field_of_study);
+      formData.append('gender', this.profileData.gender);
+      if (this.profileData.interest) formData.append('interest', this.profileData.interest);
+
+      if (this.profileData.date_of_birth) {
+        // Convert Date object to string yyyy-mm-dd for backend
+        const dobStr = this.profileData.date_of_birth.toString().split('T')[0];
+        formData.append('date_of_birth', dobStr);
       }
 
-      if (this.profileData.cvFile) {
+      if (this.profileData.income_level) {
+        formData.append('income_level', this.profileData.income_level);
+      }
+
+      if (this.profileData.is_disabled !== null && this.profileData.is_disabled !== undefined) {
+        formData.append('is_disabled', String(this.profileData.is_disabled));
+      }
+
+      if (this.profileData.gpa_min !== null && this.profileData.gpa_min !== undefined) {
+        formData.append('gpa_min', String(this.profileData.gpa_min));
+      }
+
+      if (this.profileData.gpa_max !== null && this.profileData.gpa_max !== undefined) {
+        formData.append('gpa_max', String(this.profileData.gpa_max));
+      }
+
+      // --- Files ---
+      if (this.profileData.profileImageFile instanceof File) {
+        formData.append('profileImage', this.profileData.profileImageFile);
+      }
+
+      if (this.profileData.cvFile instanceof File) {
         formData.append('cvFile', this.profileData.cvFile);
       }
 
-      // Here you would make the API call to complete student signup
-      console.log('Student profile data:', {
-        ...this.profileData,
-        tempUserData: this.tempUserData,
-      });
+      // --- Send to backend ---
+      this.studentProfileService.createProfile(formData).subscribe({
+        next: () => {
+          this.showSuccess('Profile completed successfully! Welcome to SmartScholar 🎉');
 
-      this.handleSuccessfulSignup();
+          localStorage.removeItem('tempUserData');
+
+          setTimeout(() => {
+            this.router.navigate(['/student']);
+          }, 1000);
+        },
+        error: (err) => {
+          this.handleSignupError(err);
+        },
+        complete: () => {
+          this.isLoading = false;
+        },
+      });
     } catch (error) {
-      console.error('Student profile setup error:', error);
-      this.handleSignupError(error);
-    } finally {
       this.isLoading = false;
+      this.showError('An unexpected error occurred while submitting your profile.');
+      console.error(error);
     }
   }
 
@@ -302,7 +425,7 @@ export class StudentSignup {
    */
   removeFile(type: 'profile' | 'cv'): void {
     if (type === 'profile') {
-      this.profileData.profileImage = null;
+      this.profileData.profileImageFile = null;
     } else {
       this.profileData.cvFile = null;
     }

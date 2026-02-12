@@ -1,10 +1,38 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { DashboardLayout } from '../../../shared/layouts/dashboard-layout/dashboard-layout';
+import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../../core/services/auth.service';
+import { NavItem } from '../../../shared/components/sidebar/sidebar';
+import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
+import { UserScholarshipService } from '../../../core/services/user-scholarship.service';
+import { ScholarshipService } from '../../../core/services/scholarship.service';
+
+export interface SavedScholarship {
+  id: number;
+  scholarshipId: number;
+
+  title: string;
+  provider: string;
+  providerLogo?: string;
+  amount: string;
+  deadline: Date;
+  category: string;
+  description: string;
+  matchScore?: number;
+  savedDate: Date;
+  tags?: string[];
+  notes?: string;
+  status: 'active' | 'expired' | 'applied';
+  eligibility?: string[];
+  requiredDocuments?: string[];
+  applicationUrl?: string;
+}
 
 @Component({
   selector: 'app-bookmarked',
-  imports: [CommonModule, DashboardLayout],
+  imports: [CommonModule, DashboardLayout, FormsModule, ConfirmModal],
   templateUrl: './bookmarked.html',
   styleUrl: './bookmarked.scss',
 })
@@ -12,9 +40,325 @@ export class Bookmarked {
   menu = [
     { label: 'Overview', route: '/student' },
     { label: 'Scholarships', route: '/student/scholarships' },
-    { label: 'Recommendations', route: '/student/recommendations' },
     { label: 'Applied', route: '/student/applied' },
     { label: 'Bookmarked', route: '/student/bookmarked' },
     { label: 'Profile', route: '/student/profile' },
+    { label: 'Logout', action: 'logout' },
   ];
+
+  savedScholarships: SavedScholarship[] = [];
+  filteredScholarships: SavedScholarship[] = [];
+
+  isLoading = true;
+
+  // Filters
+  searchTerm = '';
+  selectedCategory = 'all';
+  selectedStatus = 'all';
+  sortBy = 'saved_date';
+
+  categories: string[] = [];
+
+  viewMode: 'grid' | 'list' = 'grid';
+
+  stats = { total: 0, active: 0, expired: 0, applied: 0 };
+
+  selectedScholarshipIds: Set<number> = new Set();
+  isSelectionMode = false;
+
+  selectedScholarship: SavedScholarship | null = null;
+
+  showLogoutModal = false;
+
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private userScholarshipService: UserScholarshipService,
+    private scholarshipService: ScholarshipService
+  ) {}
+
+  // ─── VIEW DETAILS ────────────────────────────────────────────────────────────
+  openScholarshipDetails(scholarship: SavedScholarship, event?: Event): void {
+    if (event) event.stopPropagation();
+
+    this.selectedScholarship = scholarship;
+    document.body.style.overflow = 'hidden';
+
+    // Record the view — fire-and-forget, errors are swallowed so they
+    // never interrupt the student's experience
+    this.scholarshipService.recordView(scholarship.scholarshipId).subscribe({
+      error: (err) => console.warn('Failed to record view:', err),
+    });
+  }
+
+  closeScholarshipDetails(): void {
+    this.selectedScholarship = null;
+    document.body.style.overflow = 'auto';
+  }
+
+  viewScholarship(scholarship: SavedScholarship): void {
+    if (this.isSelectionMode) {
+      this.toggleScholarshipSelection(scholarship.scholarshipId);
+    } else {
+      this.openScholarshipDetails(scholarship);
+    }
+  }
+
+  // =========================
+  // INIT
+  // =========================
+  ngOnInit(): void {
+    this.loadSavedScholarships();
+  }
+
+  loadSavedScholarships(): void {
+    this.isLoading = true;
+
+    this.userScholarshipService.getBookmarkedScholarships().subscribe({
+      next: (res) => {
+        this.savedScholarships = res.data
+          .filter((b: any) => b.scholarship)
+          .map(
+            (b: any): SavedScholarship => ({
+              id: b.id,
+              scholarshipId: b.scholarship.scholarship_id,
+              title: b.scholarship.title,
+              provider: b.scholarship.organization_name,
+              description: b.scholarship.description,
+              deadline: new Date(b.scholarship.deadline),
+              category: b.scholarship.education_level,
+              amount: String(b.scholarship?.scholarship_type),
+              status: this.computeStatus(b.scholarship),
+              savedDate: new Date(b.bookmarkedAt),
+              providerLogo: b.scholarship.banner_url ?? undefined,
+              tags: Array.isArray(b.scholarship.fields_of_study)
+                ? b.scholarship.fields_of_study
+                : typeof b.scholarship.fields_of_study === 'string'
+                ? b.scholarship.fields_of_study.split(',')
+                : [],
+              eligibility:
+                typeof b.scholarship.eligibility_criteria === 'string'
+                  ? b.scholarship.eligibility_criteria
+                      .split(/,|\n|;/)
+                      .map((e: string) => e.trim())
+                      .filter(Boolean)
+                  : [],
+              requiredDocuments: Array.isArray(b.scholarship.required_documents)
+                ? b.scholarship.required_documents
+                : typeof b.scholarship.required_documents === 'string'
+                ? b.scholarship.required_documents.split(',')
+                : undefined,
+              applicationUrl: b.scholarship.application_url ?? undefined,
+            })
+          );
+
+        this.filteredScholarships = [...this.savedScholarships];
+        this.extractCategories();
+        this.calculateStats();
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        alert('Failed to load bookmarked scholarships');
+      },
+    });
+  }
+
+  computeStatus(scholarship: any): 'active' | 'expired' | 'applied' {
+    const deadline = new Date(scholarship.deadline);
+    const now = new Date();
+    if (deadline < now) return 'expired';
+    return 'active';
+  }
+
+  extractCategories(): void {
+    const uniqueCategories = new Set(this.savedScholarships.map((s) => s.category));
+    this.categories = Array.from(uniqueCategories).sort();
+  }
+
+  calculateStats(): void {
+    this.stats.total = this.savedScholarships.length;
+    this.stats.active = this.savedScholarships.filter((s) => s.status === 'active').length;
+    this.stats.expired = this.savedScholarships.filter((s) => s.status === 'expired').length;
+    this.stats.applied = this.savedScholarships.filter((s) => s.status === 'applied').length;
+  }
+
+  applyFilters(): void {
+    let filtered = [...this.savedScholarships];
+
+    if (this.searchTerm) {
+      const search = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (s) =>
+          s.title.toLowerCase().includes(search) ||
+          s.provider.toLowerCase().includes(search) ||
+          s.description.toLowerCase().includes(search)
+      );
+    }
+
+    if (this.selectedCategory !== 'all')
+      filtered = filtered.filter((s) => s.category === this.selectedCategory);
+
+    if (this.selectedStatus !== 'all')
+      filtered = filtered.filter((s) => s.status === this.selectedStatus);
+
+    this.sortScholarships(filtered);
+    this.filteredScholarships = filtered;
+  }
+
+  private fundingPriority(amount?: string): number {
+    if (!amount) return 99;
+    const value = amount.toLowerCase();
+    if (value.includes('fully')) return 1;
+    if (value.includes('partial')) return 2;
+    if (value.includes('partly')) return 2;
+    if (value.includes('not')) return 3;
+    return 99;
+  }
+
+  sortScholarships(scholarships: SavedScholarship[]): void {
+    scholarships.sort((a, b) => {
+      switch (this.sortBy) {
+        case 'saved_date':
+          return new Date(b.savedDate).getTime() - new Date(a.savedDate).getTime();
+        case 'deadline':
+          return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+        case 'amount':
+          return this.fundingPriority(a.amount) - this.fundingPriority(b.amount);
+        case 'match_score':
+          return (b.matchScore ?? 0) - (a.matchScore ?? 0);
+        default:
+          return 0;
+      }
+    });
+  }
+
+  onSearchChange(): void {
+    this.applyFilters();
+  }
+  onFilterChange(): void {
+    this.applyFilters();
+  }
+  onSortChange(): void {
+    this.applyFilters();
+  }
+
+  toggleViewMode(): void {
+    this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
+  }
+
+  unsaveScholarship(scholarship: SavedScholarship, event?: Event): void {
+    event?.stopPropagation();
+
+    if (!confirm(`Remove "${scholarship.title}" from saved scholarships?`)) return;
+
+    this.userScholarshipService.removeBookmark(scholarship.scholarshipId).subscribe({
+      next: () => {
+        this.savedScholarships = this.savedScholarships.filter(
+          (s) => s.scholarshipId !== scholarship.scholarshipId
+        );
+        this.calculateStats();
+        this.applyFilters();
+
+        if (
+          this.selectedScholarship &&
+          this.selectedScholarship.scholarshipId === scholarship.scholarshipId
+        ) {
+          this.closeScholarshipDetails();
+        }
+      },
+      error: () => {
+        alert('Failed to remove bookmark');
+      },
+    });
+  }
+
+  goToApplyPage(scholarshipId: number): void {
+    this.router.navigate(['/student/apply', scholarshipId]);
+  }
+
+  formatDeadline(deadline: Date): string {
+    const date = new Date(deadline);
+    const now = new Date();
+    const diff = Math.floor((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diff < 0) return 'Expired';
+    if (diff === 0) return 'Due Today';
+    if (diff === 1) return 'Due Tomorrow';
+    if (diff < 7) return `${diff} days left`;
+    if (diff < 30) return `${Math.floor(diff / 7)} weeks left`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  getDeadlineClass(deadline: Date): string {
+    const date = new Date(deadline);
+    const now = new Date();
+    const diff = Math.floor((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diff < 0) return 'expired';
+    if (diff < 7) return 'urgent';
+    if (diff < 30) return 'soon';
+    return 'normal';
+  }
+
+  toggleSelectionMode(): void {
+    this.isSelectionMode = !this.isSelectionMode;
+    if (!this.isSelectionMode) this.selectedScholarshipIds.clear();
+  }
+
+  toggleScholarshipSelection(scholarshipId: number, event?: Event): void {
+    if (event) event.stopPropagation();
+    if (this.selectedScholarshipIds.has(scholarshipId)) {
+      this.selectedScholarshipIds.delete(scholarshipId);
+    } else {
+      this.selectedScholarshipIds.add(scholarshipId);
+    }
+  }
+
+  selectAll(): void {
+    this.filteredScholarships.forEach((s) => {
+      this.selectedScholarshipIds.add(s.scholarshipId);
+    });
+  }
+
+  deselectAll(): void {
+    this.selectedScholarshipIds.clear();
+  }
+
+  bulkUnsave(): void {
+    if (this.selectedScholarshipIds.size === 0) return;
+
+    if (confirm(`Remove ${this.selectedScholarshipIds.size} scholarships from saved?`)) {
+      this.savedScholarships = this.savedScholarships.filter(
+        (s) => !this.selectedScholarshipIds.has(s.scholarshipId)
+      );
+      this.calculateStats();
+      this.applyFilters();
+      this.selectedScholarshipIds.clear();
+      this.isSelectionMode = false;
+    }
+  }
+
+  exportSaved(): void {
+    alert('Export feature: Download CSV/PDF of your saved scholarships');
+  }
+
+  Math = Math;
+
+  onSidebarAction(item: NavItem) {
+    if (item.action === 'logout') this.showLogoutModal = true;
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login']),
+    });
+  }
+
+  cancelLogout() {
+    this.showLogoutModal = false;
+  }
 }

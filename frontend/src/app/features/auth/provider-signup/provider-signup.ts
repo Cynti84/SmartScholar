@@ -2,15 +2,19 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../../core/services/auth.service';
+import { ProviderService } from '../../../core/services/provider.service';
 
-interface ProviderProfileData{
-  organizationName: string
-  providerType: string
-  country: string
-  contactEmail: string
+interface ProviderProfileData {
+  organizationName: string;
+  providerType: string;
+  country: string;
+  contactEmail: string;
   phone: string;
-  logoFile: File | null
-  verificationDocument: File | null
+  logoFile: File | null;
+  verificationDocument: File | null;
 }
 
 @Component({
@@ -34,24 +38,59 @@ export class ProviderSignup {
   };
 
   countries = [
-    'Kenya',
-    'Uganda',
-    'Tanzania',
-    'Rwanda',
-    'Burundi',
-    'South Sudan',
-    'Ethiopia',
-    'Somalia',
-    'Djibouti',
-    'Eritrea',
-    'South Africa',
-    'Nigeria',
-    'Ghana',
-    'Egypt',
-    'Morocco',
     'Algeria',
+    'Australia',
+    'Austria',
+    'Belgium',
+    'Botswana',
+    'Bulgaria',
+    'Cameroon',
+    'Canada',
+    'Croatia',
+    'Cyprus',
+    'Czech Republic',
+    'Denmark',
+    'Egypt',
+    'Estonia',
+    'Ethiopia',
+    'Finland',
+    'France',
+    'Germany',
+    'Ghana',
+    'Hungary',
+    'Ireland',
+    'Italy',
+    'Japan',
+    'Kenya',
+    'Latvia',
+    'Lithuania',
+    'Malawi',
+    'Malta',
+    'Morocco',
+    'Netherlands',
+    'New Zealand',
+    'Nigeria',
+    'Norway',
+    'Poland',
+    'Portugal',
+    'Romania',
+    'Rwanda',
+    'Senegal',
+    'Singapore',
+    'Slovakia',
+    'Slovenia',
+    'South Africa',
+    'South Korea',
+    'Spain',
+    'Sweden',
+    'Switzerland',
+    'Tanzania',
     'Tunisia',
-    'Libya',
+    'Uganda',
+    'United Kingdom',
+    'United States',
+    'Zambia',
+    'Zimbabwe',
   ];
 
   providerTypes = [
@@ -65,9 +104,15 @@ export class ProviderSignup {
     'International Organization',
     'Research Institution',
     'Healthcare Organization',
+    'Other',
   ];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private http: HttpClient,
+    private authService: AuthService,
+    private providerService: ProviderService
+  ) {}
 
   ngOnInit(): void {
     this.loadTempUserData();
@@ -87,8 +132,11 @@ export class ProviderSignup {
         this.profileData.contactEmail = this.tempUserData.email;
       }
     } else {
-      //if not temp data, redirect back to initial signup
-      this.router.navigate(['/auth/signup']);
+      // fallback: use authenticated user info
+      const user = this.authService.getUserFromToken();
+      if (user?.email) {
+        this.profileData.contactEmail = user.email;
+      }
     }
   }
 
@@ -221,137 +269,106 @@ export class ProviderSignup {
    * Handle form submission
    */
 
-  async onSubmit(): Promise<void>{
-    if (this.isLoading) return
-    
-    try {
-      this.isLoading = true
-      if (!this.validateForm()) {
-        this.isLoading = false
-        return
-      }
+  async onSubmit(): Promise<void> {
+    if (this.isLoading) return;
+    if (!this.validateForm()) return;
 
-      //simulate api call delay
-      await this.delay(2000)
+    this.isLoading = true;
 
-      //create FormData for file uploads
-      const formData = new FormData()
-      formData.append('organizationName', this.profileData.organizationName);
-      formData.append('providerType', this.profileData.providerType);
-      formData.append('country', this.profileData.country);
-      formData.append('contactEmail', this.profileData.contactEmail);
-      formData.append('phone', this.profileData.phone);
+    const formData = new FormData();
 
-      if (this.profileData.logoFile) {
-        formData.append('logoFile', this.profileData.logoFile);
-      }
+    // Text fields
+    formData.append('organization_name', this.profileData.organizationName);
+    formData.append('organization_type', this.profileData.providerType);
+    formData.append('country', this.profileData.country);
+    formData.append('contact_email', this.profileData.contactEmail);
+    formData.append('phone', this.profileData.phone);
 
-      if (this.profileData.verificationDocument) {
-        formData.append('verificationDocument', this.profileData.verificationDocument);
-      }
-
-      //Hwere we will make the api call to complete provider signup
-
-      console.log('Provider profile data:', {
-        ...this.profileData, tempUserData: this.tempUserData
-
-      })
-
-      this.handleSuccessfulSignup()
-      
-    } catch (error) {
-
-      console.error('Provider profile setup error:', error)
-      this.handleSignupError(error)
-
-      
-    } finally {
-      this.isLoading = false
-            
+    // Files
+    if (this.profileData.logoFile) {
+      formData.append('logoFile', this.profileData.logoFile);
     }
-  }
 
-  /**
-   * Handle successful profile completion
-   */
+    if (this.profileData.verificationDocument) {
+      formData.append('verificationDocument', this.profileData.verificationDocument);
+    }
 
-  private handleSuccessfulSignup(): void{
-    this.showSuccess('Provider profile submitted successfully! Your account is under review')
+    this.providerService.createProvider(formData).subscribe({
+      next: () => {
+        this.showSuccess('Provider profile submitted successfully. Your account is under review.');
 
-    //clear temporary data
-    localStorage.removeItem('tempUserData')
-
-    //redirect to provider dashboard after a delay
-    setTimeout(() => {
-      this.router.navigate(['/provider'])
-      
-    }, 2000);
+        setTimeout(() => {
+          this.router.navigate(['/provider']);
+        }, 1000);
+      },
+      error: (err) => {
+        this.handleSignupError(err);
+      },
+      complete: () => {
+        this.isLoading = false;
+      },
+    });
   }
 
   /**
    * Handle signup errors
    */
 
-  private handleSignupError(error: any): void{
-    let errorMessage = 'Failed to complete profile setup. Please try again'
-    
-     if (error?.error?.message) {
-       errorMessage = error.error.message;
-     } else if (error?.message) {
-       errorMessage = error.message;
-     }
+  private handleSignupError(error: any): void {
+    let errorMessage = 'Failed to complete profile setup. Please try again';
 
-     this.showError(errorMessage);
+    if (error?.error?.message) {
+      errorMessage = error.error.message;
+    } else if (error?.message) {
+      errorMessage = error.message;
+    }
+
+    this.showError(errorMessage);
   }
 
   /**
    * Show error message
    */
 
-  private showError(message: string): void{
-    console.error('Provider Profile Error: ', message)
-    alert(message) //I'll replace with toast notification in production
+  private showError(message: string): void {
+    console.error('Provider Profile Error: ', message);
+    alert(message); //I'll replace with toast notification in production
   }
 
   /**
    * Show success message
    */
 
-  private showSuccess(message: string): void{
-    console.log('Provider profile success:', message)
-    alert(message) //I'll replace with toast notification in production as well
-
+  private showSuccess(message: string): void {
+    console.log('Provider profile success:', message);
+    alert(message); //I'll replace with toast notification in production as well
   }
 
   /**
    * Utility delay function
    */
 
-  private delay(ms: number): Promise<void>{
-    return new Promise(resolve => setTimeout(resolve, ms))
-    
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
    * Get file name for display
    */
 
-  getFileName(file: File | null): string{
-    return file ? file.name : ''
-    
+  getFileName(file: File | null): string {
+    return file ? file.name : '';
   }
 
   /**
    * Remove selected file
    */
 
-  removeFile(type: 'logo' | 'verification'): void{
+  removeFile(type: 'logo' | 'verification'): void {
     if (type === 'logo') {
-      this.profileData.logoFile = null
-      
+      this.profileData.logoFile = null;
     } else {
-      this.profileData.verificationDocument = null
-      
+      this.profileData.verificationDocument = null;
     }
   }
 
@@ -359,7 +376,7 @@ export class ProviderSignup {
    * format phone number as user types (optional enhancement)
    */
 
-  onPhoneInput(event: any): void{
+  onPhoneInput(event: any): void {
     let value = event.target.value.replace;
 
     // Add formatting for common phone number patterns
@@ -381,5 +398,4 @@ export class ProviderSignup {
 
     this.profileData.phone = value;
   }
-
 }

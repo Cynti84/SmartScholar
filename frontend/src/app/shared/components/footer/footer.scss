@@ -42,7 +42,7 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     .footer-logo-text {
       color: $white;
       font-weight: 700;
@@ -55,13 +55,13 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   display: flex;
   gap: 2rem;
   flex-wrap: wrap;
-  
+
   .footer-link {
     color: #9ca3af;
     text-decoration: none;
     font-size: 0.875rem;
     transition: color 0.2s ease;
-    
+
     &:hover {
       color: $white;
     }
@@ -71,7 +71,7 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 .footer-social {
   display: flex;
   gap: 1rem;
-  
+
   .social-link {
     width: 40px;
     height: 40px;
@@ -83,7 +83,7 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     color: #9ca3af;
     text-decoration: none;
     transition: all 0.2s ease;
-    
+
     &:hover {
       background: $primary-color;
       color: $white;
@@ -94,12 +94,12 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 
 // Responsive Design
 @media (max-width: 768px) {
-    .footer-container {
+  .footer-container {
     flex-direction: column;
     text-align: center;
     gap: 2rem;
   }
-  
+
   .footer-links {
     justify-content: center;
   }

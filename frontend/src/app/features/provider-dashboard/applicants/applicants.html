@@ -1,7 +1,267 @@
-<app-dashboard-layout [title]="'Applicants'" [menu]="menu" logoUrl='logo.png'>
-      <section>
-        <h2>Applicants Works!!</h2>
-        <!-- provider content -->
-      </section>
-      
-    </app-dashboard-layout>
+<app-dashboard-layout
+  [title]="'Applicants'"
+  [menu]="menu"
+  logoUrl="logo.png"
+  (action)="onSidebarAction($event)"
+>
+  <!-- Applicants Insights Component Template -->
+  <div class="applicants-insights">
+    <!-- Header Section -->
+    <header class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">Applicants Insights</h1>
+        <div class="filter-section">
+          <label for="scholarship-filter" class="filter-label">Select Scholarship</label>
+          <select
+            id="scholarship-filter"
+            class="scholarship-filter"
+            [(ngModel)]="selectedScholarship"
+            (change)="onScholarshipChange()"
+          >
+            <option value="all">All Scholarships</option>
+            <option *ngFor="let scholarship of scholarships" [value]="scholarship.id">
+              {{ scholarship.title }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <!-- Summary Cards Section -->
+    <section class="summary-cards">
+      <div class="card-container">
+        <div class="summary-card total-applied">
+          <div class="card-icon">
+            <mat-icon style="font-size: 25px; color: #ffffff"> groups </mat-icon>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">Total Applied</h3>
+            <p class="card-value">{{ summaryStats.totalApplied }}</p>
+            <p class="card-description">students marked as applied</p>
+          </div>
+        </div>
+
+        <div class="summary-card popular-scholarship">
+          <div class="card-icon">
+            <mat-icon style="font-size: 25px; color: #000000"> emoji_events </mat-icon>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">Most Popular</h3>
+            <p class="card-value">{{ summaryStats.mostPopular.title }}</p>
+            <p class="card-description">({{ summaryStats.mostPopular.count }} applicants)</p>
+          </div>
+        </div>
+
+        <div class="summary-card deadline-soon">
+          <div class="card-icon">
+            <mat-icon style="font-size: 25px; color: #0288d1"> access_time </mat-icon>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">Deadline Soonest</h3>
+            <p class="card-value">{{ summaryStats.deadlineSoonest.title }}</p>
+            <p class="card-description">
+              (closes in {{ summaryStats.deadlineSoonest.daysLeft }} days)
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Charts Section -->
+    <section class="charts-section">
+      <div class="charts-grid">
+        <!-- Education Level Chart -->
+        <div class="chart-card">
+          <h3 class="chart-title">By Education Level</h3>
+
+          <!-- Canvas is ALWAYS in the DOM; hidden via CSS when there's no data -->
+          <div class="chart-container" [class.hidden]="educationData.length === 0">
+            <canvas #educationChart></canvas>
+          </div>
+          <div class="chart-legend" [class.hidden]="educationData.length === 0">
+            <div class="legend-item" *ngFor="let item of educationData">
+              <span class="legend-color" [style.background-color]="item.color"></span>
+              <span class="legend-text">{{ item.label }}: {{ item.percentage }}%</span>
+            </div>
+          </div>
+
+          <!-- Empty state shown only when data is actually empty -->
+          <div class="empty-state" *ngIf="educationData.length === 0">
+            <div class="empty-state__icon">
+              <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="36"
+                  stroke="#e2e8f0"
+                  stroke-width="4"
+                  stroke-dasharray="8 4"
+                />
+                <circle cx="40" cy="40" r="22" fill="#f1f5f9" />
+                <circle cx="40" cy="32" r="7" fill="#cbd5e1" />
+                <path d="M26 52c0-7.732 6.268-14 14-14s14 6.268 14 14" fill="#cbd5e1" />
+              </svg>
+            </div>
+            <p class="empty-state__title">No education data yet</p>
+            <p class="empty-state__subtitle">
+              Data will appear once students apply to your scholarships
+            </p>
+          </div>
+        </div>
+
+        <!-- Field of Study Chart -->
+        <div class="chart-card">
+          <h3 class="chart-title">By Field of Study</h3>
+
+          <div class="chart-container" [class.hidden]="fieldData.length === 0">
+            <canvas #fieldChart></canvas>
+          </div>
+
+          <div class="empty-state" *ngIf="fieldData.length === 0">
+            <div class="empty-state__icon">
+              <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="12" y="52" width="12" height="16" rx="3" fill="#cbd5e1" />
+                <rect x="30" y="40" width="12" height="28" rx="3" fill="#e2e8f0" />
+                <rect x="48" y="30" width="12" height="38" rx="3" fill="#cbd5e1" />
+                <rect x="66" y="44" width="12" height="24" rx="3" fill="#e2e8f0" />
+                <line x1="8" y1="68" x2="82" y2="68" stroke="#cbd5e1" stroke-width="2" />
+                <circle cx="18" cy="22" r="5" fill="#cbd5e1" />
+                <path d="M15 22 L18 19 L21 22" stroke="#94a3b8" stroke-width="1.5" fill="none" />
+              </svg>
+            </div>
+            <p class="empty-state__title">No field data yet</p>
+            <p class="empty-state__subtitle">
+              Field of study breakdown will show up here as applicants come in
+            </p>
+          </div>
+        </div>
+
+        <!-- Country Chart -->
+        <div class="chart-card">
+          <h3 class="chart-title">By Country</h3>
+
+          <div class="chart-container" [class.hidden]="countryData.length === 0">
+            <canvas #countryChart></canvas>
+          </div>
+
+          <div class="empty-state" *ngIf="countryData.length === 0">
+            <div class="empty-state__icon">
+              <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="40" cy="40" r="28" stroke="#e2e8f0" stroke-width="3" fill="#f8fafc" />
+                <ellipse
+                  cx="40"
+                  cy="40"
+                  rx="14"
+                  ry="28"
+                  stroke="#e2e8f0"
+                  stroke-width="2"
+                  fill="none"
+                />
+                <line x1="12" y1="40" x2="68" y2="40" stroke="#e2e8f0" stroke-width="2" />
+                <line x1="18" y1="25" x2="62" y2="25" stroke="#e2e8f0" stroke-width="1.5" />
+                <line x1="18" y1="55" x2="62" y2="55" stroke="#e2e8f0" stroke-width="1.5" />
+                <circle cx="55" cy="28" r="6" fill="#cbd5e1" />
+                <path
+                  d="M55 24 L55 28 L58 28"
+                  stroke="#94a3b8"
+                  stroke-width="1.5"
+                  fill="none"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+            <p class="empty-state__title">No country data yet</p>
+            <p class="empty-state__subtitle">
+              Geographic distribution will appear once you receive applications
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scholarship Table Section -->
+    <section class="table-section">
+      <div class="table-card">
+        <h3 class="table-title">Scholarship Overview</h3>
+        <ng-container *ngIf="scholarshipTableData.length > 0; else tableEmpty">
+          <div class="table-container">
+            <table class="scholarship-table">
+              <thead>
+                <tr>
+                  <th>Scholarship Title</th>
+                  <th>Total Applied</th>
+                  <th>Top Field of Study</th>
+                  <th>Top Country</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let scholarship of scholarshipTableData">
+                  <td class="scholarship-name">{{ scholarship.title }}</td>
+                  <td class="applied-count">{{ scholarship.totalApplied }}</td>
+                  <td class="top-field">{{ scholarship.topField }}</td>
+                  <td class="top-country">{{ scholarship.topCountry }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </ng-container>
+        <ng-template #tableEmpty>
+          <div class="empty-state empty-state--table">
+            <div class="empty-state__icon">
+              <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect
+                  x="10"
+                  y="16"
+                  width="60"
+                  height="48"
+                  rx="5"
+                  stroke="#e2e8f0"
+                  stroke-width="3"
+                  fill="#f8fafc"
+                />
+                <line x1="10" y1="32" x2="70" y2="32" stroke="#e2e8f0" stroke-width="2.5" />
+                <rect x="18" y="22" width="20" height="4" rx="2" fill="#cbd5e1" />
+                <rect x="44" y="22" width="12" height="4" rx="2" fill="#cbd5e1" />
+                <rect x="18" y="40" width="16" height="3" rx="1.5" fill="#e2e8f0" />
+                <rect x="18" y="49" width="20" height="3" rx="1.5" fill="#e2e8f0" />
+                <rect x="18" y="58" width="14" height="3" rx="1.5" fill="#e2e8f0" />
+                <circle cx="58" cy="58" r="10" fill="#3b82f6" />
+                <path
+                  d="M55 58 L61 58 M58 55 L58 61"
+                  stroke="#fff"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+            <p class="empty-state__title">No scholarships yet</p>
+            <p class="empty-state__subtitle">
+              Post your first scholarship to start seeing applicant insights here
+            </p>
+          </div>
+        </ng-template>
+      </div>
+    </section>
+
+    <!-- Disclaimer Section -->
+    <section class="disclaimer-section">
+      <div class="disclaimer-card">
+        <div class="disclaimer-icon">
+          <i class="icon-info"></i>
+        </div>
+        <p class="disclaimer-text">
+          <strong>Note:</strong> These numbers represent students who marked themselves as applied
+          on SmartScholar. Official applications are processed on your institution's website.
+        </p>
+      </div>
+    </section>
+  </div>
+</app-dashboard-layout>
+
+<app-confirm-modal
+  *ngIf="showLogoutModal"
+  title="Log out"
+  message="Are you sure you want to log out of SmartScholar?"
+  (confirm)="confirmLogout()"
+  (cancel)="cancelLogout()"
+></app-confirm-modal>

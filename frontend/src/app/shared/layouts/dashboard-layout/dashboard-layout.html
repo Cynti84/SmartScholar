@@ -1,18 +1,62 @@
-<div class="app-shell">
+<div class="app-shell" [ngClass]="{ 'dark-mode': isDarkMode }">
   <app-sidebar
     [items]="menu"
+    (action)="onSidebarAction($event)"
     [collapsed]="collapsed"
     [logoUrl]="logoUrl"
     [logoIconUrl]="logoIconUrl"
     [logoText]="logoText"
     [logoAlt]="logoAlt"
+    [showNavigationTitle]="true"
+    (collapsedChange)="onSidebarCollapsedChange($event)"
+    (mobileMenuToggle)="onMobileMenuToggle($event)"
   >
   </app-sidebar>
-  <div class="main-area">
+
+  <div class="main-area" [ngClass]="getMainAreaClasses()">
     <header class="topbar">
-      <!-- <button (click)="collapsed = !collapsed">☰</button> -->
-      <h3>{{ title }}</h3>
+      <div class="topbar-content">
+        <button
+          class="mobile-menu-trigger"
+          (click)="toggleMobileMenu()"
+          aria-label="Toggle navigation menu"
+          *ngIf="isMobile"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+
+        <h3 class="topbar-title">{{ title }}</h3>
+
+        <div class="topbar-actions">
+          <!-- Add your header actions here (notifications, user menu, etc.) -->
+          <slot name="header-actions"></slot>
+
+          <!-- Theme toggle -->
+          <!-- <button
+            class="theme-toggle-btn"
+            type="button"
+            (click)="toggleTheme()"
+            [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+          >
+            {{ isDarkMode ? '🌞' : '🌙' }}
+          </button> -->
+        </div>
+      </div>
     </header>
-    <main class="content"><ng-content></ng-content></main>
+
+    <main class="content fade-in">
+      <ng-content></ng-content>
+    </main>
   </div>
 </div>
