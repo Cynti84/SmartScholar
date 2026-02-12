@@ -53,4 +53,12 @@ export class ProviderProfile {
   })
   @JoinColumn({ name: "provider_id" })
   user!: User;
+
+  @Column({ type: "jsonb", nullable: true })
+  preferences?: {
+    notifyScholarshipExpiry?: boolean;
+    notifyNewApplications?: boolean;
+    notifySystemUpdates?: boolean;
+    defaultDashboardView?: string;
+  };
 }

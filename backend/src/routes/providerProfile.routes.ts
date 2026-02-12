@@ -5,6 +5,7 @@ import {
   getProviderProfile,
   updateProviderProfile,
   deleteProviderProfile,
+  // updateProviderPreferences,
 } from "../controllers/providerProfile.controller";
 import { upload } from "../config/multer.config";
 
@@ -18,13 +19,13 @@ router.post(
     { name: "logoFile", maxCount: 1 },
     { name: "verificationDocument", maxCount: 5 },
   ]),
-  createProviderProfile
+  createProviderProfile,
 );
 router.get(
   "/get",
   AuthMiddleware.authenticate,
   AuthMiddleware.isProvider,
-  getProviderProfile
+  getProviderProfile,
 );
 router.put(
   "/update",
@@ -34,13 +35,14 @@ router.put(
     { name: "logoFile", maxCount: 1 },
     { name: "verificationDocument", maxCount: 5 },
   ]),
-  updateProviderProfile
+  updateProviderProfile,
 );
+
 router.delete(
   "/delete",
   AuthMiddleware.authenticate,
   AuthMiddleware.isProvider,
-  deleteProviderProfile
+  deleteProviderProfile,
 );
 
 export default router;

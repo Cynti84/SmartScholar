@@ -131,7 +131,7 @@ export class Profile implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private providerService: ProviderService
+    private providerService: ProviderService,
   ) {
     this.initializeForms();
   }
@@ -164,7 +164,7 @@ export class Profile implements OnInit {
         newPassword: ['', [Validators.required, Validators.minLength(8)]],
         confirmPassword: ['', Validators.required],
       },
-      { validators: this.passwordMatchValidator }
+      { validators: this.passwordMatchValidator },
     );
 
     // Store original form data for reset functionality
@@ -188,6 +188,10 @@ export class Profile implements OnInit {
           country: provider.country,
           email: provider.user.email,
           phone: provider.phone,
+          notifyScholarshipExpiry: provider.preferences?.notifyScholarshipExpiry ?? true,
+          notifyNewApplications: provider.preferences?.notifyNewApplications ?? true,
+          notifySystemUpdates: provider.preferences?.notifySystemUpdates ?? false,
+          defaultDashboardView: provider.preferences?.defaultDashboardView ?? 'overview',
         });
 
         this.originalFormData = { ...this.profileForm.value };
@@ -277,7 +281,7 @@ export class Profile implements OnInit {
   // Method to trigger document file input click
   triggerDocumentUpload() {
     const docInput = document.querySelector(
-      'input[type="file"][accept=".pdf,.doc,.docx"]'
+      'input[type="file"][accept=".pdf,.doc,.docx"]',
     ) as HTMLInputElement;
     if (docInput) {
       docInput.click();
@@ -383,6 +387,16 @@ export class Profile implements OnInit {
     formData.append('country', value.country);
     formData.append('phone', value.phone || '');
     formData.append('email', value.email || '');
+
+    const preferences = {
+      notifyScholarshipExpiry: value.notifyScholarshipExpiry,
+      notifyNewApplications: value.notifyNewApplications,
+      notifySystemUpdates: value.notifySystemUpdates,
+      defaultDashboardView: value.defaultDashboardView,
+    };
+
+    // Convert preferences to JSON string because FormData can only send strings/blobs
+    formData.append('preferences', JSON.stringify(preferences));
 
     if (this.selectedLogoFile) {
       formData.append('logoFile', this.selectedLogoFile); //replace logo

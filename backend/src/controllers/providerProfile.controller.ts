@@ -44,6 +44,15 @@ export const updateProviderProfile = async (req: Request, res: Response) => {
   const updateData: any = {
     ...data,
   };
+  // Merge preferences explicitly
+  if (data.preferences) {
+    try {
+      updateData.preferences = JSON.parse(data.preferences);
+    } catch (err) {
+      console.error("Failed to parse preferences", err);
+      updateData.preferences = {};
+    }
+  }
   // replace logo
   if (logoUrl) {
     updateData.logo_url = logoUrl;
@@ -73,3 +82,25 @@ export const deleteProviderProfile = async (req: Request, res: Response) => {
     .status(200)
     .json({ message: "Provider profile deleted successfully." });
 };
+
+// export const updateProviderPreferences = async (
+//   req: Request,
+//   res: Response,
+// ) => {
+//   const userId = req.user!.id;
+//   const preferences = req.body;
+
+//   try {
+//     const result = await providerProfileService.updatePreferences(
+//       userId,
+//       preferences,
+//     );
+//     return res.status(200).json({
+//       message: "Preferences updated successfully",
+//       preferences: result.preferences,
+//     });
+//   } catch (err: any) {
+//     console.error(err);
+//     return res.status(500).json({ message: err.message || "Server error" });
+//   }
+// };
