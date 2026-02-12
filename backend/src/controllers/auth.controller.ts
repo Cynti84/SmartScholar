@@ -330,9 +330,41 @@ export class AuthController {
         user.role,
       );
 
-      res
-        .status(200)
-        .json({ success: true, message: "Email verified successfully!" });
+      res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Email Verified</title>
+  <style>
+    body { font-family: Arial; background: #f4f6f8; }
+    .box {
+      max-width: 400px;
+      margin: 100px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    a {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 25px;
+      background: #667eea ;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>✅ Email Verified</h1>
+    <p>Your account has been successfully verified.</p>
+    <a href="http://localhost:4200/auth/login">Go to Login</a>
+  </div>
+</body>
+</html>
+`);
     } catch (error) {
       console.error("Email verification error:", error);
       res.status(500).json({
