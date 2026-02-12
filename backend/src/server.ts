@@ -2,7 +2,7 @@ import "reflect-metadata";
 import dotenv from "dotenv";
 import express, { Request, Response } from "express";
 import cors from "cors";
-import { connectDB } from "./utils/db";
+import { connectDB, runMigrationsSafe } from "./utils/db";
 import authRoutes from "./routes/auth.routes";
 import providerRoutes from "./routes/providerProfile.routes";
 import adminRoutes from "./routes/admin.routes";
@@ -24,8 +24,9 @@ dotenv.config();
 //2. create instance of express
 const app = express();
 
-//3. load variables
-const PORT = process.env.PORT || 5000;
+// Middleware (parse JSON)
+app.use(express.json({ limit: "5gb" }));
+app.use(express.urlencoded({ limit: "5gb", extended: true }));
 
 // Allow multiple origins for production
 const allowedOrigins = [
@@ -59,13 +60,6 @@ app.use(
     credentials: true,
   })
 );
-
-//5. Connect to DB
-connectDB();
-
-//6. Middleware (parse JSON)
-app.use(express.json({ limit: "5gb" }));
-app.use(express.urlencoded({ limit: "5gb", extended: true }));
 
 // Simple Test
 app.get("/", (req: Request, res: Response) => {
@@ -124,7 +118,15 @@ app.use(
   }
 );
 
-// Start server
-app.listen(PORT, () => {
-  console.log(` Server running at http://localhost:${PORT}`);
-});
+// safe migration on startup
+const startServer = async () => {
+  await connectDB(); // Connect to DB
+  await runMigrationsSafe(); // Run pending migrations safely
+
+  const PORT = process.env.PORT || 10000;
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+  });
+};
+
+startServer();

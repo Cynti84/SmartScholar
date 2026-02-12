@@ -72,3 +72,24 @@ export const connectDB = async () => {
     process.exit(1);
   }
 };
+
+// Add this inside db.ts
+
+export const runMigrationsSafe = async () => {
+  try {
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+    }
+
+    console.log("Running pending migrations...");
+    const migrations = await AppDataSource.runMigrations();
+    if (migrations.length === 0) {
+      console.log("No pending migrations ✅");
+    } else {
+      console.log(`Applied ${migrations.length} migrations ✅`);
+    }
+  } catch (err) {
+    console.error("Migration error:", err);
+    process.exit(1); // exit if migrations fail
+  }
+};
