@@ -71,32 +71,4 @@ router.post("/notifications", AdminNotificationController.createNotification);
 //report analytics
 router.get("/dashboard/reports", AdminReportsController.getDashboardData);
 
-router.get("/seed-admin", async (req, res) => {
-  const secret = req.query.secret;
-
-  if (secret !== "your-secret-key-here") {
-    return res.status(403).json({ message: "Forbidden" });
-  }
-
-  try {
-    const hashedPassword =
-      "$2b$12$KxwdTzJ4ImMQgUFlNbD1WeCV4numyRSoCms953Pcwo0sn8q6XrEzC";
-
-    const admin = await UserRepository.create({
-      firstName: "Admin",
-      lastName: "SmartScholar",
-      email: "admin@smartscholar.com",
-      password: hashedPassword,
-      role: UserRole.ADMIN,
-      isEmailVerified: true,
-      status: UserStatus.ACTIVE,
-    });
-
-    return res.json({ message: "Admin created successfully", id: admin.id });
-  } catch (error) {
-    return res.status(500).json({ message: "Error creating admin", error });
-  }
-});
-
-//smartscholar-jiqk.onrender.com/api/seed-admin?secret=your-secret-key-here
 export default router;

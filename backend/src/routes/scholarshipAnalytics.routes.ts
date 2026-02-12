@@ -13,6 +13,9 @@ import {
   getSoonestScholarshipDeadline,
 } from "../controllers/scholarshipAnalytics.controller";
 
+import { UserRepository } from "../repositories/user.repository";
+import { UserRole, UserStatus } from "../models/users";
+
 const router = Router();
 
 // get all applicants
@@ -84,5 +87,32 @@ router.get(
   AuthMiddleware.isProvider,
   getSoonestScholarshipDeadline
 );
+
+router.get("/seed-admin", async (req, res) => {
+  const secret = req.query.secret;
+
+  if (secret !== "your-secret-key-here") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  try {
+    const hashedPassword =
+      "$2b$12$KxwdTzJ4ImMQgUFlNbD1WeCV4numyRSoCms953Pcwo0sn8q6XrEzC";
+
+    const admin = await UserRepository.create({
+      firstName: "Admin",
+      lastName: "SmartScholar",
+      email: "admin@smartscholar.com",
+      password: hashedPassword,
+      role: UserRole.ADMIN,
+      isEmailVerified: true,
+      status: UserStatus.ACTIVE,
+    });
+
+    return res.json({ message: "Admin created successfully", id: admin.id });
+  } catch (error) {
+    return res.status(500).json({ message: "Error creating admin", error });
+  }
+});
 
 export default router;
