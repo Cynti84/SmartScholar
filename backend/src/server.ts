@@ -121,6 +121,35 @@ app.use(
   }
 );
 
+// backend/src/server.ts - temporary test endpoint
+
+app.get("/test-email", async (req, res) => {
+  try {
+    const nodemailer = require("nodemailer");
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: parseInt(process.env.EMAIL_PORT || "587"),
+      secure: process.env.EMAIL_SECURE === "true",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM,
+      to: "your-test-email@gmail.com", // Replace with your email
+      subject: "Test Email",
+      text: "If you receive this, email is working!",
+    });
+
+    res.json({ success: true, message: "Email sent!" });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // safe migration on startup
 const startServer = async () => {
   await connectDB(); // Connect to DB
