@@ -97,7 +97,7 @@ app.use(
 );
 app.use("/api/student/application-assistant", applicationAssistantRoutes);
 
-// backend/src/server.ts - temporary test endpoint
+// backend/src/server.ts - temporary test endpoint of /test-email
 
 app.get("/test-email", async (req, res) => {
   try {
