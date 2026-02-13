@@ -24,6 +24,9 @@ dotenv.config();
 //2. create instance of express
 const app = express();
 
+// enable trust proxy for production
+app.set("trust proxy", 1);
+
 // Middleware (parse JSON)
 app.use(express.json({ limit: "5gb" }));
 app.use(express.urlencoded({ limit: "5gb", extended: true }));
