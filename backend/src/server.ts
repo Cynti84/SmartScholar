@@ -105,22 +105,6 @@ app.use((req, res) => {
   });
 });
 
-// Error handler
-app.use(
-  (
-    err: Error,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    console.error("Error:", err);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
-  }
-);
-
 // backend/src/server.ts - temporary test endpoint
 
 app.get("/test-email", async (req, res) => {
@@ -149,6 +133,21 @@ app.get("/test-email", async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+// Error handler
+app.use(
+  (
+    err: Error,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error("Error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+);
 
 // safe migration on startup
 const startServer = async () => {
