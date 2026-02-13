@@ -50,11 +50,11 @@ export class AuthController {
       }
 
       const hashedPassword = await PasswordUtil.hashPassword(
-        signupData.password,
+        signupData.password
       );
       const verificationToken = PasswordUtil.generateToken();
       const verificationTokenExpires = new Date(
-        Date.now() + 24 * 60 * 60 * 1000,
+        Date.now() + 24 * 60 * 60 * 1000
       );
 
       const newUser = await UserRepository.create({
@@ -67,7 +67,7 @@ export class AuthController {
             : UserStatus.ACTIVE,
         firstName: signupData.firstName,
         lastName: signupData.lastName,
-        isEmailVerified: false,
+        isEmailVerified: true,
         verificationToken,
         verificationTokenExpires,
       });
@@ -75,7 +75,7 @@ export class AuthController {
       await EmailUtil.sendVerificationEmail(
         newUser.email,
         newUser.firstName || "User",
-        verificationToken,
+        verificationToken
       );
 
       const response: AuthResponse = {
@@ -118,7 +118,7 @@ export class AuthController {
 
       const isPasswordValid = await PasswordUtil.comparePassword(
         password,
-        user.password,
+        user.password
       );
 
       if (!isPasswordValid) {
@@ -221,7 +221,7 @@ export class AuthController {
       await EmailUtil.sendPasswordResetEmail(
         user.email,
         user.firstName || "User",
-        resetToken,
+        resetToken
       );
 
       res.status(200).json(response);
@@ -327,7 +327,7 @@ export class AuthController {
       await EmailUtil.sendWelcomeEmail(
         user.email,
         user.firstName || "User",
-        user.role,
+        user.role
       );
 
       res.send(`
@@ -422,7 +422,7 @@ export class AuthController {
 
       const verificationToken = PasswordUtil.generateToken();
       const verificationTokenExpires = new Date(
-        Date.now() + 24 * 60 * 60 * 1000,
+        Date.now() + 24 * 60 * 60 * 1000
       );
 
       await UserRepository.update(user.id, {
@@ -432,7 +432,7 @@ export class AuthController {
       await EmailUtil.sendVerificationEmail(
         user.email,
         user.firstName || "User",
-        verificationToken,
+        verificationToken
       );
 
       res.status(200).json({
@@ -523,7 +523,7 @@ export class AuthController {
       // 1️⃣ Verify current password
       const isPasswordValid = await PasswordUtil.comparePassword(
         currentPassword,
-        user.password,
+        user.password
       );
 
       if (!isPasswordValid) {
@@ -537,7 +537,7 @@ export class AuthController {
       // 2️⃣ Prevent reusing same password
       const isSamePassword = await PasswordUtil.comparePassword(
         newPassword,
-        user.password,
+        user.password
       );
 
       if (isSamePassword) {

@@ -147,7 +147,7 @@ export class Signup {
    */
   private handleSuccessfulSignup(): void {
     // Show success message
-    this.showSuccess('Account created successfully! Please verify your email to login.');
+    this.showSuccess('Account created successfully! Proceed to login.');
 
     // this.resetForm();
 
@@ -155,7 +155,6 @@ export class Signup {
       this.router.navigate(['/auth/login']);
     }, 2000);
   }
-
 
   /**
    * Handle signup errors
@@ -177,7 +176,6 @@ export class Signup {
 
     this.showError(errorMessage);
   }
-
 
   /**
    * Show error message (you can integrate with a toast service)
@@ -207,7 +205,6 @@ export class Signup {
     // Example: this.toastr.success(message, 'Welcome to SmartScholar!');
     alert(message); // Temporary solution
   }
-
 
   /**
    * Handle social login (if needed in the future)
