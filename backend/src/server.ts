@@ -97,14 +97,6 @@ app.use(
 );
 app.use("/api/student/application-assistant", applicationAssistantRoutes);
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
-});
-
 // backend/src/server.ts - temporary test endpoint
 
 app.get("/test-email", async (req, res) => {
@@ -133,6 +125,15 @@ app.get("/test-email", async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
+
 // Error handler
 app.use(
   (
